@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+ROOT_DIR=${ROOT_DIR:-$(cd "$(dirname ${BASH_SOURCE[0]})/.." && pwd)} && export ROOT_DIR
+. $ROOT_DIR/bin/_shared
+
+usage()
+{
+  cat << USAGE >&2
+Description:
+  Test
+
+Usage:
+  ${ALIASING_CMD_NAME:-$CMD_NAME}
+
+Alias(es):
+  ${ALIASED_CMD_NAME:-t}
+
+Options:
+  -b | --build               Build before?
+       --bundle              Bundle PHP files?
+  -c | --clean-dbs           Clean DBs?
+USAGE
+  exit 1
+}
+
+cleanup_dbs() {
+  if [ $(indocker) != '1' ]; then
+    echo "🧹 Cleaning up test databases..."
+    DB_LIST=$(docker exec core-db-1 psql -U dev -d template1 -t -c "SELECT datname FROM pg_database WHERE datname LIKE 'store_test_%' OR datname LIKE 'edge_test_%';" 2>/dev/null)
+    for DB in $DB_LIST; do
+      docker exec core-db-1 psql -U dev -d template1 -c "DROP DATABASE IF EXISTS \"$DB\" WITH (FORCE);" >/dev/null 2>&1
+    done
+  fi
+}
+
+main () {
+    if [ $CLEAN_DBS == '1' ]; then
+      trap cleanup_dbs EXIT INT TERM
+    fi
+
+    old_wd=$(pwd)
+
+    dir=$(dirname "$0")/..
+    cd "$dir"
+
+    if [ $BUILD == '1' ]; then
+      child_bin "build"
+    fi
+
+    echo "🧪 Running tests..."
+    echo
+
+    if [ $(indocker) == '1' ]; then
+      ./bin/run $( [ "$BUNDLE" == "1" ] && echo "--bundle" ) Test "${TEST_ARGS[@]}"
+    else
+      child_bin "docker/container/command/docker.container.command" -c api-cli -- "./bin/run $( [ "$BUNDLE" == "1" ] && echo "--bundle" ) Test ${TEST_ARGS[@]}"
+    fi
+    exit_code=$?
+
+    cd "$old_wd"
+    exit $exit_code
+}
+
+# process arguments
+while [[ $# -gt 0 ]]
+do
+  case "$1" in
+    -b | --build)
+    BUILD=1
+    shift
+    ;;
+    -c | --clean-dbs)
+    CLEAN_DBS=1
+    shift
+    ;;
+    --bundle)
+    BUNDLE=1
+    shift
+    ;;
+    -h | --help)
+    usage
+    ;;
+    *)
+    TEST_ARGS+=("$1")
+    shift
+    ;;
+  esac
+done
+
+BUILD=${BUILD:-0}
+BUNDLE=${BUNDLE:-0}
+CLEAN_DBS=${CLEAN_DBS:-0}
+
+main

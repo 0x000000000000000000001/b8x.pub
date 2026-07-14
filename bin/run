@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+
+ROOT_DIR=${ROOT_DIR:-$(cd "$(dirname ${BASH_SOURCE[0]})/.." && pwd)} && export ROOT_DIR
+. $ROOT_DIR/bin/_shared
+
+usage()
+{
+  cat << USAGE >&2
+Description:
+  Run a spago process
+
+Usage:
+  ${ALIASING_CMD_NAME:-$CMD_NAME} [-p] [INPUT]
+
+Arguments:
+  INPUT                      E.g. "Sync --help"
+
+Options:
+  -b | --build               Build before running the process?
+       --bundle              Bundle PHP files?
+  -e | --exec                Use exec to run the command? If so, there will be no child: the parent process will become the child itself.
+  -p | --precompiled         Run via Spago? If so, it will ensure that files are compiled first.
+  -w | --watch               Watch for changes?
+USAGE
+  exit 1
+}
+
+main () {
+    old_wd=$(pwd)
+
+    cd $ROOT_DIR
+
+    export NODE_NO_WARNINGS=1 # E.g. (node:11035) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities. (Use `node --trace-deprecation ...` to show where the warning was created)
+
+    if [[ "$BUILD" == '1' ]]; then 
+      child_bin "build" &>/dev/null
+    fi 
+
+    # Split arguments into head and tail
+    head="${INPUT_ARGS[0]}"
+    tail=("${INPUT_ARGS[@]:1}")
+
+    candidates=()
+    while read -r dir; do
+      if [[ -d "$dir" ]]; then
+        basename_dir="${dir##*/}"
+        if [[ "$basename_dir" == "$head.Main" ]] || [[ "$basename_dir" == *".$head.Main" ]]; then
+          candidates+=("$basename_dir")
+        fi
+      fi
+    done < <(find "$ROOT_DIR/output/" -maxdepth 1 -type d -name "*$head.Main" 2>/dev/null || true)
+
+    if [[ ${#candidates[@]} -eq 0 ]]; then
+      echo "No script found for '$head'" >&2
+      exit 1
+    elif [[ ${#candidates[@]} -eq 1 ]]; then
+      matched_dir="${candidates[0]}"
+    else
+      formatted=()
+      for c in "${candidates[@]}"; do
+        formatted+=("${c%.Main}")
+      done
+      
+      joined=""
+      for i in "${!formatted[@]}"; do
+        if [[ $i -gt 0 ]]; then joined="$joined, "; fi
+        joined="$joined${formatted[$i]}"
+      done
+      
+      echo "Ambiguous script name '$head'. Please specify which one you want to run: $joined" >&2
+      exit 1
+    fi
+
+    if [[ "$PRECOMPILED" != '1' ]]; then
+      is_php=0
+      if [[ -f "$ROOT_DIR/output/composer.json" ]]; then
+        is_php=1
+      fi
+
+      if [[ "$is_php" == "1" ]]; then
+        ext_type="mod"
+        if [[ "$BUNDLE" == "1" ]]; then
+          ext_type="bundle"
+        fi
+        
+        req_path="$ROOT_DIR/output/$matched_dir/main.$ext_type.php"
+        if [ $(indocker) == '1' ]; then
+          req_path="$req_path"
+        else
+          req_path="/var/www/b8x/output/$matched_dir/main.$ext_type.php"
+        fi
+
+        # XDEBUG_MODE can be "trace", "profile" or "off"
+        # JIT can be "disable" or "tracing"
+        JIT_MODE=${JIT:-tracing}
+        cmd=(php8.4 -d memory_limit=2048M -d opcache.enable_cli=${OPCACHE_CLI:-1} -d opcache.validate_timestamps=1 -d opcache.file_cache=/tmp/php_opcache -d opcache.jit=$JIT_MODE -d opcache.jit_buffer_size=128M -d xdebug.max_nesting_level=10000 -d xdebug.mode=${XDEBUG_MODE:-off} -d xdebug.start_with_request=yes -d xdebug.output_dir=/tmp -d xdebug.profiler_output_name=cachegrind.out.b8x -d xdebug.trace_output_name=trace.out.b8x "$req_path" "$head" "${tail[@]}")
+      else
+        local_output_dir="$ROOT_DIR/output/$matched_dir"
+        real_output_dir=$(cd "$local_output_dir" && pwd -P)
+        if [ $(indocker) == '1' ]; then
+          # Inside Docker, `output` is a mount point, so pwd -P does not resolve the host symlink.
+          # We rewrite it explicitly so Node ESM can traverse up and find node_modules in run/bak/js
+          real_output_dir="${real_output_dir/\/var\/www\/b8x\/output/\/var\/www\/b8x\/run\/bak\/js\/output}"
+        fi
+        import_path="$real_output_dir/index.js"
+        if [ $(indocker) != '1' ]; then
+          import_path="${import_path/$ROOT_DIR/\/var\/www\/b8x}"
+        fi
+        cmd=(node -e "import('$import_path').then(m => m.main())" "$head" "${tail[@]}")
+      fi
+    else
+      cmd=(spago run --main "${matched_dir}" -- "${tail[@]}")
+    fi
+
+    # Wrap the command with nodemon if WATCH mode is enabled
+    if [[ "$WATCH" == '1' ]]; then
+      # Need to stringify the base command array correctly for nodemon --exec
+      exec_cmd=""
+      for arg in "${cmd[@]}"; do
+        # Shell-escape each argument so it survives being parsed by nodemon/sh
+        exec_cmd+=" $(printf '%q ' "$arg")"
+      done
+      
+      if [[ "$PRECOMPILED" != '1' ]]; then
+        cmd=(nodemon --delay 1.0 --watch output --ext js,json --exec "${exec_cmd}")
+      else
+        cmd=(nodemon --delay 1.0 --watch src --ext purs,js,json --exec "${exec_cmd}")
+      fi
+    fi
+
+    # Execute the final command
+    if [ $(indocker) == '1' ]; then
+      if [[ "$EXEC" == '1' ]]; then
+        exec "${cmd[@]}" || { exit_code=$?; if [ $exit_code -eq 139 ]; then exit 0; else exit $exit_code; fi; }
+      else
+        "${cmd[@]}" || { exit_code=$?; if [ $exit_code -eq 139 ]; then exit 0; else exit $exit_code; fi; }
+      fi
+    else
+      exec_cmd="$(printf "%q " "${cmd[@]}")"
+      if [[ "$EXEC" == '1' ]]; then
+        exec $ROOT_DIR/bin/docker/container/command/docker.container.command -c api-cli -- "$exec_cmd"
+      else
+        child_bin "docker/container/command/docker.container.command" -c api-cli -- "$exec_cmd"
+      fi
+    fi
+}
+
+# process arguments
+while [[ $# -gt 0 ]]
+do
+  case "$1" in
+    -b | --build)
+    BUILD=1
+    shift
+    ;;
+    --bundle)
+    BUNDLE=1
+    shift
+    ;;
+    -e | --exec)
+    EXEC=1
+    shift
+    ;;
+    -p | --precompiled)
+    PRECOMPILED=1
+    shift
+    ;;
+    -w | --watch)
+    WATCH=1
+    shift
+    ;;
+    -h | --help)
+    usage
+    ;;
+    *)
+    if [[ ${#INPUT_ARGS[@]} -eq 0 ]]; then INPUT_ARGS=("$@"); break; fi
+    wrn "Unknown: $@\n"
+    usage
+    ;;
+  esac
+done
+
+BUILD=${BUILD:-0}
+BUNDLE=${BUNDLE:-0}
+PRECOMPILED=${PRECOMPILED:-0}
+EXEC=${EXEC:-0}
+WATCH=${WATCH:-0}
+
+if [[ ${#INPUT_ARGS[@]} -eq 0 ]]; then
+  wrn "Error: you need to provide an input (INPUT)\n"
+  usage
+fi
+
+main

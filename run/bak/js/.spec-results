@@ -1,0 +1,9 @@
+[
+  [
+    "Core.Message.Command.Handle.Test.Integration.HandleCommand should execute a single command",
+    {
+      "timestamp": "1783770602697.0",
+      "success": true
+    }
+  ]
+]

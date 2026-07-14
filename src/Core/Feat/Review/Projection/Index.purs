@@ -1,0 +1,88 @@
+module Core.Feat.Review.Projection.Index where
+
+import Core.Feat.Review.Message.Query.GetArticle.Projection.Index (GetArticleProjectionRow)
+import Core.Feat.Review.Message.Query.GetArticle.Projection.Projection (GET_ARTICLE_PROJECTION_READ_FIND, GET_ARTICLE_PROJECTION_READ_SYNC_PROJECT, GET_ARTICLE_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.GetArticleQuote.Projection.Index (GetArticleQuoteProjectionRow)
+import Core.Feat.Review.Message.Query.GetArticleQuote.Projection.Projection (GET_ARTICLE_QUOTE_PROJECTION_READ_FIND, GET_ARTICLE_QUOTE_PROJECTION_READ_SYNC_PROJECT, GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.GetFrontPage.Projection.Index (GetFrontPageProjectionRow)
+import Core.Feat.Review.Message.Query.GetFrontPage.Projection.Projection (GET_FRONT_PAGE_PROJECTION_READ_FIND, GET_FRONT_PAGE_PROJECTION_READ_SYNC_PROJECT, GET_FRONT_PAGE_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.ListMostReadArticles.Projection.Index (ListMostReadArticlesProjectionRow)
+import Core.Feat.Review.Message.Query.ListMostReadArticles.Projection.Projection (LIST_MOST_READ_ARTICLES_PROJECTION_READ_FIND, LIST_MOST_READ_ARTICLES_PROJECTION_READ_SYNC_PROJECT, LIST_MOST_READ_ARTICLES_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.ListNewsRelatedArticles.Projection.Index (ListNewsRelatedArticlesProjectionRow)
+import Core.Feat.Review.Message.Query.ListNewsRelatedArticles.Projection.Projection (LIST_NEWS_RELATED_ARTICLES_PROJECTION_READ_FIND, LIST_NEWS_RELATED_ARTICLES_PROJECTION_READ_SYNC_PROJECT, LIST_NEWS_RELATED_ARTICLES_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.ListNewsletterArticles.Projection.Index (ListNewsletterArticlesProjectionRow)
+import Core.Feat.Review.Message.Query.ListNewsletterArticles.Projection.Projection (LIST_NEWSLETTER_ARTICLES_PROJECTION_READ_FIND, LIST_NEWSLETTER_ARTICLES_PROJECTION_READ_SYNC_PROJECT, LIST_NEWSLETTER_ARTICLES_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.VerifyNewsTopicLimit.Projection.Index (VerifyNewsTopicLimitProjectionRow)
+import Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.Projection.Index (VerifyNewsRelatedArticleWhitelistLimitProjectionRow)
+import Core.Feat.Review.Message.Query.SearchArticles.Projection.Index (SearchArticlesProjectionRow)
+import Core.Feat.Review.Message.Query.SearchArticles.Projection.Projection (SEARCH_ARTICLES_PROJECTION_READ_FIND, SEARCH_ARTICLES_PROJECTION_READ_SYNC_PROJECT, SEARCH_ARTICLES_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.VerifyNewsTopicLimit.Projection.Projection (VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_READ_FIND, VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_READ_SYNC_PROJECT, VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.Projection.Projection (VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_READ_FIND, VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_READ_SYNC_PROJECT, VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.VerifyArticleLegacyIdUniqueness.Projection.Index (VerifyArticleLegacyIdUniquenessProjectionRow)
+import Core.Feat.Review.Message.Query.VerifyArticleLegacyIdUniqueness.Projection.Projection (VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_READ_FIND, VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT, VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Command.WriteArticle.Projection.Index (WriteArticleProjectionRow)
+import Core.Feat.Review.Message.Command.WriteArticle.Projection.Projection (WRITE_ARTICLE_PROJECTION_READ_FIND, WRITE_ARTICLE_PROJECTION_READ_SYNC_PROJECT, WRITE_ARTICLE_PROJECTION_WRITE_OPS)
+import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Projection.Index (VerifyArticleSlugUniquenessProjectionRow)
+import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Projection.Projection (VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_READ_FIND, VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT, VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_WRITE_OPS)
+
+import Type.Row (type (+))
+
+type ReviewProjectionRow r =
+  GetArticleProjectionRow
+    + GetArticleQuoteProjectionRow
+    + GetFrontPageProjectionRow
+    + ListMostReadArticlesProjectionRow
+    + ListNewsRelatedArticlesProjectionRow
+    + ListNewsletterArticlesProjectionRow
+    + VerifyNewsTopicLimitProjectionRow
+    + VerifyArticleLegacyIdUniquenessProjectionRow
+    + WriteArticleProjectionRow
+    + VerifyArticleSlugUniquenessProjectionRow
+    + VerifyNewsRelatedArticleWhitelistLimitProjectionRow
+    + SearchArticlesProjectionRow
+    + r
+
+type REVIEW_PROJECTION_WRITE_OPS fx =
+  GET_ARTICLE_PROJECTION_WRITE_OPS
+    + GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS
+    + GET_FRONT_PAGE_PROJECTION_WRITE_OPS
+    + LIST_MOST_READ_ARTICLES_PROJECTION_WRITE_OPS
+    + LIST_NEWS_RELATED_ARTICLES_PROJECTION_WRITE_OPS
+    + LIST_NEWSLETTER_ARTICLES_PROJECTION_WRITE_OPS
+    + VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_WRITE_OPS
+    + VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_WRITE_OPS
+    + SEARCH_ARTICLES_PROJECTION_WRITE_OPS
+    + WRITE_ARTICLE_PROJECTION_WRITE_OPS
+    + VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_WRITE_OPS
+    + VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_OPS
+    + fx
+
+type REVIEW_PROJECTION_READ_FIND fx =
+  GET_ARTICLE_PROJECTION_READ_FIND
+    + GET_ARTICLE_QUOTE_PROJECTION_READ_FIND
+    + GET_FRONT_PAGE_PROJECTION_READ_FIND
+    + LIST_MOST_READ_ARTICLES_PROJECTION_READ_FIND
+    + LIST_NEWS_RELATED_ARTICLES_PROJECTION_READ_FIND
+    + LIST_NEWSLETTER_ARTICLES_PROJECTION_READ_FIND
+    + VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_READ_FIND
+    + VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_READ_FIND
+    + SEARCH_ARTICLES_PROJECTION_READ_FIND
+    + WRITE_ARTICLE_PROJECTION_READ_FIND
+    + VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_READ_FIND
+    + VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_READ_FIND
+    + fx
+
+type REVIEW_PROJECTION_READ_SYNC_PROJECT fx =
+  GET_ARTICLE_PROJECTION_READ_SYNC_PROJECT
+    + GET_ARTICLE_QUOTE_PROJECTION_READ_SYNC_PROJECT
+    + GET_FRONT_PAGE_PROJECTION_READ_SYNC_PROJECT
+    + LIST_MOST_READ_ARTICLES_PROJECTION_READ_SYNC_PROJECT
+    + LIST_NEWS_RELATED_ARTICLES_PROJECTION_READ_SYNC_PROJECT
+    + LIST_NEWSLETTER_ARTICLES_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT
+    + SEARCH_ARTICLES_PROJECTION_READ_SYNC_PROJECT
+    + WRITE_ARTICLE_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_READ_SYNC_PROJECT
+    + fx

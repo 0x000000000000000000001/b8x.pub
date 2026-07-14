@@ -1,0 +1,58 @@
+{
+  "name": "b8x",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "api": "./bin/api",
+    "build": "./bin/build",
+    "conf": "./bin/conf",
+    "run": "./bin/run",
+    "sync": "./bin/sync",
+    "test": "./bin/test",
+    "ui": "./bin/ui",
+    "benchmark": "./bin/run Benchmark",
+    "worker": "./bin/run Worker",
+    "projection": "./bin/run Projection"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1008.0",
+    "@aws-sdk/client-ses": "^3.893.0",
+    "amqplib": "^0.10.3",
+    "big-integer": "^1.6.52",
+    "cookie": "^1.1.1",
+    "dompurify": "^3.4.5",
+    "dotenv": "^17.2.3",
+    "glob": "^13.0.6",
+    "he": "^1.2.0",
+    "image-size": "^2.0.2",
+    "isomorphic-dompurify": "^3.14.0",
+    "jsdom": "^29.1.1",
+    "jszip": "^3.10.1",
+    "nodemailer": "^7.0.12",
+    "paseto": "^3.1.4",
+    "pg": "^8.16.3",
+    "purty": "^7.0.0",
+    "rate-limiter-flexible": "^11.1.0",
+    "sharp": "^0.34.5",
+    "source-map": "^0.7.6",
+    "source-map-js": "^1.2.1",
+    "ulid": "^3.0.2",
+    "uuid": "^13.0.0",
+    "wpautop": "^1.0.0",
+    "xhr2": "^0.2.1",
+    "xxhash-wasm": "^1.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11",
+    "vite": "^8.0.0"
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-arm64": "^0.27.4",
+    "@img/sharp-linux-arm64": "^0.34.5",
+    "@rolldown/binding-linux-arm64-gnu": "^1.0.0-rc.10"
+  }
+}

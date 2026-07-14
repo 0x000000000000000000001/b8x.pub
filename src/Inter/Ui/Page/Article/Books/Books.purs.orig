@@ -1,0 +1,59 @@
+module Inter.Ui.Page.Article.Books.Books
+  (books
+  ) where
+
+import Proem hiding (div)
+
+import Core.Feat.Message.Query.Result (Fold(..), Return(..))
+import Core.Mod.Book.Message.Query.Result.Books (Book_)
+import Core.Feat.Review.Message.Query.GetArticle.Result (Article)
+import Data.Array as Array
+import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
+import Halogen.HTML (HTML, text)
+import Html.Renderer.Halogen (render_)
+import Inter.Ui.Page.Article.Books.Style as Style
+import Inter.Ui.Page.Article.Hero.Illustration.Image.Image (image)
+import Inter.Ui.Type.InstanceId (InstanceId)
+import Util.Type.String.ToString (toString)
+import Core.Mod.Book.Message.Query.Result.Authors (Author)
+
+books :: ∀ p i. InstanceId -> Article -> HTML p i
+books id article = case article.books of
+  Given (Unfolded bookList) | Array.length bookList > 0 ->
+    Style.booksContainer_ id
+      [ Style.watermark_ id [ text (if Array.length bookList > 1 then "LES LIVRES" else "LE LIVRE") ]
+      , Style.sectionTitle_ id [ text (if Array.length bookList > 1 then "Les Livres" else "Le Livre") ]
+      , Style.booksList_ id (bookList <#> renderBook id)
+      ]
+  _ -> text ""
+
+renderBook :: ∀ p i. InstanceId -> Book_ -> HTML p i
+renderBook id book =
+  Style.bookCard_ id
+    [ Style.bookCover_ id
+        [ case book.cover of
+            Given (Just img) ->
+              case img.src of
+                Given src -> image { id } src true
+                _ -> text ""
+            _ -> text ""
+        ]
+    , Style.bookInfo_ id
+        [ case book.name of
+            Given name -> Style.bookTitle_ id [ render_ (toString name) ]
+            _ -> text ""
+        , case book.authors of
+            Given authorsList -> Style.bookAuthors_ id [ render_ (Array.intercalate ", " (Array.mapMaybe extractAuthorName authorsList)) ]
+            _ -> text ""
+        , case book.editor of
+            Given (Just editorName) -> Style.bookEditor_ id [ render_ (toString editorName) ]
+            _ -> text ""
+        , case book.year of
+            Given (Just y) -> Style.bookYear_ id [ text (if (unwrap y).approximately then "vers " <> show (unwrap y).year else show (unwrap y).year) ]
+            _ -> text ""
+        ]
+    ]
+
+extractAuthorName :: Author -> Maybe String
+extractAuthorName a = Just (toString a.name)

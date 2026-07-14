@@ -1,0 +1,26 @@
+{
+    "name": "0x000000000000000000001/b8x",
+    "authors": [
+        {
+            "name": "0x1",
+            "email": "kevin.francart3@gmail.com"
+        }
+    ],
+    "require": {
+        "phpurs/lib-deps": "@dev",
+        "amphp/postgres": "^2.2",
+        "amphp/http-client": "^5.3",
+        "paragonie/paseto": "^3.5",
+        "aws/aws-sdk-php": "^3.387",
+        "symfony/uid": "^8.1",
+        "symfony/mailer": "^8.1",
+        "php-amqplib/php-amqplib": "^3.7",
+        "amphp/http-server": "^3.4"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "output"
+        }
+    ]
+}

@@ -1,0 +1,112 @@
+package:
+  dependencies:
+    - aff
+    - affjax
+    - affjax-node
+    - affjax-web
+    - ansi
+    - arraybuffer-types
+    - arrays
+    - arrays-zipper
+    - avar
+    - bifunctors
+    - bigints
+    - catenable-lists
+    - colors
+    - concurrent-queues
+    - console
+    - const
+    - css
+    - datetime
+    - dom-indexed
+    - effect
+    - either
+    - enums
+    - exceptions
+    - exists
+    - foldable-traversable
+    - foreign
+    - foreign-object
+    - formatters
+    - halogen
+    - halogen-css
+    - halogen-store
+    - heterogeneous
+    - html-parser-halogen
+    - integers
+    - js-promise
+    - js-promise-aff
+    - lists
+    - maybe
+    - newtype
+    - node-buffer
+    - node-event-emitter
+    - node-fs
+    - node-http
+    - node-net
+    - node-path
+    - node-process
+    - node-readline
+    - node-streams
+    - nonempty
+    - now
+    - numbers
+    - options
+    - optparse
+    - ordered-collections
+    - parallel
+    - partial
+    - posix-types
+    - prelude
+    - profunctor-lenses
+    - random
+    - read
+    - record
+    - refs
+    - remotedata
+    - routing
+    - routing-duplex
+    - run
+    - spec
+    - spec-node
+    - st
+    - strings
+    - tailrec
+    - transformers
+    - tuples
+    - typelevel-prelude
+    - unicode
+    - unsafe-coerce
+    - uuid
+    - variant
+    - web-dom
+    - web-events
+    - web-html
+    - web-storage
+    - web-uievents
+    - yoga-json
+  name: 'b8x'
+  build:
+    censorProjectWarnings:
+      - WildcardInferredType
+
+workspace:
+  extraPackages:
+
+    html-parser-halogen:
+      dependencies:
+        - arrays
+        - control
+        - dom-indexed
+        - effect
+        - foldable-traversable
+        - halogen
+        - maybe
+        - prelude
+        - psci-support
+      git: https://github.com/rnons/purescript-html-parser-halogen.git
+      ref: master
+
+  packageSet:
+    registry: 73.3.0
+

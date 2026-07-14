@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+TARGET=$1
+
+if [[ "$TARGET" != "js" && "$TARGET" != "php" ]]; then
+  echo "Usage: bin/target [js|php]"
+  exit 1
+fi
+
+echo "Swapping target to $TARGET..."
+
+cd "$(dirname "$0")/.."
+
+rm -rf output .spago spago.yaml spago.lock composer.json composer.lock vendor
+
+mkdir -p "run/bak/$TARGET/output"
+mkdir -p "run/bak/$TARGET/.spago"
+
+ln -s "run/bak/$TARGET/output" output
+ln -s "run/bak/$TARGET/.spago" .spago
+ln -s "run/bak/$TARGET/spago.$TARGET.yaml" spago.yaml
+touch "run/bak/$TARGET/spago.lock"
+ln -s "run/bak/$TARGET/spago.lock" spago.lock
+
+echo "TARGET=$TARGET" > env/dev/target.env
+
+echo "Target is now $TARGET"
+
+if ! docker ps --format '{{.Names}}' | grep -q "api"; then
+  echo "No API container found, skipping docker restart."
+else
+  echo "Restarting API containers to apply changes..."
+  ./bin/docker/up/up -g api
+fi

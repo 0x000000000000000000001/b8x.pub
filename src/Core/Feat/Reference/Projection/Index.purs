@@ -1,0 +1,94 @@
+module Core.Feat.Reference.Projection.Index where
+
+import Core.Feat.Reference.Message.Query.GetMagazineCalendar.Projection.Index (GetMagazineCalendarProjectionRow)
+import Core.Feat.Reference.Message.Query.GetMagazineCalendar.Projection.Projection (GET_MAGAZINE_CALENDAR_PROJECTION_READ_FIND, GET_MAGAZINE_CALENDAR_PROJECTION_READ_SYNC_PROJECT, GET_MAGAZINE_CALENDAR_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.SearchMagazineCustomSections.Projection.Index (SearchMagazineCustomSectionsProjectionRow)
+import Core.Feat.Reference.Message.Query.SearchMagazineCustomSections.Projection.Projection (SEARCH_MAGAZINE_CUSTOM_SECTIONS_PROJECTION_READ_FIND, SEARCH_MAGAZINE_CUSTOM_SECTIONS_PROJECTION_READ_SYNC_PROJECT, SEARCH_MAGAZINE_CUSTOM_SECTIONS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.SearchAuthors.Projection.Index (SearchAuthorsProjectionRow)
+import Core.Feat.Reference.Message.Query.SearchAuthors.Projection.Projection (SEARCH_AUTHORS_PROJECTION_READ_FIND, SEARCH_AUTHORS_PROJECTION_READ_SYNC_PROJECT, SEARCH_AUTHORS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.SearchBooks.Projection.Index (SearchBooksProjectionRow)
+import Core.Feat.Reference.Message.Query.SearchBooks.Projection.Projection (SEARCH_BOOKS_PROJECTION_READ_FIND, SEARCH_BOOKS_PROJECTION_READ_SYNC_PROJECT, SEARCH_BOOKS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.SearchEditors.Projection.Index (SearchEditorsProjectionRow)
+import Core.Feat.Reference.Message.Query.SearchEditors.Projection.Projection (SEARCH_EDITORS_PROJECTION_READ_FIND, SEARCH_EDITORS_PROJECTION_READ_SYNC_PROJECT, SEARCH_EDITORS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.SearchMagazineIssues.Projection.Index (SearchMagazineIssuesProjectionRow)
+import Core.Feat.Reference.Message.Query.SearchMagazineIssues.Projection.Projection (SEARCH_MAGAZINE_ISSUES_MAGAZINE_ISSUE_PROJECTION_READ_FIND, SEARCH_MAGAZINE_ISSUES_PROJECTION_READ_SYNC_PROJECT, SEARCH_MAGAZINE_ISSUES_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.VerifyEditorUniqueness.Projection.Index (VerifyEditorUniquenessProjectionRow)
+import Core.Feat.Reference.Message.Query.VerifyEditorUniqueness.Projection.Projection (VERIFY_EDITOR_UNIQUENESS_PROJECTION_READ_FIND, VERIFY_EDITOR_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT, VERIFY_EDITOR_UNIQUENESS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.VerifyMagazineIssueSlugUniqueness.Projection.Index (VerifyMagazineIssueSlugUniquenessProjectionRow)
+import Core.Feat.Reference.Message.Query.VerifyMagazineIssueSlugUniqueness.Projection.Projection (VERIFY_MAGAZINE_ISSUE_SLUG_UNIQUENESS_PROJECTION_READ_FIND, VERIFY_MAGAZINE_ISSUE_SLUG_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT, VERIFY_MAGAZINE_ISSUE_SLUG_UNIQUENESS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.VerifyMagazineIssueUniqueness.Projection.Index (VerifyMagazineIssueUniquenessProjectionRow)
+import Core.Feat.Reference.Message.Query.VerifyMagazineIssueUniqueness.Projection.Projection (VERIFY_MAGAZINE_ISSUE_UNIQUENESS_PROJECTION_READ_FIND, VERIFY_MAGAZINE_ISSUE_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT, VERIFY_MAGAZINE_ISSUE_UNIQUENESS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.VerifyAuthorUniqueness.Projection.Index (Row) as VerifyAuthorUniqueness
+import Core.Feat.Reference.Message.Query.VerifyAuthorUniqueness.Projection.Projection (VERIFY_AUTHOR_UNIQUENESS_PROJECTION_READ_FIND, VERIFY_AUTHOR_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT, VERIFY_AUTHOR_UNIQUENESS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.GetAuthor.Projection.Index (Row) as GetAuthor
+import Core.Feat.Reference.Message.Query.GetAuthor.Projection.Projection (GET_AUTHOR_PROJECTION_READ_FIND, GET_AUTHOR_PROJECTION_READ_SYNC_PROJECT, GET_AUTHOR_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Query.VerifyBookUniqueness.Projection.Index (Row) as VerifyBookUniqueness
+import Core.Feat.Reference.Message.Query.VerifyBookUniqueness.Projection.Projection (VERIFY_BOOK_UNIQUENESS_PROJECTION_READ_FIND, VERIFY_BOOK_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT, VERIFY_BOOK_UNIQUENESS_PROJECTION_WRITE_OPS)
+import Core.Feat.Reference.Message.Command.ReferenceMagazineIssue.Projection.Index (ReferenceMagazineIssueProjectionRow)
+import Core.Feat.Reference.Message.Command.ReferenceMagazineIssue.Projection.Projection (REFERENCE_MAGAZINE_ISSUE_PROJECTION_READ_FIND, REFERENCE_MAGAZINE_ISSUE_PROJECTION_READ_SYNC_PROJECT, REFERENCE_MAGAZINE_ISSUE_PROJECTION_WRITE_OPS)
+import Type.Row (type (+))
+
+type ReferenceProjectionRow r =
+  GetMagazineCalendarProjectionRow
+    + SearchBooksProjectionRow
+    + SearchAuthorsProjectionRow
+    + SearchEditorsProjectionRow
+    + SearchMagazineCustomSectionsProjectionRow
+    + SearchMagazineIssuesProjectionRow
+    + GetAuthor.Row
+    + VerifyEditorUniquenessProjectionRow
+    + VerifyMagazineIssueSlugUniquenessProjectionRow
+    + VerifyMagazineIssueUniquenessProjectionRow
+    + VerifyAuthorUniqueness.Row
+    + VerifyBookUniqueness.Row
+    + ReferenceMagazineIssueProjectionRow
+    + r
+
+type REFERENCE_PROJECTION_WRITE_OPS fx =
+  GET_MAGAZINE_CALENDAR_PROJECTION_WRITE_OPS
+    + SEARCH_BOOKS_PROJECTION_WRITE_OPS
+    + SEARCH_AUTHORS_PROJECTION_WRITE_OPS
+    + SEARCH_EDITORS_PROJECTION_WRITE_OPS
+    + SEARCH_MAGAZINE_CUSTOM_SECTIONS_PROJECTION_WRITE_OPS
+    + SEARCH_MAGAZINE_ISSUES_PROJECTION_WRITE_OPS
+    + GET_AUTHOR_PROJECTION_WRITE_OPS
+    + VERIFY_EDITOR_UNIQUENESS_PROJECTION_WRITE_OPS
+    + VERIFY_MAGAZINE_ISSUE_SLUG_UNIQUENESS_PROJECTION_WRITE_OPS
+    + VERIFY_MAGAZINE_ISSUE_UNIQUENESS_PROJECTION_WRITE_OPS
+    + VERIFY_AUTHOR_UNIQUENESS_PROJECTION_WRITE_OPS
+    + VERIFY_BOOK_UNIQUENESS_PROJECTION_WRITE_OPS
+    + REFERENCE_MAGAZINE_ISSUE_PROJECTION_WRITE_OPS
+    + fx
+
+type REFERENCE_PROJECTION_READ_FIND fx =
+  GET_MAGAZINE_CALENDAR_PROJECTION_READ_FIND
+    + SEARCH_BOOKS_PROJECTION_READ_FIND
+    + SEARCH_AUTHORS_PROJECTION_READ_FIND
+    + SEARCH_EDITORS_PROJECTION_READ_FIND
+    + SEARCH_MAGAZINE_CUSTOM_SECTIONS_PROJECTION_READ_FIND
+    + SEARCH_MAGAZINE_ISSUES_MAGAZINE_ISSUE_PROJECTION_READ_FIND
+    + GET_AUTHOR_PROJECTION_READ_FIND
+    + VERIFY_EDITOR_UNIQUENESS_PROJECTION_READ_FIND
+    + VERIFY_MAGAZINE_ISSUE_SLUG_UNIQUENESS_PROJECTION_READ_FIND
+    + VERIFY_MAGAZINE_ISSUE_UNIQUENESS_PROJECTION_READ_FIND
+    + VERIFY_AUTHOR_UNIQUENESS_PROJECTION_READ_FIND
+    + VERIFY_BOOK_UNIQUENESS_PROJECTION_READ_FIND
+    + REFERENCE_MAGAZINE_ISSUE_PROJECTION_READ_FIND
+    + fx
+
+type REFERENCE_PROJECTION_READ_SYNC_PROJECT fx =
+  GET_MAGAZINE_CALENDAR_PROJECTION_READ_SYNC_PROJECT
+    + SEARCH_BOOKS_PROJECTION_READ_SYNC_PROJECT
+    + SEARCH_AUTHORS_PROJECTION_READ_SYNC_PROJECT
+    + SEARCH_EDITORS_PROJECTION_READ_SYNC_PROJECT
+    + SEARCH_MAGAZINE_CUSTOM_SECTIONS_PROJECTION_READ_SYNC_PROJECT
+    + SEARCH_MAGAZINE_ISSUES_PROJECTION_READ_SYNC_PROJECT
+    + GET_AUTHOR_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_EDITOR_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_MAGAZINE_ISSUE_SLUG_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_MAGAZINE_ISSUE_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_AUTHOR_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT
+    + VERIFY_BOOK_UNIQUENESS_PROJECTION_READ_SYNC_PROJECT
+    + REFERENCE_MAGAZINE_ISSUE_PROJECTION_READ_SYNC_PROJECT
+    + fx
+

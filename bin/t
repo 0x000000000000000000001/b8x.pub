@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+ROOT_DIR=${ROOT_DIR:-$(cd "$(dirname ${BASH_SOURCE[0]})/.." && pwd)} && export ROOT_DIR
+
+export ALIASING_CMD_NAME=${0##*/}
+export ALIASED_CMD_NAME=test
+$ROOT_DIR/bin/$ALIASED_CMD_NAME "$@" # alias

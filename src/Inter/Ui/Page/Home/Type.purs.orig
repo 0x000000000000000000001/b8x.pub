@@ -1,0 +1,54 @@
+module Inter.Ui.Page.Home.Type where
+
+import Proem
+
+import Core.Feat.Review.Message.Query.GetFrontPage.Result.Result (Result)
+import Core.Feat.Review.Message.Query.SearchArticles.Result (Article) as Search
+import Network.RemoteData (RemoteData)
+import Data.Lens (Lens')
+import Data.Lens.Record (prop)
+import Data.Maybe (Maybe)
+import Core.Mod.Article.Theme.Theme (Theme) as ArticleTheme
+import Halogen (HalogenM, Slot)
+import Inter.Ui.Type.Output (NoOutput)
+import Inter.Ui.Type.Query (NoQuery)
+import Inter.Ui.Mod.ArticleCard.Type as ArticleCard
+import Inter.Ui.Type.Remote (Remote)
+import Inter.Ui.Type.State (WithId)
+import Inter.Ui.UiM (UiM)
+
+type Input = { theme :: Maybe ArticleTheme.Theme }
+
+type Output = NoOutput
+
+type Slots =
+  (articleCard :: Slot ArticleCard.Query ArticleCard.Output String
+  )
+
+type FrontPage = Remote Result
+
+type State = WithId
+  (frontPage :: FrontPage
+  , newsArticles :: RemoteData String (Array Search.Article)
+  , mostReadArticles :: RemoteData String (Array Search.Article)
+  , input :: Input
+  )
+
+frontPage' = π :: Π "frontPage"
+_frontPage = prop frontPage' :: Lens' State FrontPage
+
+newsArticles' = π :: Π "newsArticles"
+_newsArticles = prop newsArticles' :: Lens' State (RemoteData String (Array Search.Article))
+
+mostReadArticles' = π :: Π "mostReadArticles"
+_mostReadArticles = prop mostReadArticles' :: Lens' State (RemoteData String (Array Search.Article))
+
+data Action
+  = Load
+  | Receive Input
+  | HandleArticleCardOutput ArticleCard.Output
+
+type Query :: ∀ k. k -> Type
+type Query = NoQuery
+
+type HomeM a = HalogenM State Action Slots Output UiM a
