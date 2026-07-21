@@ -4,7 +4,7 @@
 
 This repository is the (public shareable part of the) engine behind [v2.books.actualitte.com](https://v2.books.actualitte.com) (the modern successor to the legacy [WordPress website](https://books.actualitte.com)). 
 
-This is a WIP, with odd/half-baked/ugly stuff in certain parts of the code. Anyway... My primary intention with this project is to demonstrate that **coding a large-scale, real world web application in PureScript is not only possible, but immensely enjoyable and robust.** It aims to help move PureScript beyond its perceived "experimental" status and serves as a comprehensive, living guide to the aspects that matter most to everyday web developers.
+This is a WIP, sometimes stuck in infinite loading (when I do DevOps stuff), with odd/half-baked/ugly things in certain parts of the code. Anyway... My primary intention with this project is to demonstrate that **coding a large-scale, real world web application in PureScript is not only possible, but immensely enjoyable and robust.** It aims to help move PureScript beyond its perceived "experimental" status and serves as a comprehensive, living guide to the aspects that matter most to everyday web developers.
 
 ---
 
