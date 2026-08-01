@@ -61,7 +61,7 @@ _Note: same story for backend API calls, with a factor going from 0.2 to 0.7, de
 
 To prove that this universal multi-runtime abstraction is not just theoretical, it has been successfully tested against the test suite of a real-world project (`b8x`). 
 
-As demonstrated below, you can seamlessly switch from the Node.js backend to the PHP backend, **or even to a natively compiled Go backend (`gopurs`)**. After swapping the backend target, the entire test suite runs without requiring a single change to the PureScript application code. Even better, there is absolutely no need for complex setups: PHP runs with its own native event loop and HTTP server (no PHP-FPM needed), and the Go backend compiles into a single, ultra-lightweight native binary that starts instantly.
+As demonstrated below, you can seamlessly switch from the Node.js backend to the PHP backend (thanks to [`phpurs`](https://github.com/0x000000000000000000001/phpurs)), or even to a natively compiled Go backend (thanks to [`gopurs`](https://github.com/0x000000000000000000001/gopurs))**. After swapping the backend target, the entire test suite runs without requiring a single change to the PureScript application code. Even better, there is absolutely no need for complex setups: PHP runs with its own native event loop and HTTP server (no PHP-FPM needed), and the Go backend compiles into a single, ultra-lightweight native binary that starts instantly.
 
 Tests:
 
