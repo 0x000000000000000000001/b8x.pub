@@ -75,8 +75,6 @@ UI & API:
   <video src="https://github.com/user-attachments/assets/bed48187-70b3-4886-9f68-af76516a8c6d" autoplay loop muted playsinline width="100%"></video>
 </div>
 
-One of the most interesting takeaways from this experiment is the performance gap on a real-world application. While raw computational micro-benchmarks show massive differences (with Go natively crushing V8, and V8 outperforming PHP), the gap narrows significantly on a real project where I/O and database interactions are the primary bottlenecks. In our real-world test suite, the execution took **~1.5s on PHP, ~1.3s on Node, and ~[X.X]s on Go**. The database remains the great equalizer, but Go still provides unmatched concurrency handling (`goroutines`), near-zero memory footprint, and instant cold starts.
-
 For a deeper dive into this concept, you can read the full article: [The ultimate polymorphism: PureScript as a universal language](https://dev.to/0x1/the-ultimate-polymorphism-purescript-as-a-universal-language-5gdi).
 
 ## 🗄️ Event sourcing architecture (PostgreSQL native)
