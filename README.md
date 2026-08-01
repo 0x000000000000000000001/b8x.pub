@@ -59,9 +59,9 @@ _Note: same story for backend API calls, with a factor going from 0.2 to 0.7, de
 
 ## 🌐 Runtime agnostic in the real world
 
-To prove that this universal multi runtime abstraction is not just theoretical, it has been successfully tested against the test suite of a real world project (`b8x`). 
+To prove that this universal multi-runtime abstraction is not just theoretical, it has been successfully tested against the test suite of a real-world project (`b8x`). 
 
-As demonstrated below, you can seamlessly switch from the Node.js backend to the PHP backend. After restarting the backend container, the entire test suite runs without requiring a single change to the PureScript application code. Even better, when running the PHP backend, there is absolutely no need for complex setups like PHP-FPM or FrankenPHP. The generated code carries its own event loop and HTTP server natively. It just runs.
+As demonstrated below, you can seamlessly switch from the Node.js backend to the PHP backend, **or even to a natively compiled Go backend (`gopurs`)**. After swapping the backend target, the entire test suite runs without requiring a single change to the PureScript application code. Even better, there is absolutely no need for complex setups: PHP runs with its own native event loop and HTTP server (no PHP-FPM needed), and the Go backend compiles into a single, ultra-lightweight native binary that starts instantly.
 
 Tests:
 
@@ -75,7 +75,7 @@ UI & API:
   <video src="https://github.com/user-attachments/assets/bed48187-70b3-4886-9f68-af76516a8c6d" autoplay loop muted playsinline width="100%"></video>
 </div>
 
-One of the most interesting takeaways from this experiment is the performance gap. While raw micro-benchmarks might sometimes show a 3x performance gap between Node and PHP, the difference is actually much narrower on a real project where I/O and database interactions are the bottleneck. In our real world test suite, the execution took **~1.5s on PHP vs ~1.3s on Node** (which is only a ~1.15x difference).
+One of the most interesting takeaways from this experiment is the performance gap on a real-world application. While raw computational micro-benchmarks show massive differences (with Go natively crushing V8, and V8 outperforming PHP), the gap narrows significantly on a real project where I/O and database interactions are the primary bottlenecks. In our real-world test suite, the execution took **~1.5s on PHP, ~1.3s on Node, and ~[X.X]s on Go**. The database remains the great equalizer, but Go still provides unmatched concurrency handling (`goroutines`), near-zero memory footprint, and instant cold starts.
 
 For a deeper dive into this concept, you can read the full article: [The ultimate polymorphism: PureScript as a universal language](https://dev.to/0x1/the-ultimate-polymorphism-purescript-as-a-universal-language-5gdi).
 
