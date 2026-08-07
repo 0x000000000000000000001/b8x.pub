@@ -1,8 +1,0 @@
-@@ -10,6 +10,7 @@
- handleAction :: Action -> HomeM Unit
- handleAction = case _ of
-   Load -> do
-     handleLoadFrontPage
-     handleLoadMostRead
-     handleLoadNews
-+  HandleBooksletterInput _ -> pure unit
