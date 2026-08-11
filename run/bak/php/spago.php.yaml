@@ -98,25 +98,25 @@ package:
 workspace:
   extraPackages:
     lazy:
-      path: "../phpurs-lazy"
+      path: "../phpurs/phpurs-lazy"
     node-process:
-      path: "../phpurs-node-process"
+      path: "../phpurs/phpurs-node-process"
     node-streams:
-      path: "../phpurs-node-streams"
+      path: "../phpurs/phpurs-node-streams"
     node-http:
-      path: "../phpurs-node-http"
+      path: "../phpurs/phpurs-node-http"
     node-net:
-      path: "../phpurs-node-net"
+      path: "../phpurs/phpurs-node-net"
     node-event-emitter:
-      path: "../phpurs-node-event-emitter"
+      path: "../phpurs/phpurs-node-event-emitter"
     simple-json:
-      path: "../phpurs-simple-json"
+      path: "../phpurs/phpurs-simple-json"
     nullable:
-      path: "../phpurs-nullable"
+      path: "../phpurs/phpurs-nullable"
     node-fs:
-      path: "../phpurs-node-fs"
+      path: "../phpurs/phpurs-node-fs"
     node-path:
-      path: "../phpurs-node-path"
+      path: "../phpurs/phpurs-node-path"
 
     html-parser-halogen:
       dependencies:
@@ -132,83 +132,83 @@ workspace:
       git: https://github.com/rnons/purescript-html-parser-halogen.git
       ref: master
     prelude:
-      path: "../phpurs-prelude"
+      path: "../phpurs/phpurs-prelude"
     effect:
-      path: "../phpurs-effect"
+      path: "../phpurs/phpurs-effect"
     console:
-      path: "../phpurs-console"
+      path: "../phpurs/phpurs-console"
     aff:
-      path: "../phpurs-aff"
+      path: "../phpurs/phpurs-aff"
     exceptions:
-      path: "../phpurs-exceptions"
+      path: "../phpurs/phpurs-exceptions"
     foldable-traversable:
-      path: "../phpurs-foldable-traversable"
+      path: "../phpurs/phpurs-foldable-traversable"
     st:
-      path: "../phpurs-st"
+      path: "../phpurs/phpurs-st"
     refs:
-      path: "../phpurs-refs"
+      path: "../phpurs/phpurs-refs"
     unsafe-coerce:
-      path: "../phpurs-unsafe-coerce"
+      path: "../phpurs/phpurs-unsafe-coerce"
     functions:
-      path: "../phpurs-functions"
+      path: "../phpurs/phpurs-functions"
     partial:
-      path: "../phpurs-partial"
+      path: "../phpurs/phpurs-partial"
     now:
-      path: "../phpurs-now"
+      path: "../phpurs/phpurs-now"
     unfoldable:
-      path: "../phpurs-unfoldable"
+      path: "../phpurs/phpurs-unfoldable"
     strings:
-      path: "../phpurs-strings"
+      path: "../phpurs/phpurs-strings"
     arrays:
-      path: "../phpurs-arrays"
+      path: "../phpurs/phpurs-arrays"
     argonaut-core:
-      path: "../phpurs-argonaut-core"
+      path: "../phpurs/phpurs-argonaut-core"
     datetime:
-      path: "../phpurs-datetime"
+      path: "../phpurs/phpurs-datetime"
     enums:
-      path: "../phpurs-enums"
+      path: "../phpurs/phpurs-enums"
     foreign-object:
-      path: "../phpurs-foreign-object"
+      path: "../phpurs/phpurs-foreign-object"
     integers:
-      path: "../phpurs-integers"
+      path: "../phpurs/phpurs-integers"
     math:
-      path: "../phpurs-math"
+      path: "../phpurs/phpurs-math"
     numbers:
-      path: "../phpurs-numbers"
+      path: "../phpurs/phpurs-numbers"
     random:
-      path: "../phpurs-random"
+      path: "../phpurs/phpurs-random"
     record:
-      path: "../phpurs-record"
+      path: "../phpurs/phpurs-record"
     spec:
-      path: "../phpurs-spec"
+      path: "../phpurs/phpurs-spec"
     avar:
-      path: "../phpurs-avar"
+      path: "../phpurs/phpurs-avar"
     js-promise:
-      path: "../phpurs-js-promise"
+      path: "../phpurs/phpurs-js-promise"
     js-promise-aff:
-      path: "../phpurs-js-promise-aff"
+      path: "../phpurs/phpurs-js-promise-aff"
     js-uri:
-      path: "../phpurs-js-uri"
+      path: "../phpurs/phpurs-js-uri"
 
     catenable-lists:
-      path: "../phpurs-catenable-lists"
+      path: "../phpurs/phpurs-catenable-lists"
     free:
-      path: "../phpurs-free"
+      path: "../phpurs/phpurs-free"
     variant:
-      path: "../phpurs-variant"
+      path: "../phpurs/phpurs-variant"
     run:
-      path: "../phpurs-run"
+      path: "../phpurs/phpurs-run"
 
     uuid:
-      path: "../phpurs-uuid"
+      path: "../phpurs/phpurs-uuid"
 
     yoga-json:
-      path: "../phpurs-yoga-json"
+      path: "../phpurs/phpurs-yoga-json"
     foreign:
-      path: "../phpurs-foreign"
+      path: "../phpurs/phpurs-foreign"
 
   packageSet:
     registry: 73.3.0
   backend:
-    cmd: "../phpurs/bin/phpurs"
+    cmd: "../phpurs/phpurs/bin/phpurs"
     args: ["--autoload-path", "run/bak/php/vendor/autoload.php"]

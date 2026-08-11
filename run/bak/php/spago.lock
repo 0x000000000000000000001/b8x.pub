@@ -696,49 +696,49 @@
     },
     "extra_packages": {
       "aff": {
-        "path": "../phpurs-aff"
+        "path": "../phpurs/phpurs-aff"
       },
       "argonaut-core": {
-        "path": "../phpurs-argonaut-core"
+        "path": "../phpurs/phpurs-argonaut-core"
       },
       "arrays": {
-        "path": "../phpurs-arrays"
+        "path": "../phpurs/phpurs-arrays"
       },
       "avar": {
-        "path": "../phpurs-avar"
+        "path": "../phpurs/phpurs-avar"
       },
       "catenable-lists": {
-        "path": "../phpurs-catenable-lists"
+        "path": "../phpurs/phpurs-catenable-lists"
       },
       "console": {
-        "path": "../phpurs-console"
+        "path": "../phpurs/phpurs-console"
       },
       "datetime": {
-        "path": "../phpurs-datetime"
+        "path": "../phpurs/phpurs-datetime"
       },
       "effect": {
-        "path": "../phpurs-effect"
+        "path": "../phpurs/phpurs-effect"
       },
       "enums": {
-        "path": "../phpurs-enums"
+        "path": "../phpurs/phpurs-enums"
       },
       "exceptions": {
-        "path": "../phpurs-exceptions"
+        "path": "../phpurs/phpurs-exceptions"
       },
       "foldable-traversable": {
-        "path": "../phpurs-foldable-traversable"
+        "path": "../phpurs/phpurs-foldable-traversable"
       },
       "foreign": {
-        "path": "../phpurs-foreign"
+        "path": "../phpurs/phpurs-foreign"
       },
       "foreign-object": {
-        "path": "../phpurs-foreign-object"
+        "path": "../phpurs/phpurs-foreign-object"
       },
       "free": {
-        "path": "../phpurs-free"
+        "path": "../phpurs/phpurs-free"
       },
       "functions": {
-        "path": "../phpurs-functions"
+        "path": "../phpurs/phpurs-functions"
       },
       "html-parser-halogen": {
         "git": "https://github.com/rnons/purescript-html-parser-halogen.git",
@@ -756,104 +756,104 @@
         ]
       },
       "integers": {
-        "path": "../phpurs-integers"
+        "path": "../phpurs/phpurs-integers"
       },
       "js-promise": {
-        "path": "../phpurs-js-promise"
+        "path": "../phpurs/phpurs-js-promise"
       },
       "js-promise-aff": {
-        "path": "../phpurs-js-promise-aff"
+        "path": "../phpurs/phpurs-js-promise-aff"
       },
       "js-uri": {
-        "path": "../phpurs-js-uri"
+        "path": "../phpurs/phpurs-js-uri"
       },
       "lazy": {
-        "path": "../phpurs-lazy"
+        "path": "../phpurs/phpurs-lazy"
       },
       "math": {
-        "path": "../phpurs-math"
+        "path": "../phpurs/phpurs-math"
       },
       "node-event-emitter": {
-        "path": "../phpurs-node-event-emitter"
+        "path": "../phpurs/phpurs-node-event-emitter"
       },
       "node-fs": {
-        "path": "../phpurs-node-fs"
+        "path": "../phpurs/phpurs-node-fs"
       },
       "node-http": {
-        "path": "../phpurs-node-http"
+        "path": "../phpurs/phpurs-node-http"
       },
       "node-net": {
-        "path": "../phpurs-node-net"
+        "path": "../phpurs/phpurs-node-net"
       },
       "node-path": {
-        "path": "../phpurs-node-path"
+        "path": "../phpurs/phpurs-node-path"
       },
       "node-process": {
-        "path": "../phpurs-node-process"
+        "path": "../phpurs/phpurs-node-process"
       },
       "node-streams": {
-        "path": "../phpurs-node-streams"
+        "path": "../phpurs/phpurs-node-streams"
       },
       "now": {
-        "path": "../phpurs-now"
+        "path": "../phpurs/phpurs-now"
       },
       "nullable": {
-        "path": "../phpurs-nullable"
+        "path": "../phpurs/phpurs-nullable"
       },
       "numbers": {
-        "path": "../phpurs-numbers"
+        "path": "../phpurs/phpurs-numbers"
       },
       "partial": {
-        "path": "../phpurs-partial"
+        "path": "../phpurs/phpurs-partial"
       },
       "prelude": {
-        "path": "../phpurs-prelude"
+        "path": "../phpurs/phpurs-prelude"
       },
       "random": {
-        "path": "../phpurs-random"
+        "path": "../phpurs/phpurs-random"
       },
       "record": {
-        "path": "../phpurs-record"
+        "path": "../phpurs/phpurs-record"
       },
       "refs": {
-        "path": "../phpurs-refs"
+        "path": "../phpurs/phpurs-refs"
       },
       "run": {
-        "path": "../phpurs-run"
+        "path": "../phpurs/phpurs-run"
       },
       "simple-json": {
-        "path": "../phpurs-simple-json"
+        "path": "../phpurs/phpurs-simple-json"
       },
       "spec": {
-        "path": "../phpurs-spec"
+        "path": "../phpurs/phpurs-spec"
       },
       "st": {
-        "path": "../phpurs-st"
+        "path": "../phpurs/phpurs-st"
       },
       "strings": {
-        "path": "../phpurs-strings"
+        "path": "../phpurs/phpurs-strings"
       },
       "unfoldable": {
-        "path": "../phpurs-unfoldable"
+        "path": "../phpurs/phpurs-unfoldable"
       },
       "unsafe-coerce": {
-        "path": "../phpurs-unsafe-coerce"
+        "path": "../phpurs/phpurs-unsafe-coerce"
       },
       "uuid": {
-        "path": "../phpurs-uuid"
+        "path": "../phpurs/phpurs-uuid"
       },
       "variant": {
-        "path": "../phpurs-variant"
+        "path": "../phpurs/phpurs-variant"
       },
       "yoga-json": {
-        "path": "../phpurs-yoga-json"
+        "path": "../phpurs/phpurs-yoga-json"
       }
     }
   },
   "packages": {
     "aff": {
       "type": "local",
-      "path": "../phpurs-aff",
+      "path": "../phpurs/phpurs-aff",
       "dependencies": [
         "arrays",
         "bifunctors",
@@ -963,7 +963,7 @@
     },
     "argonaut-core": {
       "type": "local",
-      "path": "../phpurs-argonaut-core",
+      "path": "../phpurs/phpurs-argonaut-core",
       "dependencies": [
         "arrays",
         "control",
@@ -1002,7 +1002,7 @@
     },
     "arrays": {
       "type": "local",
-      "path": "../phpurs-arrays",
+      "path": "../phpurs/phpurs-arrays",
       "dependencies": [
         "bifunctors",
         "control",
@@ -1047,7 +1047,7 @@
     },
     "avar": {
       "type": "local",
-      "path": "../phpurs-avar",
+      "path": "../phpurs/phpurs-avar",
       "dependencies": [
         "aff",
         "effect",
@@ -1084,7 +1084,7 @@
     },
     "catenable-lists": {
       "type": "local",
-      "path": "../phpurs-catenable-lists",
+      "path": "../phpurs/phpurs-catenable-lists",
       "dependencies": [
         "control",
         "foldable-traversable",
@@ -1130,7 +1130,7 @@
     },
     "console": {
       "type": "local",
-      "path": "../phpurs-console",
+      "path": "../phpurs/phpurs-console",
       "dependencies": [
         "effect",
         "prelude"
@@ -1191,7 +1191,7 @@
     },
     "datetime": {
       "type": "local",
-      "path": "../phpurs-datetime",
+      "path": "../phpurs/phpurs-datetime",
       "dependencies": [
         "bifunctors",
         "control",
@@ -1251,7 +1251,7 @@
     },
     "effect": {
       "type": "local",
-      "path": "../phpurs-effect",
+      "path": "../phpurs/phpurs-effect",
       "dependencies": [
         "prelude"
       ]
@@ -1269,7 +1269,7 @@
     },
     "enums": {
       "type": "local",
-      "path": "../phpurs-enums",
+      "path": "../phpurs/phpurs-enums",
       "dependencies": [
         "control",
         "either",
@@ -1285,7 +1285,7 @@
     },
     "exceptions": {
       "type": "local",
-      "path": "../phpurs-exceptions",
+      "path": "../phpurs/phpurs-exceptions",
       "dependencies": [
         "effect",
         "either",
@@ -1313,7 +1313,7 @@
     },
     "foldable-traversable": {
       "type": "local",
-      "path": "../phpurs-foldable-traversable",
+      "path": "../phpurs/phpurs-foldable-traversable",
       "dependencies": [
         "bifunctors",
         "const",
@@ -1330,7 +1330,7 @@
     },
     "foreign": {
       "type": "local",
-      "path": "../phpurs-foreign",
+      "path": "../phpurs/phpurs-foreign",
       "dependencies": [
         "either",
         "functions",
@@ -1345,7 +1345,7 @@
     },
     "foreign-object": {
       "type": "local",
-      "path": "../phpurs-foreign-object",
+      "path": "../phpurs/phpurs-foreign-object",
       "dependencies": [
         "arrays",
         "foldable-traversable",
@@ -1413,7 +1413,7 @@
     },
     "free": {
       "type": "local",
-      "path": "../phpurs-free",
+      "path": "../phpurs/phpurs-free",
       "dependencies": [
         "catenable-lists",
         "control",
@@ -1446,7 +1446,7 @@
     },
     "functions": {
       "type": "local",
-      "path": "../phpurs-functions",
+      "path": "../phpurs/phpurs-functions",
       "dependencies": [
         "prelude"
       ]
@@ -1698,7 +1698,7 @@
     },
     "integers": {
       "type": "local",
-      "path": "../phpurs-integers",
+      "path": "../phpurs/phpurs-integers",
       "dependencies": [
         "maybe",
         "numbers",
@@ -1741,7 +1741,7 @@
     },
     "js-promise": {
       "type": "local",
-      "path": "../phpurs-js-promise",
+      "path": "../phpurs/phpurs-js-promise",
       "dependencies": [
         "console",
         "effect",
@@ -1752,7 +1752,7 @@
     },
     "js-promise-aff": {
       "type": "local",
-      "path": "../phpurs-js-promise-aff",
+      "path": "../phpurs/phpurs-js-promise-aff",
       "dependencies": [
         "aff",
         "console",
@@ -1764,7 +1764,7 @@
     },
     "js-uri": {
       "type": "local",
-      "path": "../phpurs-js-uri",
+      "path": "../phpurs/phpurs-js-uri",
       "dependencies": [
         "assert",
         "effect",
@@ -1775,7 +1775,7 @@
     },
     "lazy": {
       "type": "local",
-      "path": "../phpurs-lazy",
+      "path": "../phpurs/phpurs-lazy",
       "dependencies": [
         "control",
         "foldable-traversable",
@@ -1879,7 +1879,7 @@
     },
     "node-event-emitter": {
       "type": "local",
-      "path": "../phpurs-node-event-emitter",
+      "path": "../phpurs/phpurs-node-event-emitter",
       "dependencies": [
         "effect",
         "maybe",
@@ -1889,7 +1889,7 @@
     },
     "node-fs": {
       "type": "local",
-      "path": "../phpurs-node-fs",
+      "path": "../phpurs/phpurs-node-fs",
       "dependencies": [
         "datetime",
         "effect",
@@ -1912,7 +1912,7 @@
     },
     "node-http": {
       "type": "local",
-      "path": "../phpurs-node-http",
+      "path": "../phpurs/phpurs-node-http",
       "dependencies": [
         "arraybuffer-types",
         "contravariant",
@@ -1933,7 +1933,7 @@
     },
     "node-net": {
       "type": "local",
-      "path": "../phpurs-node-net",
+      "path": "../phpurs/phpurs-node-net",
       "dependencies": [
         "effect",
         "either",
@@ -1951,7 +1951,7 @@
     },
     "node-path": {
       "type": "local",
-      "path": "../phpurs-node-path",
+      "path": "../phpurs/phpurs-node-path",
       "dependencies": [
         "console",
         "effect",
@@ -1960,7 +1960,7 @@
     },
     "node-process": {
       "type": "local",
-      "path": "../phpurs-node-process",
+      "path": "../phpurs/phpurs-node-process",
       "dependencies": [
         "effect",
         "foreign",
@@ -1995,7 +1995,7 @@
     },
     "node-streams": {
       "type": "local",
-      "path": "../phpurs-node-streams",
+      "path": "../phpurs/phpurs-node-streams",
       "dependencies": [
         "aff",
         "arrays",
@@ -2061,7 +2061,7 @@
     },
     "now": {
       "type": "local",
-      "path": "../phpurs-now",
+      "path": "../phpurs/phpurs-now",
       "dependencies": [
         "datetime",
         "effect"
@@ -2069,7 +2069,7 @@
     },
     "nullable": {
       "type": "local",
-      "path": "../phpurs-nullable",
+      "path": "../phpurs/phpurs-nullable",
       "dependencies": [
         "assert",
         "effect",
@@ -2080,7 +2080,7 @@
     },
     "numbers": {
       "type": "local",
-      "path": "../phpurs-numbers",
+      "path": "../phpurs/phpurs-numbers",
       "dependencies": [
         "functions",
         "maybe"
@@ -2232,7 +2232,7 @@
     },
     "partial": {
       "type": "local",
-      "path": "../phpurs-partial",
+      "path": "../phpurs/phpurs-partial",
       "dependencies": []
     },
     "pipes": {
@@ -2268,7 +2268,7 @@
     },
     "prelude": {
       "type": "local",
-      "path": "../phpurs-prelude",
+      "path": "../phpurs/phpurs-prelude",
       "dependencies": []
     },
     "profunctor": {
@@ -2376,7 +2376,7 @@
     },
     "random": {
       "type": "local",
-      "path": "../phpurs-random",
+      "path": "../phpurs/phpurs-random",
       "dependencies": [
         "effect",
         "integers"
@@ -2394,7 +2394,7 @@
     },
     "record": {
       "type": "local",
-      "path": "../phpurs-record",
+      "path": "../phpurs/phpurs-record",
       "dependencies": [
         "functions",
         "prelude",
@@ -2403,7 +2403,7 @@
     },
     "refs": {
       "type": "local",
-      "path": "../phpurs-refs",
+      "path": "../phpurs/phpurs-refs",
       "dependencies": [
         "effect",
         "prelude"
@@ -2476,7 +2476,7 @@
     },
     "run": {
       "type": "local",
-      "path": "../phpurs-run",
+      "path": "../phpurs/phpurs-run",
       "dependencies": [
         "aff",
         "effect",
@@ -2515,7 +2515,7 @@
     },
     "simple-json": {
       "type": "local",
-      "path": "../phpurs-simple-json",
+      "path": "../phpurs/phpurs-simple-json",
       "dependencies": [
         "arrays",
         "exceptions",
@@ -2530,7 +2530,7 @@
     },
     "spec": {
       "type": "local",
-      "path": "../phpurs-spec",
+      "path": "../phpurs/phpurs-spec",
       "dependencies": [
         "aff",
         "ansi",
@@ -2596,7 +2596,7 @@
     },
     "st": {
       "type": "local",
-      "path": "../phpurs-st",
+      "path": "../phpurs/phpurs-st",
       "dependencies": [
         "partial",
         "prelude",
@@ -2606,7 +2606,7 @@
     },
     "strings": {
       "type": "local",
-      "path": "../phpurs-strings",
+      "path": "../phpurs/phpurs-strings",
       "dependencies": [
         "arrays",
         "control",
@@ -2713,7 +2713,7 @@
     },
     "unfoldable": {
       "type": "local",
-      "path": "../phpurs-unfoldable",
+      "path": "../phpurs/phpurs-unfoldable",
       "dependencies": [
         "foldable-traversable",
         "maybe",
@@ -2739,7 +2739,7 @@
     },
     "unsafe-coerce": {
       "type": "local",
-      "path": "../phpurs-unsafe-coerce",
+      "path": "../phpurs/phpurs-unsafe-coerce",
       "dependencies": []
     },
     "unsafe-reference": {
@@ -2752,7 +2752,7 @@
     },
     "uuid": {
       "type": "local",
-      "path": "../phpurs-uuid",
+      "path": "../phpurs/phpurs-uuid",
       "dependencies": [
         "aff",
         "effect",
@@ -2778,7 +2778,7 @@
     },
     "variant": {
       "type": "local",
-      "path": "../phpurs-variant",
+      "path": "../phpurs/phpurs-variant",
       "dependencies": [
         "assert",
         "control",
@@ -2971,7 +2971,7 @@
     },
     "yoga-json": {
       "type": "local",
-      "path": "../phpurs-yoga-json",
+      "path": "../phpurs/phpurs-yoga-json",
       "dependencies": [
         "arrays",
         "bifunctors",

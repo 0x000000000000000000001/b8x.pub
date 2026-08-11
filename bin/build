@@ -35,7 +35,7 @@ main () {
 
     if [[ "$COMPILER_TOO" == '1' ]]; then
       echo "Building compiler..."
-      (cd "$dir/../phpurs" && npm run build) || exit 1
+      (cd "$dir/../phpurs/phpurs" && npm run build) || exit 1
       rm -rf run/bak/php/output/*
       rm -rf run/bak/php/.spago/*
       echo ""
