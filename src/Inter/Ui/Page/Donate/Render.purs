@@ -3,7 +3,7 @@ module Inter.Ui.Page.Donate.Render where
 import Proem hiding (div, top)
 
 import Halogen (ComponentHTML)
-import Halogen.HTML (a, button, div, h1, h3, p, strong, text)
+import Halogen.HTML (a, br_, button, div, h1, h3, p, strong, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, href, target)
 import Inter.Ui.Page.Donate.Type (Action(..), Slots, State)
@@ -21,9 +21,14 @@ render state =
     , div [ classes [ ClassName "donate-container" ] ]
         [ h1 [ classes [ ClassName "donate-title" ] ] [ text "Soutenez-nous !" ]
         , p [ classes [ ClassName "donate-subtitle" ] ]
-            [ text "Vous aimez Books, mais les pubs ne sont pas votre tasse de thé ? Soutenez Books par un don défiscalisé et laissez-vous emporter par nos récits, sans la moindre distraction. Pas d'actionnaires, juste des plumes financées par "
-            , strong [] [ text "les lecteurs" ]
-            , text ". Pour vous remercier de votre soutien, on vous offre une évasion totale : "
+            [ text "Nous n'avons pas d'actionnaires, juste des plumes financées par "
+            , strong [] [ text "nos lecteurs" ]
+            , text "."
+            , br_
+            , br_
+            , text "Vous aimez Books, mais les pubs ne sont pas votre tasse de thé ? "
+            , strong [] [ text "Soutenez Books" ]
+            , text " par un don défiscalisé et laissez-vous emporter par nos récits, sans la moindre distraction. Pour vous remercier de votre soutien, on vous offre une évasion totale : "
             , strong [] [ text "zéro publicité" ]
             , text "."
             ]
