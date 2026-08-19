@@ -34,7 +34,11 @@ render state =
             ]
         , div [ classes [ ClassName "donate-steps" ] ]
             ( [ renderStep "1" "Choisissez votre soutien"
-                  "Faites un don du montant de votre choix sur HelloAsso. Pensez simplement à utiliser votre e-mail habituel !"
+                  ( if state.isLoggedIn then
+                      "Faites un don du montant de votre choix sur HelloAsso. Pensez simplement à utiliser votre e-mail habituel (celui qui vous a permis de vous connecter ici) !"
+                    else
+                      "Faites un don du montant de votre choix sur HelloAsso. Pensez simplement à utiliser votre e-mail habituel ! Il vous servira pour vous connecter sur notre site."
+                  )
                   (Just "https://www.helloasso.com/associations/les-amis-de-books/collectes/relancons-la-booksletter-3")
                   Nothing
               ]
