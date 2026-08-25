@@ -5,7 +5,8 @@
 /generated-docs/
 /.idea
 /node_modules/
-/output/
+output/
+output.bak/
 /.psa*
 /.psc-package/
 /.psc*
