@@ -37,10 +37,9 @@ instance ReadForeign MagazineIssue where
     obj <- readImpl json
     issueJson <- (Foreign.Index.readProp "issue" obj >>= readImpl)
     issue <- decodeIssueJson issueJson
-    sectionJson <- (Foreign.Index.readProp "section" obj >>= readImpl)
-    section <- decodeSectionJson sectionJson
-    pageNumber <- (Foreign.Index.readProp "pageNumber" obj >>= readImpl)
-    onCover <- (Foreign.Index.readProp "onCover" obj >>= readImpl)
+    section <- (Foreign.Index.readProp "section" obj >>= decodeSectionJson) <|> pure Nothing
+    pageNumber <- (Foreign.Index.readProp "pageNumber" obj >>= readImpl) <|> pure Nothing
+    onCover <- (Foreign.Index.readProp "onCover" obj >>= readImpl) <|> pure false
     η $ MagazineIssue { issue, section, pageNumber, onCover }
 
 decodeIssueJson :: Foreign -> Foreign.F { id :: MagazineIssueId, slug :: MagazineIssueSlug.Slug }

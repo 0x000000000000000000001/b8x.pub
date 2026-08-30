@@ -59,26 +59,4 @@ hasAtLeastOneLandscape illustrations =
   illustrations #
     Array.any \{ image: Image img } -> img.dimensions.width > img.dimensions.height
 
-type IllustrationDto =
-  { image :: Image
-  , caption :: Nullable NonEmptyHtml
-  }
 
-type IllustrationsDto =
-  { illustrations :: Array IllustrationDto
-  , hasAtLeastOneLandscape :: Boolean
-  , hasAtLeastOne :: Boolean
-  }
-
-fromIllustrationDto :: IllustrationDto -> Base.Illustration
-fromIllustrationDto dto = 
-  { image: dto.image
-  , caption: toMaybe dto.caption
-  }
-
-fromIllustrationsDto :: IllustrationsDto -> Illustrations
-fromIllustrationsDto dto = Illustrations
-  { illustrations: fromIllustrationDto <$> dto.illustrations
-  , hasAtLeastOneLandscape: dto.hasAtLeastOneLandscape
-  , hasAtLeastOne: dto.hasAtLeastOne
-  }

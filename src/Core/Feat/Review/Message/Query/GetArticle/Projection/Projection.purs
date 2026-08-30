@@ -172,13 +172,6 @@ type ArticleAuthor =
   , portrait :: Maybe Image
   }
 
-type ArticleAuthorDto =
-  { id :: AuthorId
-  , name :: Name
-  , biography :: Nullable NonEmptyHtml
-  , portrait :: Nullable Image
-  }
-
 type ArticleRecord =
   { id :: ArticleId
   , legacyId :: Maybe Int
@@ -201,29 +194,6 @@ type ArticleRecord =
       { updatedAt :: Instant
       }
   }
-
-type ArticleRecordDto =
-  { id :: ArticleId
-  , legacyId :: Nullable Int
-  , title :: Title
-  , lead :: Nullable NonEmptyHtml
-  , notes :: Nullable NonEmptyHtml
-  , sources :: Nullable NonEmptyHtml
-  , content :: Content
-  , theme :: Nullable String
-  , books :: BooksDto
-  , author :: Nullable ArticleAuthorDto
-  , illustrations :: IllustrationsDto
-  , profitable :: Boolean
-  , slug :: Slug
-  , writtenAt :: WrittenAt
-  , addedToNewsRelatedWhitelist :: Boolean
-  , addedToNewsRelatedBlacklist :: Boolean
-  , magazineIssue :: Nullable Projected.MagazineIssue
-  , seo :: { updatedAt :: Instant }
-  }
-
-foreign import unsafeDecodeArticleDto :: Foreign -> ArticleRecordDto
 
 type ArticleIndexNeeds =
   { id :: RawIndexOnly ArticleId
@@ -285,38 +255,7 @@ derive instance Generic Article _
 derive instance Eq Article
 derive instance Ord Article
 
-instance ReadForeign Article where
-  readImpl json = η $ Article (fromDto (unsafeDecodeArticleDto json))
-
-fromArticleAuthorDto :: ArticleAuthorDto -> ArticleAuthor
-fromArticleAuthorDto dto =
-  { id: dto.id
-  , name: dto.name
-  , biography: toMaybe dto.biography
-  , portrait: toMaybe dto.portrait
-  }
-
-fromDto :: ArticleRecordDto -> ArticleRecord
-fromDto dto =
-  { id: dto.id
-  , legacyId: toMaybe dto.legacyId
-  , title: dto.title
-  , lead: toMaybe dto.lead
-  , notes: toMaybe dto.notes
-  , sources: toMaybe dto.sources
-  , content: dto.content
-  , theme: toMaybe dto.theme >>= fromString
-  , books: fromBooksDto dto.books
-  , author: fromArticleAuthorDto <$> toMaybe dto.author
-  , illustrations: fromIllustrationsDto dto.illustrations
-  , profitable: dto.profitable
-  , slug: dto.slug
-  , writtenAt: dto.writtenAt
-  , addedToNewsRelatedWhitelist: dto.addedToNewsRelatedWhitelist
-  , addedToNewsRelatedBlacklist: dto.addedToNewsRelatedBlacklist
-  , magazineIssue: toMaybe dto.magazineIssue
-  , seo: dto.seo
-  }
+derive newtype instance ReadForeign Article
 
 decodeArticleAuthorJson :: Foreign -> Foreign.F ArticleAuthor
 decodeArticleAuthorJson json = do
@@ -390,6 +329,7 @@ newtype ArticleKey = ArticleKey { id :: Maybe ArticleId, slug :: Maybe Slug }
 derive instance Newtype ArticleKey _
 instance ToAliasedPrimary ArticleKey where
   toAliasedPrimary (ArticleKey k) = { primary: maybe "" toString k.id, aliases: maybe [] (Array.singleton <<< toString) k.slug }
+
 derive instance Eq ArticleKey
 derive instance Ord ArticleKey
 derive instance Generic ArticleKey _
@@ -565,6 +505,7 @@ newtype NewsTopicKey = NewsTopicKey NewsTopicId
 derive instance Newtype NewsTopicKey _
 instance ToAliasedPrimary NewsTopicKey where
   toAliasedPrimary (NewsTopicKey id) = { primary: toString id, aliases: [] }
+
 derive newtype instance Eq NewsTopicKey
 derive newtype instance Ord NewsTopicKey
 derive instance Generic NewsTopicKey _
