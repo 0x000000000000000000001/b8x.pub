@@ -48,17 +48,7 @@ instance
     Result where
   description = "Get the account of a user"
 
-  cacheStrategy (GetUserAccount { user }) = case user of
-    ById id -> do
-      hash <- getReadModelHash @Account (Just (AccountKey id))
-      η $ defaultCached hash
-    Me -> do
-      mSubject <- askSubject
-      case mSubject of
-        Just (IdentifiedUiHuman { userId }) -> do
-          hash <- getReadModelHash @Account (Just (AccountKey userId))
-          η $ defaultCachedWithSubject hash (Just { userId })
-        _ -> η NotCached
+  cacheStrategy _ = η NotCached
 
   handle (GetUserAccount { user, needs: Needs needs }) = do
     actualUser <- case user of
