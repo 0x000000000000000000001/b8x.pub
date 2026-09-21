@@ -2,7 +2,7 @@
 
 > A real world, production ready product built entirely in [PureScript](https://www.purescript.org/). Still a WIP, but mature enough to be public.
 
-This repository is the (public shareable part of the) engine behind [v2.books.actualitte.com](https://v2.books.actualitte.com) (the modern successor to the legacy [WordPress website](https://books.actualitte.com)). 
+This repository is the (public shareable part of the) engine behind [books.actualitte.com](https://books.actualitte.com) (the modern successor to the legacy [WordPress website](https://leg.books.actualitte.com)). 
 
 This is a WIP, sometimes stuck in infinite loading (when I do DevOps stuff), with odd/half-baked/ugly things in certain parts of the code. Anyway... My primary intention with this project is to demonstrate that **coding a large-scale, real world web application in PureScript is not only possible, but immensely enjoyable and robust.** It aims to help move PureScript beyond its perceived "experimental" status and serves as a comprehensive, living guide to the aspects that matter most to everyday web developers.
 
@@ -165,8 +165,8 @@ Please note that this codebase is **under active development**.
 
 ## 🔗 Links
 
-*   **New platform (PureScript):** [https://v2.books.actualitte.com](https://v2.books.actualitte.com)
-*   **Legacy platform (WordPress):** [https://books.actualitte.com](https://books.actualitte.com)
+*   **New platform (PureScript):** [https://books.actualitte.com](https://books.actualitte.com)
+*   **Legacy platform (WordPress):** [https://leg.books.actualitte.com](https://leg.books.actualitte.com)
 
 ---
 *Made with ❤️ for the PureScript community.* Have a good reading!
