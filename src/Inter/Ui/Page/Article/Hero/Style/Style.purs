@@ -1,5 +1,5 @@
 module Inter.Ui.Page.Article.Hero.Style.Style
-  (class'
+  ( class'
   , hero
   , hero_
   , staticClass
@@ -18,7 +18,9 @@ import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Style.Base (raw)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass, refineClass')
 import Util.Style.Layout (displayFlex, gapRem, maxWidthRem, padding4, widthPct)
+import Util.Style.MediaQuery (onMobileLte, onTabletLte)
 import Util.Style.Selector ((.?))
+import Util.Style.Effect (borderRadiusRem1)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Page.Article.Hero.Style.Style"
@@ -47,10 +49,18 @@ staticStyle = do
     raw "margin" "0 auto"
     padding4 2.0 2.0 4.0 2.0
     gapRem 3.0
+    borderRadiusRem1 1.0
+
+    onMobileLte do
+      padding4 1.5 1.5 2.0 1.5
 
   staticClassWhenPortrait .? do
     flexDirection row
     alignItems flexStart
+
+    onTabletLte do
+      flexDirection column
+      alignItems center
 
   staticClassWhenLandscape .? do
     flexDirection column
@@ -62,7 +72,7 @@ staticStyle = do
 
 hero :: ∀ w i. InstanceId -> IllustrationLayout -> Node HTMLdiv w i
 hero id layout props = div
-  ([ classes
+  ( [ classes
         [ staticClass
         , case layout of
             Side -> staticClassWhenPortrait

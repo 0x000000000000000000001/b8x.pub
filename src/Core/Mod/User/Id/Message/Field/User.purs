@@ -5,7 +5,6 @@ import Data.Maybe (Maybe(..))
 import Proem
 
 import Core.Message.Field.Field (class IsField, Presence(..), Sanitized(..), defaultShouldSanitizeInner)
-import Core.Mod.User.Id.Message.Field.Util as Util
 import Core.Mod.User.Id.Id (UserId)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Newtype (class Newtype)
@@ -17,7 +16,7 @@ newtype UserField = UserField User
 instance IsField UserField User () where
   name = "User"
 
-  description = Util.description
+  description = "User"
 
   presence = Required
 
@@ -26,7 +25,7 @@ instance IsField UserField User () where
   shouldSanitizeInner = defaultShouldSanitizeInner
 
   cli =
-    { description: Util.description
+    { description: "User"
     , multiline: false
     , choices: Nothing
     }

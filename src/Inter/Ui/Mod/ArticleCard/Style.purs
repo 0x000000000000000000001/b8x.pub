@@ -32,8 +32,8 @@ import CSS.Overflow (overflow, hidden)
 import CSS.Size (px, pct)
 import CSS.Text.Transform (uppercase)
 import CSS.Transform (transforms, translateY, scale)
-import DOM.HTML.Indexed (HTMLdiv, HTMLh3, HTMLh4, HTMLimg, HTMLp)
-import Halogen.HTML (HTML, Leaf, Node, div, h3, h4, img, p)
+import DOM.HTML.Indexed (HTMLdiv, HTMLh3, HTMLh4, HTMLimg)
+import Halogen.HTML (HTML, Leaf, Node, div, h3, h4, img)
 import Halogen.HTML.CSS (stylesheet)
 import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Power (isPowerful)
@@ -298,8 +298,8 @@ title isLoading props = h3 ([ classes [ titleClass, isLoading ? titleLoadingClas
 title_ :: ∀ w i. Boolean -> Array (HTML w i) -> HTML w i
 title_ isLoading = title isLoading []
 
-lead :: ∀ w i. Boolean -> Node HTMLp w i
-lead isLoading props = p ([ classes [ leadClass, isLoading ? leadLoadingClass ↔ "" ] ] <> props)
+lead :: ∀ w i. Boolean -> Node HTMLdiv w i
+lead isLoading props = div ([ classes [ leadClass, isLoading ? leadLoadingClass ↔ "" ] ] <> props)
 
 lead_ :: ∀ w i. Boolean -> Array (HTML w i) -> HTML w i
 lead_ isLoading = lead isLoading []

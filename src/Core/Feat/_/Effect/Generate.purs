@@ -38,24 +38,29 @@ type GENERATE fx = (generate :: Generate | fx)
 generate' = π :: Π "generate"
 
 generateUuid :: ∀ fx. Run (GENERATE + fx) UUID
-generateUuid = lift generate' (GenerateUuid identity)
+generateUuid = lift generate' (GenerateUuid (\x -> x))
 
 generateUlidString :: ∀ fx. Run (GENERATE + fx) String
-generateUlidString = lift generate' (GenerateUlidString identity)
+generateUlidString = lift generate' (GenerateUlidString (\x -> x))
 
 generateId :: ∀ a fx. Run (GENERATE + fx) (Id a)
 generateId = do
   str <- generateUlidString
   η $ unsafeFromString str
 
-now :: ∀ fx. Run (GENERATE + fx) Number
-now = lift generate' (GenerateNow identity)
-
+-- | For password hashing
+-- | The implementation should use a strong hashing algorithm like bcrypt.
+-- | The salt is usually handled internally by the algorithm and does not need to be passed here.
 hash :: ∀ fx. String -> Run (GENERATE + fx) String
-hash str = lift generate' (GenerateHash str identity)
+hash str = lift generate' (GenerateHash str (\x -> x))
 
+-- | Get the current date time
+now :: ∀ fx. Run (GENERATE + fx) Number
+now = lift generate' (GenerateNow (\x -> x))
+
+-- | Generate a random integer in the closed interval [min, max]
 randomInt :: ∀ fx. Int -> Int -> Run (GENERATE + fx) Int
-randomInt min max = lift generate' (GenerateRandomInt min max identity)
+randomInt min max = lift generate' (GenerateRandomInt min max (\x -> x))
 
 interpretGenerate :: ∀ fx a. Run (GENERATE + EFFECT + AFF + fx) a -> Run (EFFECT + AFF + fx) a
 interpretGenerate = interpret (on generate' handle send)

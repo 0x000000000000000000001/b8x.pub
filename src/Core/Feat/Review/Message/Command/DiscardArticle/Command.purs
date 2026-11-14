@@ -1,5 +1,6 @@
 module Core.Feat.Review.Message.Command.DiscardArticle.Command
-  (DiscardArticle(..)
+  ( DiscardArticle(..)
+  , DiscardArticleAliasRow
   ) where
 
 import Core.Message.Command.Command (class IsCommand, class IsProtectedAgainstConcurrency, defaultMaxConcurrencyRetries, ConcurrencyPriority(..), defaultCheckLoadedEvents, defaultHandle)
@@ -44,4 +45,32 @@ instance
 
   handle = defaultHandle @DiscardArticle (Just filter) defaultCheckLoadedEvents initialState play decide toResult
 
-  
+type DiscardArticleAliasRow r =
+  ( "DiscardAnArticle" :: DiscardArticle
+  , "JeterArticle" :: DiscardArticle
+  , "JeterUnArticle" :: DiscardArticle
+  , "JetteArticle" :: DiscardArticle
+  , "JetteUnArticle" :: DiscardArticle
+  , "SupprimerArticle" :: DiscardArticle
+  , "SupprimerUnArticle" :: DiscardArticle
+  , "SupprimeArticle" :: DiscardArticle
+  , "SupprimeUnArticle" :: DiscardArticle
+  , "SuppressionArticle" :: DiscardArticle
+  , "SuppressionDArticle" :: DiscardArticle
+  , "SuppressionDUnArticle" :: DiscardArticle
+  , "RetirerArticle" :: DiscardArticle
+  , "RetirerUnArticle" :: DiscardArticle
+  , "RetireArticle" :: DiscardArticle
+  , "RetireUnArticle" :: DiscardArticle
+  , "RetraitArticle" :: DiscardArticle
+  , "RetraitDArticle" :: DiscardArticle
+  , "RetraitDUnArticle" :: DiscardArticle
+  , "EffacerArticle" :: DiscardArticle
+  , "EffacerUnArticle" :: DiscardArticle
+  , "EffaceArticle" :: DiscardArticle
+  , "EffaceUnArticle" :: DiscardArticle
+  , "EffacementArticle" :: DiscardArticle
+  , "EffacementDArticle" :: DiscardArticle
+  , "EffacementDUnArticle" :: DiscardArticle
+  | r
+  )

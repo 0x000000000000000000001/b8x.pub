@@ -1,0 +1,16 @@
+services:
+  # this will create all the needed folders for Swarm (which is not able to create them on-the-fly as Compose can)
+  mount:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_MOUNT}"
+    environment:
+      ENV: ${ENV}
+    volumes:
+      - ${HOME_DIR}:/var/www
+    working_dir: /var/www
+    command: /run.sh
+    stdin_open: true
+    tty: true
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any

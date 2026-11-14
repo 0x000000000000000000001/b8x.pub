@@ -1,0 +1,11 @@
+services:
+  cron:
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          memory: 3000M
+    networks:
+      - stack-default

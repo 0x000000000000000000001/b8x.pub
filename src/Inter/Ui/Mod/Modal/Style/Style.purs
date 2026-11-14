@@ -19,7 +19,7 @@ import Inter.Ui.Mod.Modal.Type (State)
 import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass)
 import Util.Style.Position (left0, positionFixed, top0)
-import Util.Style.Layout (displayFlex, displayNone, heightPct, justifyContentCenter, widthPct100)
+import Util.Style.Layout (displayFlex, displayNone, heightPct, justifyContentCenter, widthPct100, padding2, boxSizingBorderBox)
 import Util.Style.Base (noCss)
 import Util.Style.Selector ((.?))
 
@@ -46,6 +46,8 @@ staticStyle = do
     alignItems flexStart
     widthPct100
     heightPct 100.0
+    padding2 8.0 1.5
+    boxSizingBorderBox
     backgroundColor $ rgba 0 0 0 0.75
     CSS.zIndex zIndex
     overflow overflowAuto

@@ -3,7 +3,7 @@ module Inter.Ui.Router.HandleAction.Initialize (initialize) where
 import Proem
 
 import Effect.Ref (new)
-import Halogen (modify_, subscribe', subscribe, get)
+import Halogen (get, modify_, subscribe, subscribe')
 import Halogen.Query.Event (eventListener)
 import Inter.Ui.Router.Type (Action(..), RouteM)
 import Inter.Ui.Router.Type as Router

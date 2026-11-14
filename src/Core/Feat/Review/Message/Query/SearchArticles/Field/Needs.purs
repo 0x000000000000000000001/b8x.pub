@@ -32,6 +32,7 @@ type Needs =
   , magazineSection :: Need Ɩ Ɩ
   , magazineIssuePageNumber :: Need Ɩ Ɩ
   , seoUpdatedAt :: Need Ɩ Ɩ
+  , writtenAt :: Need Ɩ Ɩ
   }
 
 defaultNeeds :: Needs
@@ -52,6 +53,7 @@ defaultNeeds =
   , magazineSection: NotNeeded
   , magazineIssuePageNumber: NotNeeded
   , seoUpdatedAt: NotNeeded
+  , writtenAt: NotNeeded
   }
 
 type NeedsFieldChildren =
@@ -71,6 +73,7 @@ type NeedsFieldChildren =
   , magazineSection :: NeedField Ɩ Ɩ
   , magazineIssuePageNumber :: NeedField Ɩ Ɩ
   , seoUpdatedAt :: NeedField Ɩ Ɩ
+  , writtenAt :: NeedField Ɩ Ɩ
   )
 
 newtype NeedsField = NeedsField Needs

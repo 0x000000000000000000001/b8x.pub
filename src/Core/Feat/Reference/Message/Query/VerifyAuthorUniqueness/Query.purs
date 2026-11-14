@@ -1,5 +1,4 @@
 module Core.Feat.Reference.Message.Query.VerifyAuthorUniqueness.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -9,7 +8,7 @@ import Core.Feat.Reference.Message.Query.VerifyAuthorUniqueness.Payload (Fields,
 import Core.Feat.Reference.Message.Query.VerifyAuthorUniqueness.Result (Result)
 import Core.Feat.Reference.Message.Query.VerifyAuthorUniqueness.State (State)
 import Core.Feat.Reference.Message.Query.VerifyAuthorUniqueness.Projection.Projection (Author(..), findAuthorsByName)
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Core.Mod.Author.Exception.AuthorAlreadyReferenced (AuthorAlreadyReferenced(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array (any, intersect, length)
@@ -35,7 +34,7 @@ instance IsQuery VerifyAuthorUniqueness State Fields Payload Result where
   description = "Verify that an author is unique (by name and legacy IDs)"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Author Nothing
+    hash <- getReadModelHash @Author HashAll
     η $ defaultCached hash
 
   handle (VerifyAuthorUniqueness { name: newName, legacyIds: newLegacyIds }) = do

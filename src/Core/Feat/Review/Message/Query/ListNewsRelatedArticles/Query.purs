@@ -20,7 +20,7 @@ import Core.Mod.Author.Message.Query.Build (buildAuthor)
 import Core.Mod.Book.Message.Query.Build (buildBooks, buildBook)
 import Core.Mod.Projection.Finder.Expectation.Expectation (Expectation(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.Sort as Sort
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array as Array
@@ -46,8 +46,8 @@ instance IsQuery ListNewsRelatedArticles State Fields Payload Result where
   description = "List news related articles"
 
   cacheStrategy _ = do
-    hash1 <- getReadModelHash @NewsTopic Nothing
-    hash2 <- getReadModelHash @Article Nothing
+    hash1 <- getReadModelHash @NewsTopic HashAll
+    hash2 <- getReadModelHash @Article HashAll
     η $ defaultCached [ hash1, hash2 ]
 
   handle (ListNewsRelatedArticles { theme, blacklist, needs }) = do
@@ -128,5 +128,6 @@ instance IsQuery ListNewsRelatedArticles State Fields Payload Result where
           , author: buildAuthor config.objectStorage.urlBase needs.author a.author
           , illustrations: buildIllustrations needs.illustrations a.illustrations a.books (buildIllustration config.objectStorage.urlBase)
           , slug: build needs.slug a.slug
+          , writtenAt: build needs.writtenAt a.writtenAt
           }
       }

@@ -20,12 +20,12 @@ data Route
   | SocialMeta { path :: String, agent :: Maybe String }
   | SocialWatermark { url :: Maybe String, agent :: Maybe String, v :: Maybe String }
   | SitemapIndex
-  | SitemapArticlesIndex
   | SitemapArticlesByYear Year
   | SitemapMagazineIssues
   | SitemapXsl
   | Write String
   | Read String
+  | LogUiBug
 
 derive instance Generic Route _
 
@@ -40,10 +40,10 @@ routeCodec = root $ sum
   , "SocialMeta": "social" / "meta" / params { path: string, agent: optional ◁ string }
   , "SocialWatermark": "social" / "watermark" / params { url: optional ◁ string, agent: optional ◁ string, v: optional ◁ string }
   , "SitemapIndex": "sitemap" / "index.xml" / noArgs
-  , "SitemapArticlesIndex": "sitemap" / "articles" / "index.xml" / noArgs
   , "SitemapArticlesByYear": "sitemap" / "articles" / (yearCodec ".xml")
   , "SitemapMagazineIssues": "sitemap" / "magazine-issues.xml" / noArgs
   , "SitemapXsl": "sitemap.xsl" / noArgs
   , "Write": "write" / segment
   , "Read": "read" / segment
+  , "LogUiBug": "log" / "ui-bug" / noArgs
   }

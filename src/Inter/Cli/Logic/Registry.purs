@@ -1,6 +1,10 @@
+-- Keep the large alias dictionary shared during backend optimization.
+-- @inline Inter.Cli.Logic.Registry.buildAliasDictCons never
 module Inter.Cli.Logic.Registry where
+
 import Util.Foreign.Native as Util.Foreign.Native
 import Foreign as Foreign
+import Foreign.Index (readProp) as ForeignIndex
 import Data.Nullable as Data.Nullable
 
 import Proem
@@ -9,10 +13,12 @@ import Control.Alternative ((<|>))
 import Core.Message.Command.Command (class IsCommand)
 import Core.Message.Command.Command as Command
 import Core.Message.Command.Handle.Handle (handleCommand)
-import Core.Message.Command.Index (CommandRow)
+import Core.Message.Command.Index (CommandRow, CommandAliasRow)
 import Core.Message.Command.Make (makeCommand)
 import Core.Message.Field.Field (class IsField, Presence(..), cli, presence)
+
 import Core.Message.Field.Payload (class MakePayload)
+
 import Core.Message.Query.Index (QueryRow)
 import Core.Message.Query.Make (makeQuery)
 import Core.Message.MakeMessageM (liftMakeMessageM)
@@ -25,29 +31,33 @@ import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl, writeImpl)
 import Control.Monad.Except (runExcept)
 import Data.Either (either, hush)
 import Data.CatQueue as CatQueue
-import Data.Maybe (Maybe(..), optional)
+import Data.Maybe (Maybe(..), optional, fromMaybe)
+import Data.Int as Int
+import Type.Proxy (Proxy(..))
 import Data.Newtype (wrap)
-import Data.String (trim, toLower, replaceAll, joinWith)
+import Data.String (toLower, replaceAll, joinWith, contains)
 import Data.String.Pattern (Pattern(..), Replacement(..))
-import Data.Symbol (class IsSymbol)
+import Data.Symbol (class IsSymbol, reflectSymbol)
 import Data.Variant (inj)
 import Foreign.Object (Object)
 import Foreign.Object as Object
-import Inter.Cli.Logic.LogicM (AsyncLogicM, LogicM)
-import Inter.Cli.Util.Input as Input
+import Core.Mod.Message.Field.Inter.Cli.CustomActs (class HasCustomCliAct, getCustomCliAct)
+import Core.Mod.Message.Field.Inter.Cli.Type (BaseCliFx, CustomCliActResult(..))
+import Inter.Cli.Logic.LogicM (LogicM)
+import Inter.Cli.Util.Prefix as Prefix
 import Options.Applicative (ParserInfo, header, help, info, long, metavar, strOption, progDesc)
 import Options.Applicative as OptAp
 import Prim.Row as Row
 import Prim.RowList (class RowToList, Cons, Nil, RowList)
 import Prim.RowList as RowList
-import Run (AFF, EFFECT, Run)
-import Type.Row (type (+))
+import Run (Run)
 import Util.Type.Row.Registry (class RegistryBuilder, buildRegistry, buildRegistryFromRowList)
+import Util.Type.String.Cli (isYes)
 import Util.Type.String.String (caseToKebab, lowerCaseFirst)
 import Util.Type.Type (class Reflect, reflectName)
 
 type Actions =
-  { askQueue :: Maybe (AsyncLogicM Ɩ)
+  { askQueue :: Maybe (LogicM Ɩ)
   , askHandle :: LogicM Foreign
   , name :: String
   , isCommand :: Boolean
@@ -55,12 +65,39 @@ type Actions =
 
 type ActionsParserInfo = ParserInfo Actions
 
-registry :: Object ActionsParserInfo
+type AliasEntry = { name :: String, info :: ActionsParserInfo }
+
+type RegistryEntry = { info :: ActionsParserInfo, aliases :: Array AliasEntry, askHandleWithOpts :: Object Foreign -> LogicM Foreign }
+
+registry :: Object RegistryEntry
 registry =
   (buildRegistry @LogicCommands @CommandRow)
     `Object.union`
       (buildRegistry @LogicQueries @QueryRow)
 
+class BuildAliasDict (rowList :: RowList Type) where
+  buildAliasDictFromRowList :: Object (Array String)
+
+instance BuildAliasDict Nil where
+  buildAliasDictFromRowList = Object.empty
+
+instance buildAliasDictCons ::
+  ( IsSymbol aliasName
+  , Reflect cmd
+  , BuildAliasDict tail
+  ) =>
+  BuildAliasDict (Cons aliasName cmd tail) where
+  buildAliasDictFromRowList =
+    let
+      tailDict = buildAliasDictFromRowList @tail
+      cmdName = reflectName @cmd
+      aliasName = reflectSymbol (Proxy :: Proxy aliasName)
+      existing = fromMaybe [] (Object.lookup cmdName tailDict)
+    in
+      Object.insert cmdName (Array.snoc existing aliasName) tailDict
+
+buildAliasDict :: ∀ @r rl. RowToList r rl => BuildAliasDict rl => Object (Array String)
+buildAliasDict = buildAliasDictFromRowList @rl
 
 class ToCliOutput a where
   toCliOutput :: a -> Foreign
@@ -81,11 +118,11 @@ instance
   , ToCliOutput a
   , Ask fields
   , Parser fields
-  , RegistryBuilder LogicCommands tail ActionsParserInfo
+  , RegistryBuilder LogicCommands tail RegistryEntry
   , Row.Cons cmdName cmd commandRowTail CommandRow
   , MakePayload fields payload
   ) =>
-  RegistryBuilder LogicCommands (Cons cmdName cmd tail) ActionsParserInfo where
+  RegistryBuilder LogicCommands (Cons cmdName cmd tail) RegistryEntry where
   buildRegistryFromRowList =
     let
       tailRegistry = buildRegistryFromRowList @LogicCommands @tail
@@ -93,16 +130,24 @@ instance
 
       parser' = parser @fields
 
+      askHandleWithOpts opts = ask @fields opts >>= (makeCommand @cmd ▷ liftMakeMessageM) >>= handleCommand @cmd true <#> toCliOutput
+
       buildActions opts =
         { askQueue: Just $ ask @fields opts >>= (makeCommand @cmd ▷ liftMakeMessageM) >>= (inj (π :: Π cmdName) ▷ wrap ▷ queueCommand_)
-        , askHandle: ask @fields opts >>= (makeCommand @cmd ▷ liftMakeMessageM) >>= handleCommand @cmd true <#> toCliOutput
+        , askHandle: askHandleWithOpts opts
         , name: reflectName @cmd
         , isCommand: true
         }
 
+      aliasesObj = buildAliasDict @CommandAliasRow
+      aliasesForCmd = fromMaybe [] (Object.lookup cmdName aliasesObj)
+
+      aliasInfo = info (buildActions <$> parser') (progDesc "")
+      aliases = map (\aliasName -> { name: aliasName, info: aliasInfo }) aliasesForCmd
+
       info' = info (buildActions <$> parser') (progDesc (Command.description @cmd) <> header (Command.description @cmd))
     in
-      Object.insert cmdName info' tailRegistry
+      Object.insert cmdName { info: info', aliases, askHandleWithOpts } tailRegistry
 
 -- Query Registry Builder
 
@@ -117,11 +162,11 @@ instance
   , ToCliOutput a
   , Ask fields
   , Parser fields
-  , RegistryBuilder LogicQueries tail ActionsParserInfo
+  , RegistryBuilder LogicQueries tail RegistryEntry
   , Row.Cons queryName query queryRowTail QueryRow
   , MakePayload fields payload
   ) =>
-  RegistryBuilder LogicQueries (Cons queryName query tail) ActionsParserInfo where
+  RegistryBuilder LogicQueries (Cons queryName query tail) RegistryEntry where
   buildRegistryFromRowList =
     let
       tailRegistry = buildRegistryFromRowList @LogicQueries @tail
@@ -129,16 +174,18 @@ instance
 
       parser' = parser @fields
 
+      askHandleWithOpts opts = ask @fields opts >>= (makeQuery @query ▷ liftMakeMessageM) >>= Query.handleWithCache <#> toCliOutput
+
       buildActions opts =
         { askQueue: Nothing
-        , askHandle: ask @fields opts >>= (makeQuery @query ▷ liftMakeMessageM) >>= Query.handleWithCache <#> toCliOutput
+        , askHandle: askHandleWithOpts opts
         , name: reflectName @query
         , isCommand: false
         }
 
       info' = info (buildActions <$> parser') (progDesc (Query.description @query) <> header (Query.description @query))
     in
-      Object.insert queryName info' tailRegistry
+      Object.insert queryName { info: info', aliases: [], askHandleWithOpts } tailRegistry
 
 -- Parser
 
@@ -255,7 +302,7 @@ else instance
 -- Ask
 
 class Ask (fields :: Row Type) where
-  ask :: ∀ fx. Object Foreign -> Run (AFF + EFFECT + fx) (Object Foreign)
+  ask :: Object Foreign -> LogicM (Object Foreign)
 
 instance
   ( RowToList fields fieldsList
@@ -265,7 +312,7 @@ instance
   ask opt = askFromRowList @fieldsList @fields "" "" opt
 
 class AskFromRowList (fieldsList :: RowList Type) (fields :: Row Type) where
-  askFromRowList :: ∀ fx. String -> String -> Object Foreign -> Run (AFF + EFFECT + fx) (Object Foreign)
+  askFromRowList :: String -> String -> Object Foreign -> LogicM (Object Foreign)
 
 instance AskFromRowList Nil fields where
   askFromRowList _ _ _ = η Object.empty
@@ -283,6 +330,9 @@ instance
       keyStr = ᴠ @key
       val' = Object.lookup keyStr optParsingObj
 
+    when (prefix == "") do
+      Prefix.log ""
+
     val <- askForField @field @a @childrenList prefix labelPrefix keyStr val'
     rest <- askFromRowList @fieldsTail @fields prefix labelPrefix optParsingObj
 
@@ -291,13 +341,12 @@ instance
       Nothing -> rest
 
 class AskForField (field :: Type) (a :: Type) (childrenList :: RowList Type) where
-  askForField :: ∀ fx. String -> String -> String -> Maybe Foreign -> Run (AFF + EFFECT + fx) (Maybe Foreign)
+  askForField :: String -> String -> String -> Maybe Foreign -> LogicM (Maybe Foreign)
 
 handleOptVal
-  :: ∀ fx
-   . Maybe Foreign
-  -> Run (AFF + EFFECT + fx) (Maybe Foreign)
-  -> Run (AFF + EFFECT + fx) (Maybe Foreign)
+  :: Maybe Foreign
+  -> LogicM (Maybe Foreign)
+  -> LogicM (Maybe Foreign)
 handleOptVal optVal onNothing =
   case optVal of
     Just jsonVal -> do
@@ -305,28 +354,75 @@ handleOptVal optVal onNothing =
       else η (Just jsonVal)
     Nothing -> onNothing
 
+askTriggeredCommand :: String -> Foreign -> LogicM String
+askTriggeredCommand cmdName optsJson = case Object.lookup cmdName registry of
+  Just entry -> do
+    let opts = (runExcept (readImpl optsJson) # hush) ??⇒ Object.empty
+    resJson <- Prefix.localCliPrefix (\p -> p <> "│ ") (entry.askHandleWithOpts opts)
+    η $ fromMaybe "" (hush (runExcept (ForeignIndex.readProp "id" resJson >>= Foreign.readString)))
+  Nothing -> do
+    Prefix.log $ "Command not found: " <> cmdName
+    η ""
+
 instance
   ( IsField field (Array a) ()
+  , HasCustomCliAct field
   ) =>
   AskForField field (Array a) Nil where
   askForField _ labelPrefix _ optVal = handleOptVal optVal $ do
     let
       cli' = cli @field
       choicesStr = case cli'.choices of
-        Just c -> " (choices: " <> joinWith ", " c <> ")"
+        Just c -> " (choices: " <> joinWith ", " (Array.mapWithIndex (\i choice -> show i <> "/" <> choice) c) <> ")"
         Nothing -> ""
       askItem _ prompt = do
-        let description = labelPrefix <> "(" <> prompt <> ") " <> cli'.description <> choicesStr
-        val <- case cli'.multiline of
-          true -> Input.askMultiline description
-          false -> Input.ask description
-        η $ either (κ $ writeImpl val) identity (Util.Foreign.Native.parseJSON val)
+        let description = labelPrefix <> prompt <> " of " <> lowerCaseFirst cli'.description <> choicesStr
+        let
+          askLoop = do
+            val <- case getCustomCliAct @field of
+              Just act -> act prompt >>= case _ of
+                UserInput str -> η str
+                TriggerCommand cmdName opts -> askTriggeredCommand cmdName opts
+              Nothing -> case cli'.multiline of
+                true -> Prefix.askMultiline description
+                false -> Prefix.ask description
+            let 
+              finalVal = case cli'.choices, Int.fromString val of
+                Just c, Just idx -> fromMaybe val (Array.index c idx)
+                _, _ -> val
+            case cli'.choices of
+              Just c ->
+                if Array.elem finalVal c then η finalVal
+                else do
+                  Prefix.log "Invalid choice. Please select a valid option."
+                  askLoop
+              Nothing -> η finalVal
+        finalVal <- askLoop
+        η $ either (κ $ writeImpl finalVal) identity (Util.Foreign.Native.parseJSON finalVal)
 
     arr <- askListElements (labelPrefix <> cli'.description) askItem
     η $ Just (writeImpl arr)
 
 else instance
+  ( IsField field Boolean ()
+  ) =>
+  AskForField field Boolean Nil where
+  askForField _ labelPrefix _ optVal = handleOptVal optVal $ do
+    let
+      cli' = cli @field
+      presence' = presence @field
+      defaultVal = case presence' of
+        Optional _ defaultDescription -> isYes defaultDescription false
+        Required -> false
+
+    finalVal <- Prefix.askBoolean (labelPrefix <> cli'.description) defaultVal
+    case presence' of
+      Optional _ _ -> if finalVal == defaultVal then η Nothing else η $ Just $ writeImpl finalVal
+      Required -> η $ Just $ writeImpl finalVal
+
+else instance
   ( IsField field a ()
+  , HasCustomCliAct field
   ) =>
   AskForField field a Nil where
   askForField _ labelPrefix _ optVal = handleOptVal optVal $ do
@@ -337,14 +433,52 @@ else instance
         Optional _ defaultDescription -> " (default: " <> lowerCaseFirst defaultDescription <> ")"
         Required -> ""
       choicesStr = case cli'.choices of
-        Just c -> " (choices: " <> joinWith ", " c <> ")"
+        Just c -> " (choices: " <> joinWith ", " (Array.mapWithIndex (\i choice -> show i <> "/" <> choice) c) <> ")"
         Nothing -> ""
       description = labelPrefix <> cli'.description <> choicesStr <> descSuffix
 
-    val <- case cli'.multiline of
-      true -> Input.askMultiline description
-      false -> Input.ask description
-    η $ Just $ either (κ $ writeImpl val) identity (Util.Foreign.Native.parseJSON val)
+    let
+      hasCustomAct = case getCustomCliAct @field of
+        Nothing -> false
+        Just _ -> true
+
+    skipAct <- case presence', hasCustomAct of
+      Optional _ _, true -> do
+        b <- Prefix.askBoolean ("Do you want to provide the " <> lowerCaseFirst (labelPrefix <> cli'.description) <> "?") true
+        η (not b)
+      _, _ -> η false
+
+    if skipAct then η Nothing
+    else do
+      let
+        askLoop = do
+          val <- case getCustomCliAct @field of
+            Just act -> act "" >>= case _ of
+              UserInput str -> η str
+              TriggerCommand cmdName opts -> askTriggeredCommand cmdName opts
+            Nothing -> case cli'.multiline of
+              true -> Prefix.askMultiline description
+              false -> Prefix.ask description
+          let 
+            finalVal = case cli'.choices, Int.fromString val of
+              Just c, Just idx -> fromMaybe val (Array.index c idx)
+              _, _ -> val
+          case cli'.choices of
+            Just c ->
+              if Array.elem finalVal c then η finalVal
+              else if finalVal == "" then η finalVal -- Let empty string pass through for optional check later
+              else do
+                Prefix.log "Invalid choice. Please select a valid option."
+                askLoop
+            Nothing -> η finalVal
+      finalVal <- askLoop
+
+      let isOptional = case presence' of
+            Optional _ _ -> true
+            Required -> false
+
+      if finalVal == "" && isOptional then η Nothing
+      else η $ Just $ either (κ $ writeImpl finalVal) identity (Util.Foreign.Native.parseJSON finalVal)
 
 instance
   ( IsField field (Array a) children
@@ -358,7 +492,7 @@ instance
       name' = prefix <> (keyStr # caseToKebab) <> "-"
 
       askItem _ prompt = do
-        childrenObj <- askFromRowList @(Cons k v tail) @children (name' <> prompt <> "-") (labelPrefix <> "(" <> prompt <> ") ") Object.empty
+        childrenObj <- askFromRowList @(Cons k v tail) @children (name' <> prompt <> "-") (labelPrefix <> "(" <> prompt <> " of " <> lowerCaseFirst cli'.description <> ") ") Object.empty
         η (writeImpl childrenObj)
 
     arr <- askListElements (labelPrefix <> cli'.description) askItem
@@ -388,27 +522,27 @@ else instance
           childrenObj <- askFromRowList @(Cons k v tail) @children name' labelPrefix Object.empty
           η $ Just (writeImpl childrenObj)
         Optional _ _ -> do
-          let defaultYn = "yes"
+          b <- Prefix.askBoolean ("Do you want to provide the " <> lowerCaseFirst (labelPrefix <> description) <> "?") true
 
-          yn <- Input.ask ("Do you want to provide the " <> lowerCaseFirst (labelPrefix <> description) <> "? (default: " <> defaultYn <> ")")
-
-          let
-            yn' = toLower (trim yn)
-            yn'' = yn' == "" ? defaultYn ↔ yn'
-
-          if yn'' /= "y" && yn'' /= "yes" then η Nothing
+          if not b then η Nothing
           else do
             childrenObj <- askFromRowList @(Cons k v tail) @children name' labelPrefix Object.empty
             η $ Just (writeImpl childrenObj)
 
-askListElements :: ∀ fx. String -> (Int -> String -> Run (AFF + EFFECT + fx) Foreign) -> Run (AFF + EFFECT + fx) (Array Foreign)
+askListElements :: ∀ fx. String -> (Int -> String -> Run (BaseCliFx fx) Foreign) -> Run (BaseCliFx fx) (Array Foreign)
 askListElements description askItem = do
   let
     loop idx acc = do
-      let verb = idx == 0 ? "fill" ↔ "expand"
-      yn <- Input.ask ("Do you want to " <> verb <> " the list of " <> lowerCaseFirst description <> "? (default: yes)")
-      let yn' = toLower (trim yn)
-      if yn' == "y" || yn' == "yes" || yn' == "" then do
+      let
+        isFirstElement = idx == 0
+        verb = isFirstElement ? "fill" ↔ "expand"
+        isLegacy = contains (Pattern "legacy") (toLower description)
+        -- Once a first element has been provided, default to stopping the list.
+        defaultVal = isFirstElement ? not isLegacy ↔ false
+
+      b <- Prefix.askBoolean ("Do you want to " <> verb <> " the list of " <> lowerCaseFirst description <> "?") defaultVal
+
+      if b then do
         let
           n = idx + 1
           r100 = n `mod` 100

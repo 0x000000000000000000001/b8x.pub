@@ -1,23 +1,20 @@
 module Core.Mod.Projection.Finder.Sort where
 
+import Proem
+
+import Yoga.JSON as Yoga.JSON
 import Yoga.JSON as SimpleJSON
 import Foreign as Foreign
-import Proem
-import Yoga.JSON as Yoga.JSON
 import Control.Monad.Except as Control.Monad.Except
-
 import Core.Mod.Projection.Pair (class IsPair)
 import Core.Exception.Exception (inj)
 import Core.Message.Exception.MalformedPayloadValue (MalformedPayloadValue(..), MalformedPayloadValueRow)
 import Core.Util.Validation (class IsRefinedType)
 import Core.Mod.Projection.SearchIndex (IndexNeeds, Yes)
-import Data.Argonaut.Decode (class DecodeJson, decodeJson)
-import Data.Argonaut.Decode.Error (JsonDecodeError(..))
-import Data.Argonaut.Encode (class EncodeJson, encodeJson)
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype, unwrap)
+import Data.Newtype (class Newtype)
 import Data.Show.Generic (genericShow)
 import Data.String as String
 import Data.Symbol (class IsSymbol)
@@ -55,18 +52,6 @@ derive instance Generic SortDirection _
 instance Show SortDirection where
   show = genericShow
 
-instance EncodeJson SortDirection where
-  encodeJson Asc = encodeJson "Asc"
-  encodeJson Desc = encodeJson "Desc"
-
-instance DecodeJson SortDirection where
-  decodeJson json = do
-    str <- decodeJson json
-    case str of
-      "Asc" -> Right Asc
-      "Desc" -> Right Desc
-      _ -> Left $ UnexpectedValue json
-
 type SortCriterion_ =
   { path :: Array String
   , direction :: SortDirection
@@ -103,9 +88,6 @@ instance
 
     η $ SortCriterion { path, direction }
 
-instance EncodeJson (SortCriterion value) where
-  encodeJson = unwrap ▷ encodeJson
-
 instance
   (IsPair _1 value _2 _3 sortRow _4 _5 _6 _7
   , ExtractRowKeys sortRow
@@ -115,23 +97,7 @@ instance
     Right sort -> Right sort
     Left err -> Left $ inj (MalformedPayloadValue { innerPath: Nothing, error: err })
 
-instance
-  (IsPair _1 value _2 _3 sortRow _4 _5 _6 _7
-  , ExtractRowKeys sortRow
-  ) =>
-  DecodeJson (SortCriterion value) where
-  decodeJson json = do
-    { path, direction } :: SortCriterion_ <- decodeJson json
-
-    let pathStr = String.joinWith "." path
-
-    if Array.elem pathStr (extractRowKeys @sortRow) then
-      Right $ SortCriterion { path, direction }
-    else
-      Left $ TypeMismatch $ "Invalid sort field: " <> pathStr
-
 type SortCriteria (value :: Type) = Array (SortCriterion value)
-
 
 instance SimpleJSON.ReadForeign SortDirection where
   readImpl f = do

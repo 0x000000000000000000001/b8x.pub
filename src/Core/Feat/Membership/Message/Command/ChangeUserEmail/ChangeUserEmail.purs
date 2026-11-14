@@ -18,6 +18,7 @@ import Core.Feat.Effect.Sleep (SLEEP)
 import Core.Feat.Effect.Mail (MAIL)
 import Core.Feat.Effect.Newsletter (NEWSLETTER)
 import Core.Feat.Effect.RateLimit (RATE_LIMIT)
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Message.Queue (QUEUE)
 import Core.Mod.Projection.Index (PROJECTION_READ)
@@ -33,6 +34,7 @@ childChangeUserEmail
        ( EVENT_STORE
            + EXCEPT_LOGIC
            + PROJECTION_READ
+           + DOWNLOAD
            + UPLOAD
            + NEWSLETTER
            + RATE_LIMIT
@@ -56,6 +58,7 @@ changeUserEmail
            + EXCEPT_LOGIC
            + QUEUE
            + PROJECTION_READ
+           + DOWNLOAD
            + UPLOAD
            + NEWSLETTER
            + RATE_LIMIT

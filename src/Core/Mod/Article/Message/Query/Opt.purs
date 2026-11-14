@@ -28,4 +28,5 @@ type ArticleInnerNeeds_ =
   , theme :: Need Ɩ Ɩ
   , books :: Need BookOpt BookInnerNeeds
   , author :: Need AuthorOpt AuthorInnerNeeds
+  , writtenAt :: Need Ɩ Ɩ
   }

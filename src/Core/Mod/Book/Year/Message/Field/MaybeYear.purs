@@ -7,15 +7,22 @@ import Core.Message.Field.Field (class IsField, Sanitized(..), defaultMaybePrese
 import Core.Mod.Book.Year.Year as Base
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Newtype (class Newtype)
+import Core.Mod.Book.Year.Message.Field.InnerYear (InnerYearField)
+import Core.Mod.Book.Year.Message.Field.Approximately (ApproximatelyField)
 
 type Year = Maybe Base.Year
 
 newtype YearField = YearField Year
 
+type YearFieldChildren =
+  ( year :: InnerYearField
+  , approximately :: ApproximatelyField
+  )
+
 description :: String
 description = "Book year"
 
-instance IsField YearField Year () where
+instance IsField YearField Year YearFieldChildren where
   name = "Year"
 
   description = description

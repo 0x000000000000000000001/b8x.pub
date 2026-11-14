@@ -14,7 +14,7 @@ import Inter.Ui.Router.Style.Style (defaultTransitionTime)
 import Inter.Ui.Type.ControlledState (ControlledState(..))
 import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass, refineClass')
-import Util.Style.Layout (displayFlex, heightRem, visibilityHidden, visibilityVisible, widthPct100, justifyContentCenter)
+import Util.Style.Layout (displayFlex, heightRem, visibilityHidden, visibilityVisible, widthPct100, justifyContentCenter, overflowHidden)
 import Util.Style.Selector ((.?))
 import Util.Style.Transition (transitions)
 import Util.Style.Transition as Transition
@@ -52,6 +52,7 @@ staticStyle = do
     heightRem 0.0
     visibilityHidden
     opacity 0.0
+    overflowHidden
     transitions
       [ Transition.height defaultTransitionTime ease defaultTransitionTime
       , Transition.opacity (sec 0.0) ease (sec 0.0)

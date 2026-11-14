@@ -1,13 +1,6 @@
 <?php
 
-$exports['_truncateInnerTextThenHealOuterHtml'] = function($limit, $suffix = null, $htmlStr = null) use (&$exports) {
-    if (\func_num_args() < 3) {
-        $__args = \func_get_args();
-        return function(...$more) use ($__args, &$exports) {
-            return $exports['_truncateInnerTextThenHealOuterHtml'](...\array_merge($__args, $more));
-        };
-    }
-
+$exports['_truncateInnerTextThenHealOuterHtml'] = function($limit, $suffix, $htmlStr) {
     if ($limit < 0) return $htmlStr;
     if (trim($htmlStr) === '') return $htmlStr;
 

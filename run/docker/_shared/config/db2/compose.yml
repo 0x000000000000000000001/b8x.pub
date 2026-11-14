@@ -1,0 +1,5 @@
+services:
+  db2:
+    restart: always
+    networks:
+      - compose-default

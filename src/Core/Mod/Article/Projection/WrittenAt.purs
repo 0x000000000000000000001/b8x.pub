@@ -30,7 +30,6 @@ instance ReadForeign WrittenAt where
     year <- Foreign.Index.readProp "year" obj >>= readImpl
     η $ WrittenAt { instant, year }
 
-
 make :: Instant -> WrittenAt
 make instant = WrittenAt
   { instant

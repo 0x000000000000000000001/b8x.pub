@@ -11,6 +11,7 @@ import Core.Mod.Article.Projection.MagazineIssue (MagazineIssue)
 import Core.Mod.Image.Message.Query.Result (Image)
 import Data.Maybe (Maybe)
 import Util.Html.Clean.Render.Render (SanitizedHtmlString)
+import Core.Mod.Time.Instant (Instant)
 
 type UiArticle =
   { id :: Return ArticleId
@@ -25,6 +26,7 @@ type UiArticle =
   , author :: Return (Maybe UiAuthor)
   , illustrations :: Return (Array UiIllustration)
   , magazineIssue :: Return (Maybe MagazineIssue)
+  , writtenAt :: Return Instant
   }
 
 type UiSearchArticle =
@@ -40,6 +42,7 @@ type UiSearchArticle =
   , author :: Return (Maybe UiAuthor)
   , illustrations :: Return (Array UiIllustration)
   , slug :: Return Slug
+  , writtenAt :: Return Instant
   }
 
 type UiFrontPageResult =
@@ -71,6 +74,11 @@ type UiAuthor =
 type UiBookAuthor =
   { id :: AuthorId
   , name :: SanitizedHtmlString
+  }
+
+type UiAuthorInfo =
+  { biography :: Maybe SanitizedHtmlString
+  , portrait :: Maybe Image
   }
 
 type UiBook =

@@ -1,0 +1,5 @@
+services:
+  news:
+    restart: always
+    networks:
+      - compose-default

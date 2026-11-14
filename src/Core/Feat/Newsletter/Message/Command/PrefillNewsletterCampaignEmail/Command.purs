@@ -1,5 +1,6 @@
 module Core.Feat.Newsletter.Message.Command.PrefillNewsletterCampaignEmail.Command
   ( PrefillNewsletterCampaignEmail(..)
+  , PrefillNewsletterCampaignEmailAliasRow
   ) where
 
 import Core.Mod.Article.Content.Excerpt.CutStrategy (defaultSuffixValue, CutStrategy(..), Suffix(..), SuffixValue(..))
@@ -18,11 +19,11 @@ import Data.Generic.Rep (class Generic)
 import Data.Newtype (class Newtype, unwrap)
 import Util.Type.Type (class Reflect, reflectConstructorName)
 import Core.Feat.Effect.Generate (now)
-import Core.Mod.Time.Instant (Instant(..), toHumanParisDate, toSendyScheduleDate)
+import Core.Mod.Time.Instant (Instant(..), toHumanParisDate)
 import Data.DateTime.Instant as Base
 import Data.Time.Duration (Milliseconds(..))
 import Core.Feat.Newsletter.Message.Command.PrefillNewsletterCampaignEmail.Filter (filter)
-import Util.Html.Clean.Clean (TagList(..), untagAll)
+import Util.Html.Clean.Clean (TagList(..), untagAll, untagExcept)
 import Core.Mod.Article.Title.Clean as TitleClean
 import Core.Mod.Article.Lead.Clean as LeadClean
 import Util.Type.String.String (removeAccents)
@@ -46,12 +47,12 @@ import Core.Message.Query.Result (Fold(..)) as Result
 import Data.Maybe (Maybe(..))
 import Core.Mod.Html.Html (NonEmptyHtml(..))
 import Core.Mod.Book.Year.Year (Year(..))
-import Data.String (joinWith, length, take, toLower, Pattern(..), split)
+import Data.String (joinWith, length, take, toLower, Pattern(..), split, Replacement(..), replaceAll)
 import Data.Enum (fromEnum)
 import Core.Mod.Book.Cover.Message.Query.Opt (defaultCoverOpt)
 import Config.PublicConfig (publicConfig, toAbsolute_)
-import Inter.Ui.Capability.Navigate.Navigate (Route(..), routeCodec)
-import Routing.Duplex (print)
+import Util.Type.String.ToString (toString)
+import Routing.Duplex (print, root, segment)
 
 newtype PrefillNewsletterCampaignEmail = PrefillNewsletterCampaignEmail Payload
 
@@ -132,6 +133,7 @@ instance
                   , magazineIssuePageNumber: NotNeeded
                   , seoUpdatedAt: NotNeeded
                   , onFrontPages: NotNeeded
+                  , writtenAt: NotNeeded
                   }
               }
 
@@ -206,24 +208,41 @@ instance
                     authorName = case a.author of
                       Given (Just authorData) -> case authorData.name of
                         Given (NonEmptyHtml authorNameHtml) -> untagAll false authorNameHtml
-                        _ -> ""
-                      _ -> ""
+                        _ -> "Auteur(e) inconnu(e)"
+                      _ -> "Auteur(e) inconnu(e)"
 
                     booksData = case a.books of
                       Given (Result.Unfolded bs) ->
                         let
                           names = bs <#> \b -> case b.name of
-                            Given (NonEmptyHtml bookNameHtml) -> untagAll false bookNameHtml
-                            _ -> ""
+                            Given (NonEmptyHtml bookNameHtml) ->
+                              let
+                                cleanedHtml = untagExcept [ "i", "em" ] false bookNameHtml
+                                boldedHtml = replaceAll (Pattern "<i>") (Replacement "<i style=\"font-weight: bold;\">") cleanedHtml
+                                boldedHtml2 = replaceAll (Pattern "<em>") (Replacement "<em style=\"font-weight: bold;\">") boldedHtml
+                              in
+                                boldedHtml2
+                            _ -> "Titre inconnu"
                           authors = bs <#> \b -> case b.authors of
-                            Given auths -> joinWith ", " (auths <#> \author -> let (NonEmptyHtml authorNameHtml2) = author.name in untagAll false authorNameHtml2)
-                            _ -> ""
+                            Given auths -> case auths of
+                              [] -> "Auteur(e) inconnu(e)"
+                              _ ->
+                                let
+                                  namesArr = auths <#> \author -> let (NonEmptyHtml authorNameHtml2) = author.name in untagAll false authorNameHtml2
+                                in
+                                  case namesArr of
+                                    [ singleName ] -> singleName
+                                    [ a1, a2 ] -> a1 <> " et " <> a2
+                                    arr -> case Array.init arr, Array.last arr of
+                                      Just initialNames, Just lastName -> joinWith ", " initialNames <> " et " <> lastName
+                                      _, _ -> joinWith ", " arr
+                            _ -> "Auteur(e) inconnu(e)"
                           years = bs <#> \b -> case b.year of
                             Given (Just (Year y)) -> (y.approximately ? "vers " ↔ "") <> show (fromEnum (unwrap y.year))
-                            _ -> ""
+                            _ -> "Date de parution inconnue"
                           editors = bs <#> \b -> case b.editor of
                             Given (Just (NonEmptyHtml editorNameHtml)) -> untagAll false editorNameHtml
-                            _ -> ""
+                            _ -> "Éditeur inconnu"
                           prefix = case head bs of
                             Just b -> case b.authors of
                               Given auths -> case head auths of
@@ -260,7 +279,7 @@ instance
                           Nothing -> ""
                         _ -> ""
                       link = case a.slug of
-                        Given slug -> toAbsolute_ publicConfig.ui.host (print routeCodec (Article slug { consumeMagicLoginToken: Nothing, menu: { search: { openWith: Nothing, withAuthorFilter: Nothing }, magazineIssueOpen: Nothing } }))
+                        Given slug -> toAbsolute_ publicConfig.ui.host (print (root segment) (toString slug))
                         _ -> ""
                     in
                       { title
@@ -280,9 +299,13 @@ instance
               )
               orderedArticles
 
-          let campaignName = "La Booksletter. Autogénérée (le " <> toHumanParisDate (Instant i) <> ", heure de Paris)"
+          let
+            currentInstant = case Base.instant (Milliseconds n) of
+              Just inst -> Instant inst
+              Nothing -> Instant i
+            campaignName = "La Booksletter. Autogénérée (le " <> toHumanParisDate currentInstant <> ", heure de Paris)"
           let subject = "La Booksletter"
-          let scheduledForStr = Just (toSendyScheduleDate (Instant i))
+          let scheduledForStr = Nothing
           ø $ prefillCampaign payload.newsletterId campaignName subject scheduledForStr prefillArticles
           η $ Right $ defaultResult ι
         else do
@@ -293,3 +316,22 @@ instance
 appendLinkTag :: TagList -> TagList
 appendLinkTag All = All
 appendLinkTag (Tags t) = Tags (t <> [ "a" ])
+
+type PrefillNewsletterCampaignEmailAliasRow r =
+  ( "PreremplirEmailDeCampagneNewsletter" :: PrefillNewsletterCampaignEmail
+  , "PreremplirEmailCampagneNewsletter" :: PrefillNewsletterCampaignEmail
+  , "PreremplirEmailSendy" :: PrefillNewsletterCampaignEmail
+  , "PreremplirEmailDeNewsletterSendy" :: PrefillNewsletterCampaignEmail
+  , "PreremplirEmailDeCampagneNewsletterSendy" :: PrefillNewsletterCampaignEmail
+  , "PreremplirEmailNewsletterSendy" :: PrefillNewsletterCampaignEmail
+  , "PreremplirEmailCampagneNewsletterSendy" :: PrefillNewsletterCampaignEmail
+  , "CopierNewsletterDansSendy" :: PrefillNewsletterCampaignEmail
+  , "CopierNewsletterVersSendy" :: PrefillNewsletterCampaignEmail
+  , "CopierCampagneNewsletterDansSendy" :: PrefillNewsletterCampaignEmail
+  , "CopierCampagneNewsletterVersSendy" :: PrefillNewsletterCampaignEmail
+  , "DupliquerNewsletterDansSendy" :: PrefillNewsletterCampaignEmail
+  , "DupliquerNewsletterVersSendy" :: PrefillNewsletterCampaignEmail
+  , "DupliquerCampagneNewsletterDansSendy" :: PrefillNewsletterCampaignEmail
+  , "DupliquerCampagneNewsletterVersSendy" :: PrefillNewsletterCampaignEmail
+  | r
+  )

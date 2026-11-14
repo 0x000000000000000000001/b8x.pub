@@ -11,8 +11,10 @@ import Inter.Ui.Page.Home.Component as HomeComponent
 import Inter.Ui.Router.Type (Action, Slots)
 import Inter.Ui.UiM (UiM)
 
-home :: Route -> ComponentHTML Action Slots UiM
-home route = HomeComponent.home { theme }
+import Inter.Ui.Type.Device (Device)
+
+home :: Device -> Route -> ComponentHTML Action Slots UiM
+home device route = HomeComponent.home { theme, context: device }
   where
   theme = case route of
     Theme t _ -> Just t

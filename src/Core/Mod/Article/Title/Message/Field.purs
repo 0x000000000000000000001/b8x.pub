@@ -14,7 +14,7 @@ type Title = Base.Title
 newtype TitleField = TitleField Title
 
 description :: String
-description = "Article title"
+description = "Title (HTML)"
 
 instance IsField TitleField Title () where
   name = "Title"

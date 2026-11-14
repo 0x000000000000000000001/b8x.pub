@@ -1,12 +1,10 @@
 module Core.Mod.Token.Token where
 
-import Control.Monad.Except as Control.Monad.Except
 import Proem
 
+import Control.Monad.Except as Control.Monad.Except
 import Core.Exception.Exception (inj, throw')
 import Core.Mod.Token.Exception (InvalidToken(..), TokenExceptionRow)
-import Data.Argonaut.Decode (JsonDecodeError(..), class DecodeJson, decodeJson)
-import Data.Argonaut.Encode (class EncodeJson, encodeJson)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
@@ -68,16 +66,6 @@ instance ToString (Token a) where
 derive instance Eq (Token a)
 derive instance Ord (Token a)
 derive newtype instance Show (Token a)
-
-instance EncodeJson (Token a) where
-  encodeJson (Token uuid) = encodeJson (toString (Token uuid))
-
-instance DecodeJson (Token a) where
-  decodeJson json = do
-    str <- decodeJson json
-    case make_ str of
-      Right token -> Right token
-      Left _ -> Left $ TypeMismatch "UUID (no hyphens)"
 
 instance Yoga.JSON.ReadForeign (Token a) where
   readImpl f = do

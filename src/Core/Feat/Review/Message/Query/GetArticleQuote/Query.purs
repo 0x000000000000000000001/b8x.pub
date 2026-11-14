@@ -14,11 +14,11 @@ import Core.Mod.Article.Lead.Message.Query.Build (buildLead)
 import Core.Mod.Article.Title.Message.Query.Build (buildTitle)
 import Core.Mod.Author.Message.Query.Build (buildAuthor)
 import Core.Mod.Book.Message.Query.Build (buildBook, buildBooks)
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype)
+import Data.Newtype (class Newtype, unwrap)
 import Util.Type.Random (class Random)
 import Util.Type.Type (class Reflect, reflectConstructorName)
 
@@ -37,7 +37,7 @@ instance IsQuery GetArticleQuote State Fields Payload Result where
   description = "Get the most recent article quote"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Quote Nothing
+    hash <- getReadModelHash @Quote HashAll
     η $ defaultCached hash
 
   handle (GetArticleQuote { needs, theme }) = do
@@ -60,5 +60,6 @@ instance IsQuery GetArticleQuote State Fields Payload Result where
               , illustrations: buildIllustrations needs.illustrations a.illustrations a.books (buildIllustration config.objectStorage.urlBase)
               , lead: buildLead needs.lead a.lead a.content
               , slug: build needs.slug a.slug
+              , writtenAt: build needs.writtenAt (unwrap a.writtenAt).instant
               }
           }

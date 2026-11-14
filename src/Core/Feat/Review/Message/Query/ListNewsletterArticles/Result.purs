@@ -46,4 +46,5 @@ type Article
     , illustrations :: Return (Array Illustration)
     , slug :: Return Slug
     , newsletters :: Return (Array Newsletter)
+    , writtenAt :: Return Instant
     }

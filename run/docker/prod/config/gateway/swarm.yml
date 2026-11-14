@@ -1,0 +1,4 @@
+services:
+  gateway:
+    volumes:
+      - ${ROOT_DIR}/var/gateway:/etc/traefik/mnt

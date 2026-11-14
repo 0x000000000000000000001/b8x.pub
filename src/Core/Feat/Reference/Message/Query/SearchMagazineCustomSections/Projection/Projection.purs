@@ -14,7 +14,7 @@ import Core.Mod.MagazineIssue.CustomSection.Name.Name as CustomSectionName
 import Core.Mod.Projection.Finder.Finder (Find, FindOpt, Page, findMany_)
 import Core.Mod.Projection.Finder.Filter (class IsFilter, EqualsUpToNormalization(..), Matches(..), StrictlyEquals(..), Weight, by, compile)
 import Core.Mod.Projection.Finder.Filter as Base
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce)
 import Core.Mod.Projection.SearchIndex (EveryTextIndexesWithWeightA, RawIndexOnly, everyTextIndexesWithWeightA, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -74,6 +74,9 @@ instance IsPair CustomSectionKey CustomSection CustomSectionRecord CustomSection
 
 newtype CustomSection = CustomSection CustomSectionRecord
 
+instance ToAliases CustomSection where
+  toAliases _ = []
+
 type CustomSectionRecord =
   { id :: CustomSectionId
   , magazineIssue :: MagazineIssueId
@@ -100,8 +103,8 @@ instance Show CustomSection where
 newtype CustomSectionKey = CustomSectionKey CustomSectionId
 
 derive instance Newtype CustomSectionKey _
-instance ToAliasedPrimary CustomSectionKey where
-  toAliasedPrimary (CustomSectionKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary CustomSectionKey where
+  toPrimary (CustomSectionKey id) = toString id
 derive newtype instance Eq CustomSectionKey
 derive newtype instance Ord CustomSectionKey
 derive instance Generic CustomSectionKey _
@@ -197,6 +200,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι
@@ -221,5 +229,3 @@ play { event } = case event of
 
 onMagazineCustomSectionAdded :: ∀ fx. MagazineCustomSectionAdded.Payload -> Run (SEARCH_MAGAZINE_CUSTOM_SECTIONS_PROJECTION_WRITE_OPS fx) Ɩ
 onMagazineCustomSectionAdded { id, magazineIssue, name } = add $ CustomSection { id, magazineIssue, name }
-
-

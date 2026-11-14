@@ -24,7 +24,10 @@ ask promptText = ʌ' $ makeAff \callback -> do
   let
     trimmed = trim promptText
     len = length trimmed
-    suffix = if drop (len - 1) trimmed == "?" then " " else ": "
+    suffix = case drop (len - 1) trimmed of
+      "?" -> " "
+      ":" -> " "
+      _ -> ": "
 
   question (promptText <> suffix)
     (\answer -> do

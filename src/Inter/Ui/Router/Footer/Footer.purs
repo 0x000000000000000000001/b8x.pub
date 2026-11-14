@@ -4,18 +4,44 @@ module Inter.Ui.Router.Footer.Footer
 
 import Proem hiding (div)
 
-import Halogen.HTML (HTML, a)
-import Halogen.HTML.Properties (href, target)
+import CSS (inline)
+import Data.Maybe (Maybe(..))
+import Halogen (ComponentHTML)
+import Halogen.HTML (a, text, div)
+import Halogen.HTML.Core (ClassName(..))
+import Halogen.HTML.Properties (classes, href, target)
+import Inter.Ui.Capability.Navigate.Navigate (Route(..))
+import Inter.Ui.Mod.Link.Component (link_)
 import Inter.Ui.Router.Footer.Style.Style as Style
+import Inter.Ui.Router.Type (Action(..), Slots)
+import Inter.Ui.UiM (UiM)
 import Util.Html.Clean.Render.Render (SanitizedHtmlString(..), render)
 
-footer :: ∀ w i. HTML w i
+footer :: ComponentHTML Action Slots UiM
 footer =
   Style.footer_
-    [ a [ href "https://www.instagram.com/magazinebooks/", target "_blank" ] [ render (SanitizedHtmlString instagramSvg) ]
-    , a [ href "https://www.facebook.com/MagazineBooks", target "_blank" ] [ render (SanitizedHtmlString facebookSvg) ]
-    , a [ href "https://x.com/Booksmag", target "_blank" ] [ render (SanitizedHtmlString xSvg) ]
-    , a [ href "https://fr.linkedin.com/company/sas-books", target "_blank" ] [ render (SanitizedHtmlString linkedinSvg) ]
+    [ div [ classes [ ClassName "footer-row" ] ]
+        [ link_ @"link"
+            { route: Just (About { consumeMagicLoginToken: Nothing, menu: { search: { openWith: Nothing, withAuthorFilter: Nothing }, magazineIssueOpen: Nothing } })
+            , classes: Just [ "footer-link" ]
+            , display: inline
+            , children: [ text "Qui nous sommes" ]
+            }
+            HandleLinkOutput "about"
+        , link_ @"link"
+            { route: Just (Legal { consumeMagicLoginToken: Nothing, menu: { search: { openWith: Nothing, withAuthorFilter: Nothing }, magazineIssueOpen: Nothing } })
+            , classes: Just [ "footer-link" ]
+            , display: inline
+            , children: [ text "Mentions légales" ]
+            }
+            HandleLinkOutput "legal"
+        ]
+    , div [ classes [ ClassName "footer-row" ] ]
+        [ a [ href "https://www.instagram.com/magazinebooks/", target "_blank" ] [ render (SanitizedHtmlString instagramSvg) ]
+        , a [ href "https://www.facebook.com/MagazineBooks", target "_blank" ] [ render (SanitizedHtmlString facebookSvg) ]
+        , a [ href "https://x.com/Booksmag", target "_blank" ] [ render (SanitizedHtmlString xSvg) ]
+        , a [ href "https://fr.linkedin.com/company/sas-books", target "_blank" ] [ render (SanitizedHtmlString linkedinSvg) ]
+        ]
     ]
 
 instagramSvg :: String

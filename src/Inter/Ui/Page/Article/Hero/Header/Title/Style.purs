@@ -1,5 +1,5 @@
 module Inter.Ui.Page.Article.Hero.Header.Title.Style
-  (class'
+  ( class'
   , title
   , title_
   , staticClass
@@ -15,6 +15,7 @@ import Halogen.HTML (HTML, Node, h1)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass)
 import Util.Style.Base (raw)
 import Util.Style.Selector ((.?))
+import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Layout (marginBottom, marginTop)
 import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Style.Typography (fontSizeRem, fontWeightBold, secondaryFont)
@@ -33,10 +34,13 @@ staticStyle = do
   staticClass .? do
     secondaryFont
     fontSizeRem 4.0
+    onTabletLte do
+      fontSizeRem 2.3
     fontWeightBold
     color $ rgba 97 17 15 1.0
     raw "text-shadow" "0 0 0.5rem rgba(255,255,255,1.0), 0 0 1rem rgba(255,255,255,0.8)"
     raw "line-height" "1.1"
+    raw "hyphens" "auto"
     marginTop 0.0
     marginBottom 0.0
 

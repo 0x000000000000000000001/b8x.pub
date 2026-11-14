@@ -1,0 +1,3 @@
+services:
+  cron:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_PROD_CRON}"

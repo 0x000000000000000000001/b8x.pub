@@ -7,7 +7,7 @@ import Core.Event.NewsTopicAdded.Payload as NewsTopicAdded
 import Core.Event.NewsTopicRemoved.Payload as NewsTopicRemoved
 import Core.Mod.NewsTopic.Id.Id (NewsTopicId)
 import Core.Mod.Projection.Finder.Finder (Find, findAll)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, delete, coerce)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -29,12 +29,12 @@ instance
     "verifyNewsTopicLimitProjectionWriteOps"
     (VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_WRITE_OPS ())
     "verifyNewsTopicLimitProjectionReadSyncProject"
-    { verifyNewsTopicLimit :: NewsTopic }
-    { verifyNewsTopicLimit :: NewsTopicIndexNeeds }
-    { verifyNewsTopicLimit :: Record () }
+    { newsTopic :: NewsTopic }
+    { newsTopic :: NewsTopicIndexNeeds }
+    { newsTopic :: Record () }
   where
   indexNeeds =
-    { verifyNewsTopicLimit:
+    { newsTopic:
         { id: rawIndexOnly
         }
     }
@@ -53,8 +53,8 @@ instance
     NewsTopicRecord
     NewsTopicIndexNeeds
     ()
-    "verifyNewsTopicLimit"
-    "verifyNewsTopicLimitNewsTopics"
+    "newsTopic"
+    "newsTopics"
     "verifyNewsTopicLimitProjectionReadFind"
     VerifyNewsTopicLimitProjection
   where
@@ -62,6 +62,9 @@ instance
   single = false
 
 newtype NewsTopic = NewsTopic NewsTopicRecord
+
+instance ToAliases NewsTopic where
+  toAliases _ = []
 
 type NewsTopicRecord =
   { id :: NewsTopicId
@@ -85,8 +88,9 @@ instance Show NewsTopic where
 newtype NewsTopicKey = NewsTopicKey NewsTopicId
 
 derive instance Newtype NewsTopicKey _
-instance ToAliasedPrimary NewsTopicKey where
-  toAliasedPrimary (NewsTopicKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary NewsTopicKey where
+  toPrimary (NewsTopicKey id) = toString id
+
 derive newtype instance Eq NewsTopicKey
 derive newtype instance Ord NewsTopicKey
 derive instance Generic NewsTopicKey _
@@ -115,6 +119,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι

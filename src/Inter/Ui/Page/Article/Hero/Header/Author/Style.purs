@@ -12,12 +12,14 @@ import CSS (color, rgba)
 import CSS as CSS
 import DOM.HTML.Indexed (HTMLh2)
 import Halogen.HTML (HTML, Node, h2)
+import Inter.Ui.Mod.Tooltip.Outer.Core.Style as TooltipCore
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass)
 import Util.Style.Base (raw)
 import Util.Style.Selector ((.?))
+import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Layout (marginBottom, marginTop)
 import Inter.Ui.Type.InstanceId (InstanceId)
-import Util.Style.Typography (fontSizeRem, fontWeightBold)
+import Util.Style.Typography (fontSizeRem, fontWeightBold, textAlignCenter)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Page.Article.Hero.Header.Author.Style"
@@ -32,11 +34,15 @@ staticStyle :: CSS.CSS
 staticStyle = do
   staticClass .? do
     fontSizeRem 1.5
+    onTabletLte do
+      fontSizeRem 1.1
     fontWeightBold
     color $ rgba 210 84 49 1.0
     raw "text-shadow" "0 0 0.5rem rgba(255,255,255,1.0), 0 0 1rem rgba(255,255,255,0.8)"
     marginTop 0.0
     marginBottom 0.0
+    TooltipCore.staticClass .? do
+      textAlignCenter
     CSS.select (CSS.fromString ".authorLink") $ do
       raw "cursor" "pointer"
       raw "text-decoration" "underline"

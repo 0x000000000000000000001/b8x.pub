@@ -14,7 +14,7 @@ type Blacklist = Array ArticleId
 newtype BlacklistField = BlacklistField Blacklist
 
 description :: String
-description = "Blacklisted article IDs"
+description = "Blacklisted articles"
 
 instance IsField BlacklistField Blacklist () where
   name = "Blacklist"

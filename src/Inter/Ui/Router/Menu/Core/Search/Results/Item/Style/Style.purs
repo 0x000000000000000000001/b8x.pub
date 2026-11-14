@@ -10,7 +10,9 @@ import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass)
 import Util.Style.Transform (transformTranslateRem)
 import Util.Style.Layout (displayFlex, marginBottom, overflowHidden, padding2, widthPct100)
 import Util.Style.Effect (borderRadiusRem1, boxShadow, cursorPointer)
+import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Selector ((.?), (:&))
+import Util.Style.Base (raw_)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Router.Menu.Core.Search.Results.Item.Style.Style"
@@ -41,6 +43,11 @@ staticStyle = do
       background $ rgba 255 255 255 0.95
       boxShadow 0.0 0.4 1.2 $ rgba 0 0 0 0.08
       transformTranslateRem 0.0 (-0.1)
+
+    onTabletLte do
+      raw_ "display" "grid !important"
+      raw_ "grid-template-columns" "auto 1fr"
+      raw_ "row-gap" "0.5rem"
 
 item :: ∀ w i. InstanceId -> Array (IProp HTMLdiv i) -> Array (HTML w i) -> HTML w i
 item id props = div ([ classes [ staticClass, class' id ] ] <> props)

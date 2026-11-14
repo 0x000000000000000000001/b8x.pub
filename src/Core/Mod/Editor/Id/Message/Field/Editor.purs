@@ -5,7 +5,6 @@ import Data.Maybe (Maybe(..))
 import Proem
 
 import Core.Message.Field.Field (class IsField, Presence(..), Sanitized(..), defaultShouldSanitizeInner)
-import Core.Mod.Editor.Id.Message.Field.Util as Util
 import Core.Mod.Editor.Id.Id (EditorId)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Newtype (class Newtype)
@@ -17,7 +16,7 @@ newtype EditorField = EditorField Editor
 instance IsField EditorField Editor () where
   name = "Editor"
 
-  description = Util.description
+  description = "Editor"
 
   presence = Required
 
@@ -26,7 +25,7 @@ instance IsField EditorField Editor () where
   shouldSanitizeInner = defaultShouldSanitizeInner
 
   cli =
-    { description: Util.description
+    { description: "Editor"
     , multiline: false
     , choices: Nothing
     }

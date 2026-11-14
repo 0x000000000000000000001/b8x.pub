@@ -15,7 +15,7 @@ type Lead = Base.Lead
 newtype LeadField = LeadField Lead
 
 description :: String
-description = "Article lead"
+description = "Article lead (HTML)"
 
 instance IsField LeadField Lead () where
   name = "Lead"

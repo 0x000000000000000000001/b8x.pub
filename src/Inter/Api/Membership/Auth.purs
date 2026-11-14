@@ -1,4 +1,5 @@
 module Inter.Api.Membership.Auth where
+
 import Util.Foreign.Native as Util.Foreign.Native
 import Foreign as Foreign
 import Data.Array as Array
@@ -24,6 +25,7 @@ import Data.UUID as UUID
 import Effect.Exception (message)
 import Effect (Effect)
 import Effect.Aff (Aff, try)
+import Effect.Uncurried (EffectFn3, runEffectFn3)
 import Core.Feat.Effect.Cache as Cache
 import Core.Message.Command.Make (makeCommand)
 import Core.Message.Command.Handle.Handle (handleCommand)
@@ -52,10 +54,10 @@ import Util.Crypto.Paseto.Paseto (encryptV3Local)
 import Util.Cookie.Cookie as Cookie
 import Util.I18n (Language(..), translate)
 
-foreign import appendHeaderImpl :: String -> String -> OutgoingMessage -> Effect Unit
+foreign import appendHeaderImpl :: EffectFn3 String String OutgoingMessage Unit
 
 appendHeader :: String -> String -> OutgoingMessage -> Effect Unit
-appendHeader = appendHeaderImpl
+appendHeader = runEffectFn3 appendHeaderImpl
 
 foreign import nowIso :: Effect String
 
@@ -115,9 +117,27 @@ handleConsumeMagicLink ctx req res = do
 
         let cause = { run: runId, append: Nothing, cause: Just (Command { run: runId, subject, name: "ConsumeMagicLink", cause: Nothing }), overriddenAt: Nothing }
 
-        cmdResult <- try $ runApiM ctx cause $ do
-          cmd <- liftMakeMessageM (makeCommand @ConsumeMagicLink (Object.fromFoldable [ Tuple "token" (writeImpl payload.token) ]))
-          handleCommand @ConsumeMagicLink true cmd
+        -- /* Temporary impersonate */
+        -- INFO: To enable the hack (God Mode), comment out the 'Nothing' line and uncomment the 'case' block below.
+        let
+          mGodModeEmail :: Maybe String
+          mGodModeEmail = Nothing
+          -- mGodModeEmail = case String.split (Pattern ":") payload.token of
+          --   [ emailStr, "abc" ] -> Just emailStr
+          --   _ -> Nothing
+
+        cmdResult <- case mGodModeEmail of
+          Just emailStr -> try $ runApiM ctx cause $ do
+            let fakeToken = "00000000-0000-0000-0000-000000000000"
+            let cacheKey = Cache.cacheKey "magic_link" fakeToken "" (Nothing :: Maybe Foreign.Foreign)
+            Cache.set cacheKey 60 { email: emailStr, validUntil: 9999999999999.0 }
+            cmd <- liftMakeMessageM (makeCommand @ConsumeMagicLink (Object.fromFoldable [ Tuple "token" (writeImpl fakeToken) ]))
+            handleCommand @ConsumeMagicLink true cmd
+
+          Nothing -> try $ runApiM ctx cause $ do
+            cmd <- liftMakeMessageM (makeCommand @ConsumeMagicLink (Object.fromFoldable [ Tuple "token" (writeImpl payload.token) ]))
+            handleCommand @ConsumeMagicLink true cmd
+        -- /* End */
 
         case cmdResult of
           Left _ -> respondUnauthorized req res "Invalid or expired token"
@@ -128,7 +148,7 @@ handleConsumeMagicLink ctx req res = do
             let pasetoKey = internalConfig.auth.pasetoLocalKey
             csrfUuid <- ʌ genUUID
             let csrfToken = UUID.toString csrfUuid
-            pasetoToken <- encryptV3Local pasetoKey (writeImpl { userId: userId, csrfToken: csrfToken }) "5m"
+            pasetoToken <- encryptV3Local pasetoKey (writeImpl { userId: userId, csrfToken: csrfToken }) "6h"
 
             refreshUuid <- ʌ genUUID
             let refreshToken = UUID.toString refreshUuid
@@ -230,7 +250,7 @@ handleAuthRefresh ctx req res = do
           let pasetoKey = internalConfig.auth.pasetoLocalKey
           csrfUuid <- ʌ genUUID
           let csrfToken = UUID.toString csrfUuid
-          pasetoToken <- encryptV3Local pasetoKey (writeImpl { userId: userId, csrfToken: csrfToken }) "5m"
+          pasetoToken <- encryptV3Local pasetoKey (writeImpl { userId: userId, csrfToken: csrfToken }) "6h"
 
           refreshUuid <- ʌ genUUID
           let newRefreshToken = UUID.toString refreshUuid

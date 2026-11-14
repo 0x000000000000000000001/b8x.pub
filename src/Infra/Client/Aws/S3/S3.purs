@@ -4,8 +4,6 @@ import Proem
 
 import Config.InternalConfig (S3Config)
 import Config.PublicConfig (publicConfig)
-import Promise.Aff (Promise, toAffE)
-import Promise.Internal as PromiseInternal
 import Core.Exception.Exception (throw)
 import Core.Exception.Index (EXCEPT_LOGIC)
 import Core.Message.Command.Handle.Upload (UPLOAD, Upload(..), upload')
@@ -15,9 +13,10 @@ import Core.Mod.MimeType (mimeTypeToExtension)
 import Data.Array (head)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Effect (Effect)
 import Effect.Aff (try)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
+import Effect.Uncurried (EffectFn3, runEffectFn3)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
 import Util.Log.Error (error)
@@ -53,9 +52,9 @@ createClient config = do
   η $ { clientRef, config }
 
 createInnerClient :: ∀ m. MonadAff m => S3Config -> m InnerClient
-createInnerClient { region, accessKeyId, secretAccessKey } = ʌ $ _createInnerClient region accessKeyId secretAccessKey
+createInnerClient { region, accessKeyId, secretAccessKey } = ʌ $ runEffectFn3 _createInnerClient region accessKeyId secretAccessKey
 
-foreign import _createInnerClient :: String -> String -> String -> Effect InnerClient
+foreign import _createInnerClient :: EffectFn3 String String String InnerClient
 
 type UploadResult =
   { src :: String
@@ -74,20 +73,14 @@ type BucketDirectory = String
 type Url = String
 type MimeTypeToExtension = String -> String
 
-foreign import _uploadUrlContentImpl :: ∀ newFn. newFn -> InnerClient -> Bucket -> IsPublic -> BucketDirectory -> Boolean -> Boolean -> Url -> MimeTypeToExtension -> Effect (Promise UploadResult)
+foreign import _uploadUrlContentImpl :: InnerClient -> Bucket -> IsPublic -> BucketDirectory -> Boolean -> Boolean -> Url -> MimeTypeToExtension -> EffectFnAff UploadResult
 
-_uploadUrlContent :: InnerClient -> Bucket -> IsPublic -> BucketDirectory -> Boolean -> Boolean -> Url -> MimeTypeToExtension -> Effect (Promise UploadResult)
-_uploadUrlContent = _uploadUrlContentImpl PromiseInternal.new
-
-foreign import _uploadHtmlUrlContentsImpl :: ∀ newFn. newFn -> InnerClient -> Bucket -> IsPublic -> BucketDirectory -> MimeTypeToExtension -> Boolean -> String -> String -> String -> Effect (Promise String)
-
-_uploadHtmlUrlContents :: InnerClient -> Bucket -> IsPublic -> BucketDirectory -> MimeTypeToExtension -> Boolean -> String -> String -> String -> Effect (Promise String)
-_uploadHtmlUrlContents = _uploadHtmlUrlContentsImpl PromiseInternal.new
+foreign import _uploadHtmlUrlContentsImpl :: InnerClient -> Bucket -> IsPublic -> BucketDirectory -> MimeTypeToExtension -> Boolean -> String -> String -> String -> EffectFnAff String
 
 uploadUrlContent_ :: ∀ fx. InnerClient -> Bucket -> BucketDirectory -> Boolean -> Boolean -> Url -> Run (EXCEPT_LOGIC + EFFECT + AFF + fx) (Maybe Image)
 uploadUrlContent_ client bucket bucketDirectory autocropBlackWhite autocropTransparent url = do
-  result <- ʌ' $ try $ toAffE $
-    _uploadUrlContent
+  result <- ʌ' $ try $ fromEffectFnAff $
+    _uploadUrlContentImpl
       client
       bucket
       true
@@ -121,8 +114,8 @@ uploadUrlContent bucketDirectory autocropBlackWhite autocropTransparent url = do
 
 uploadHtmlUrlContents_ :: ∀ fx. InnerClient -> Bucket -> BucketDirectory -> Boolean -> String -> Run (EXCEPT_LOGIC + EFFECT + AFF + fx) String
 uploadHtmlUrlContents_ client bucket bucketDirectory shouldRelativize content = do
-  result <- ʌ' $ try $ toAffE $
-    _uploadHtmlUrlContents
+  result <- ʌ' $ try $ fromEffectFnAff $
+    _uploadHtmlUrlContentsImpl
       client
       bucket
       true

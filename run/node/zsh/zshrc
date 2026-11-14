@@ -1,0 +1,90 @@
+export ZSH="/home/$(whoami)/.oh-my-zsh"
+
+ZSH_THEME="robbyrussell"
+
+plugins=(git)
+
+# E.g. for zrok, etc.
+export PATH=~/bin:$PATH
+
+# E.g. to avoid repeating options in commands like "up -e stage", we set our default env, so that we can type "up" only
+export ROOT_DIR=%ROOT_DIR%
+export ENV=%ENV%
+
+alias b8x="cd $ROOT_DIR"
+
+export EDITOR=micro
+export GIT_EDITOR=micro
+
+source $ZSH/oh-my-zsh.sh
+
+# Ensure no interfering web stuff has been installed by the cloud since
+sudo apt remove --purge -y apache2 &>/dev/null || true
+
+cd $ROOT_DIR
+
+export_all_bins() {
+  for dir in `find $ROOT_DIR/bin -type d 2>/dev/null || true`; do export PATH="$dir:$PATH"; done
+}
+export_all_envs() {
+  local envs_out
+  envs_out=$(envs -e $ENV 2>/dev/null)
+  if [[ -n "$envs_out" ]]; then
+    eval "export $envs_out"
+  fi
+}
+
+consider_potentially_new_bins() {
+  new_bins_cache_dir=/tmp/zsh/preexec
+  mkdir -p $new_bins_cache_dir 2>/dev/null || true
+  new_bins_cache_file=$new_bins_cache_dir/bin_checksum
+  touch $new_bins_cache_file 2>/dev/null || true
+
+  previous_bins_checksum=$(cat $new_bins_cache_file 2>/dev/null || true)
+
+  current_bins_checksum_base=$(find "$ROOT_DIR/bin" -type f ! -path '*/.cache/*' 2>/dev/null || true)
+  if [[ "$(uname -s)" == 'Darwin' ]]; then
+    current_bins_checksum=$(echo $current_bins_checksum_base | md5)
+  else
+    current_bins_checksum=$(echo $current_bins_checksum_base | awk '{print $1}' | md5sum | awk '{print $1}')
+  fi
+
+  if [[ "$current_bins_checksum" != "$previous_bins_checksum" ]]; then
+    export_all_bins
+    echo $current_bins_checksum > $new_bins_cache_file
+  fi
+}
+consider_potentially_new_envs() {
+  new_envs_cache_dir=/tmp/zsh/preexec
+  mkdir -p $new_envs_cache_dir 2>/dev/null || true
+  new_envs_cache_file=$new_envs_cache_dir/env_checksum
+  touch $new_envs_cache_file 2>/dev/null || true
+
+  previous_envs_checksum=$(cat $new_envs_cache_file 2>/dev/null || true)
+
+  current_envs_checksum_base="$(cat $ROOT_DIR/bin/envs 2>/dev/null || true) $(find "$ROOT_DIR/env" -type f ! -name '.*' -exec cat {} + 2>/dev/null || true)"
+  if [[ "$(uname -s)" == 'Darwin' ]]; then
+    current_envs_checksum=$(echo $current_envs_checksum_base | md5)
+  else
+    current_envs_checksum=$(echo $current_envs_checksum_base | awk '{print $1}' | md5sum | awk '{print $1}')
+  fi
+
+  if [[ "$current_envs_checksum" != "$previous_envs_checksum" ]]; then
+    export_all_envs
+    echo $current_envs_checksum > $new_envs_cache_file
+  fi
+}
+
+preexec() {
+  consider_potentially_new_bins
+  consider_potentially_new_envs
+}
+
+export_all_bins
+export_all_envs
+
+color="%F{202}"
+
+PROMPT="%B${color}b8x%b ${PROMPT}"
+
+b8x

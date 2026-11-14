@@ -18,7 +18,7 @@ import Data.Either (Either(..), note)
 import Data.Int (fromNumber)
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString) as Number
-import Data.String (Pattern(..), Replacement(..), replaceAll, toLower)
+import Data.String (Pattern(..), Replacement(..), replaceAll)
 import Data.Symbol (class IsSymbol)
 import Data.Traversable (traverse)
 import Data.Variant (Variant, expand)
@@ -32,6 +32,7 @@ import Record.Builder as Builder
 import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
 import Util.Type.Random (class Random)
+import Util.Type.String.Cli (isYes, isNo)
 import Util.Type.String.String (upperCaseFirst)
 import Util.Type.Type (reflectVariantKeyName)
 import Util.Type.Variant.Extract (class ExtractVariantImpl, extractVariant)
@@ -85,19 +86,9 @@ instance IsRefinedType Boolean (BooleanExceptionRow ()) where
           Right 1.0 -> Right true
           Right 0.0 -> Right false
           _ -> Left $ inj NotABoolean
-      "string" -> case toLower <$> runExcept (Foreign.readString json) of
-          Right "true" -> Right true
-          Right "1" -> Right true
-          Right "yes" -> Right true
-          Right "oui" -> Right true
-          Right "y" -> Right true
-          Right "o" -> Right true
-          Right "false" -> Right false
-          Right "no" -> Right false
-          Right "non" -> Right false
-          Right "n" -> Right false
-          Right "0" -> Right false
-          Right "" -> Right false
+      "string" -> case runExcept (Foreign.readString json) of
+          Right s | isYes s false -> Right true
+                  | isNo s true -> Right false
           _ -> Left $ inj NotABoolean
       "undefined" -> Right false
       _ ->

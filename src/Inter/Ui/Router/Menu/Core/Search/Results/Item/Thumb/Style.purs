@@ -8,8 +8,10 @@ import Halogen.HTML (HTML, IProp, img)
 import Util.Style.Classname (classes, generateStaticClass, refineClass')
 import Util.Style.Layout (heightRem, marginRight, maxWidthRem, widthAuto, widthRem)
 import Util.Style.Effect (borderRadiusRem1)
-import Util.Style.Selector ((.?))
 import Util.Style.Image (objectFitCover)
+import Util.Style.MediaQuery (onTabletLte)
+import Util.Style.Selector ((.?))
+import Util.Style.Base (raw_)
 
 data Format
   = Landscape
@@ -39,19 +41,35 @@ staticStyle = do
     borderRadiusRem1 0.4
     objectFitCover
 
+    onTabletLte do
+      raw_ "grid-column" "1"
+      raw_ "grid-row" "1"
+
   __landscape .? do
     widthAuto
     maxWidthRem 9.0
     heightRem 5.0
 
+    onTabletLte do
+      maxWidthRem 6.3
+      heightRem 3.5
+
   __square .? do
     widthRem 6.0
     heightRem 6.0
+
+    onTabletLte do
+      widthRem 4.2
+      heightRem 4.2
 
   __portrait .? do
     widthAuto
     maxWidthRem 6.0
     heightRem 8.0
+
+    onTabletLte do
+      maxWidthRem 4.2
+      heightRem 5.6
 
   where
   __landscape = staticClassWhenLandscape

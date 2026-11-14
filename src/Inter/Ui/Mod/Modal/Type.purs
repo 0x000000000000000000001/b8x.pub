@@ -41,6 +41,7 @@ type State i = WithId
 
 data Action i o
   = Initialize
+  | Finalize
   | Receive (Input i)
   | HandleClick MouseEvent
   | HandleCloseClick

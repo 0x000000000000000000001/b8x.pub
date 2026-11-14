@@ -20,10 +20,10 @@ import Inter.Api.Ping (handlePing)
 import Inter.Api.Registry as Registry
 import Inter.Api.Route (Route(..), routeCodec)
 import Inter.Api.Sitemap.Articles.ByYear (handleSitemapArticlesByYear)
-import Inter.Api.Sitemap.Articles.Index (handleSitemapArticlesIndex)
 import Inter.Api.Sitemap.Index (handleSitemapIndex)
 import Inter.Api.Sitemap.MagazineIssues (handleSitemapMagazineIssues)
 import Inter.Api.Sitemap.Xsl (handleSitemapXsl)
+import Inter.Api.Log.UiBug (handleLogUiBug)
 import Inter.Api.Social.Meta.Meta (handleSocialMeta)
 import Inter.Api.Social.Watermark.Watermark (handleSocialWatermark)
 import Inter.Api.Webhook.HelloAsso (handleWebhookHelloAsso)
@@ -76,10 +76,10 @@ handle ctx req res = do
     Right (SocialMeta { path, agent: mAgent }) -> launchAff_ $ handleSocialMeta path mAgent ctx req res
     Right (SocialWatermark { url: mUrl, agent: mAgent, v: _ }) -> launchAff_ $ handleSocialWatermark mUrl mAgent ctx req res
     Right SitemapIndex -> launchAff_ $ handleSitemapIndex ctx req res
-    Right SitemapArticlesIndex -> launchAff_ $ handleSitemapArticlesIndex ctx req res
     Right (SitemapArticlesByYear year) -> launchAff_ $ handleSitemapArticlesByYear year ctx req res
     Right SitemapMagazineIssues -> launchAff_ $ handleSitemapMagazineIssues ctx req res
     Right SitemapXsl -> launchAff_ $ handleSitemapXsl ctx req res
+    Right LogUiBug -> launchAff_ $ handleLogUiBug ctx req res
     Right (Read _) -> handleDynamicRoute url'
     Right (Write _) -> handleDynamicRoute url'
     Left _ -> handleDynamicRoute url'

@@ -1,5 +1,6 @@
 module Core.Feat.Review.Message.Command.WriteArticle.Command
   ( WriteArticle(..)
+  , WriteArticleAliasRow
   ) where
 
 import Proem
@@ -74,6 +75,36 @@ instance
     _ <- verifyArticleSlugUniqueness { slug: slug' }
     _ <- verifyArticleLegacyIdUniqueness { legacyId: payload.legacyId }
 
-    defaultHandle @WriteArticle (Just filter) defaultCheckLoadedEvents initialState play decide toResult payload
+    let updatedPayload = payload { slug = Just slug' }
 
-  
+    defaultHandle @WriteArticle (Just filter) defaultCheckLoadedEvents initialState play decide toResult updatedPayload
+
+type WriteArticleAliasRow r =
+  ( "WriteAnArticle" :: WriteArticle
+  , "AjouterArticle" :: WriteArticle
+  , "AjouterUneArticle" :: WriteArticle
+  , "AjouteArticle" :: WriteArticle
+  , "AjouteUneArticle" :: WriteArticle
+  , "AjoutArticle" :: WriteArticle
+  , "AjoutDArticle" :: WriteArticle
+  , "AjoutDUnArticle" :: WriteArticle
+  , "CreerArticle" :: WriteArticle
+  , "CreerUneArticle" :: WriteArticle
+  , "CreeArticle" :: WriteArticle
+  , "CreeUneArticle" :: WriteArticle
+  , "CreationArticle" :: WriteArticle
+  , "CreationDArticle" :: WriteArticle
+  , "CreationDUnArticle" :: WriteArticle
+  , "EcrireArticle" :: WriteArticle
+  , "EcrireUneArticle" :: WriteArticle
+  , "EcrisArticle" :: WriteArticle
+  , "EcrisUneArticle" :: WriteArticle
+  , "EcritureArticle" :: WriteArticle
+  , "EcritureDArticle" :: WriteArticle
+  , "EcritureDUnArticle" :: WriteArticle
+  , "NouvelArticle" :: WriteArticle
+  , "NewArticle" :: WriteArticle
+  , "AddArticle" :: WriteArticle
+  , "CreateArticle" :: WriteArticle
+  | r
+  )

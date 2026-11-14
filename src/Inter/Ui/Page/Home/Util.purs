@@ -34,11 +34,13 @@ import Core.Mod.Author.Message.Query.Result (Author)
 import Core.Mod.Book.Message.Query.Result.Books (Books)
 import Core.Mod.Image.Message.Query.Result (Illustration)
 import Core.Mod.Article.Slug.Slug (Slug)
+import Core.Mod.Time.Instant (Instant)
 
 bandArticleNeeds :: SearchArticlesNeeds.Needs
 bandArticleNeeds = SearchArticlesNeeds.defaultNeeds
   { id = Needed ι ι
   , slug = Needed ι ι
+  , writtenAt = Needed ι ι
   , title = Needed
       { untagHtml:
           { whitelist: TitleClean.defaultUntagWhitelist
@@ -102,6 +104,7 @@ toUiSearchArticle
      , author :: Return (Maybe Author)
      , illustrations :: Return (Array Illustration)
      , slug :: Return Slug
+     , writtenAt :: Return Instant
      | r
      }
   -> UiSearchArticle
@@ -127,4 +130,5 @@ toUiSearchArticle art =
       QueryResult.Folded f -> QueryResult.Folded f
   , illustrations: art.illustrations <#> map (\ill -> { image: ill.image, caption: ill.caption <#> map cleanNonEmpty, isFallback: ill.isFallback })
   , slug: art.slug
+  , writtenAt: art.writtenAt
   }

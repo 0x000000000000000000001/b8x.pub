@@ -3,7 +3,6 @@ module Core.Feat.Sitemap.Message.Query.ListYearArticles.Projection.Projection wh
 import Yoga.JSON.Generics (genericWriteForeignTaggedSum, genericReadForeignTaggedSum)
 import Yoga.JSON.Generics.TaggedSumRep (defaultOptions)
 import Proem hiding (add)
-import Data.Array as Array
 import Control.Monad.Except as Control.Monad.Except
 
 import Core.Event.Event (Event(..), LoadedEvent)
@@ -11,7 +10,7 @@ import Core.Mod.Projection.Finder.Finder (Find, FindOpt, Page, findMany_, findOn
 import Core.Mod.Projection.Finder.Filter (class IsFilter, StrictlyEquals(..), by, compile)
 import Core.Mod.Projection.Finder.Filter as Base
 import Core.Mod.Projection.Finder.Sort (SortCriteria)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete, get, patch)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -23,7 +22,7 @@ import Core.Mod.Article.Id.Id (ArticleId)
 import Core.Mod.Article.Slug.Slug (Slug)
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
 import Data.Generic.Rep (class Generic)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Show.Generic (genericShow)
 import Run (Run)
@@ -44,12 +43,12 @@ instance
     "listYearArticlesProjectionWriteOps"
     (LIST_YEAR_ARTICLES_PROJECTION_WRITE_OPS ())
     "listYearArticlesProjectionReadSyncProject"
-    { listYearArticles :: Article }
-    { listYearArticles :: ArticleIndexNeeds }
-    { listYearArticles :: Record ArticleSortRow }
+    { article :: Article }
+    { article :: ArticleIndexNeeds }
+    { article :: Record ArticleSortRow }
   where
   indexNeeds =
-    { listYearArticles:
+    { article:
         { id: rawIndexOnly
         , year: rawIndexOnly
         , slug: rawIndexOnly
@@ -81,12 +80,15 @@ type ArticleSortRow =
 
 type ArticleSortCriteria = SortCriteria Article
 
-instance IsPair ArticleKey Article ArticleRecord ArticleIndexNeeds ArticleSortRow "listYearArticles" "listYearArticles" "listYearArticlesListYearArticlesProjectionReadFind" ListYearArticlesProjection where
-  toKey (Article { id, slug }) = ArticleKey { id: Just id, slug: Just slug }
+instance IsPair ArticleKey Article ArticleRecord ArticleIndexNeeds ArticleSortRow "article" "articles" "listYearArticlesListYearArticlesProjectionReadFind" ListYearArticlesProjection where
+  toKey (Article { id }) = ArticleKey id
 
   single = false
 
 newtype Article = Article ArticleRecord
+
+instance ToAliases Article where
+  toAliases (Article { slug }) = [ toString slug ]
 
 type ArticleRecord =
   { id :: ArticleId
@@ -127,14 +129,14 @@ instance Random Article where
       , seo: { updatedAt }
       }
 
-newtype ArticleKey = ArticleKey { id :: Maybe ArticleId, slug :: Maybe Slug }
+newtype ArticleKey = ArticleKey ArticleId
 
 derive instance Newtype ArticleKey _
 derive instance Eq ArticleKey
 derive instance Ord ArticleKey
 
-instance ToAliasedPrimary ArticleKey where
-  toAliasedPrimary (ArticleKey k) = { primary: maybe "" toString k.id, aliases: maybe [] (Array.singleton <<< toString) k.slug }
+instance ToPrimary ArticleKey where
+  toPrimary (ArticleKey id) = toString id
 
 -- Find
 
@@ -145,7 +147,7 @@ type LIST_YEAR_ARTICLES_LIST_YEAR_ARTICLES_PROJECTION_READ fx =
     + fx
 
 findArticleById :: ∀ fx. ArticleId -> Run (LIST_YEAR_ARTICLES_LIST_YEAR_ARTICLES_PROJECTION_READ + fx) (Maybe Article)
-findArticleById id = findOneByKey (ArticleKey { id: Just id, slug: Nothing })
+findArticleById id = findOneByKey (ArticleKey id)
 
 -- Filter
 
@@ -206,7 +208,7 @@ findArticles
   :: ∀ fx
    . FindOpt ArticleFilter ArticleId Article
   -> Run (LIST_YEAR_ARTICLES_LIST_YEAR_ARTICLES_PROJECTION_READ + fx) (Page Article)
-findArticles opt = findMany_ opt { after = opt.after <#> (\id -> ArticleKey { id: Just id, slug: Nothing }) ▷ persistenceKeyFromKey }
+findArticles opt = findMany_ opt { after = opt.after <#> (\id -> ArticleKey id) ▷ persistenceKeyFromKey }
 
 -- Play 
 
@@ -218,6 +220,11 @@ play { event, at } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι
@@ -243,12 +250,10 @@ play { event, at } = case event of
 onArticleWritten :: ∀ fx. Instant -> ArticleWritten.Payload -> Run (LIST_YEAR_ARTICLES_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleWritten at { id, slug } = do
   let y = fromInstant at
-  mArticle <- get (ArticleKey { id: Just id, slug: Nothing })
+  mArticle <- get (ArticleKey id)
   case mArticle of
     Nothing -> add $ Article { id, year: y, slug, seo: { updatedAt: at } }
-    Just _ -> patch (ArticleKey { id: Just id, slug: Nothing }) \(Article r) -> Article (r { slug = slug, seo = { updatedAt: at } })
+    Just _ -> patch (ArticleKey id) \(Article r) -> Article (r { slug = slug, seo = { updatedAt: at } })
 
 onArticleDiscarded :: ∀ fx. ArticleDiscarded.Payload -> Run (LIST_YEAR_ARTICLES_PROJECTION_WRITE_OPS fx) Ɩ
-onArticleDiscarded { article } = delete (ArticleKey { id: Just article, slug: Nothing })
-
-
+onArticleDiscarded { article } = delete (ArticleKey article)

@@ -1,19 +1,28 @@
 module Infra.Projection.Postgres.Finder.Test.Integration.HandleProjectionReadFind where
 
 import Proem
-
 import Core.Feat.Reference.Message.Command.ReferenceAuthor.Command (ReferenceAuthor(..))
 import Core.Feat.Reference.Message.Command.ReferenceBook.Command (ReferenceBook(..))
 import Core.Feat.Reference.Message.Command.ReferenceEditor.Command (ReferenceEditor(..))
 import Core.Feat.Reference.Message.Query.SearchBooks.Projection.Projection (Book(..), BookFilter(..), findBooks)
 import Core.Feat.Review.Message.Command.WriteArticle.Command (WriteArticle(..))
+import Core.Feat.Review.Message.Command.AddNewsTopic.Command (AddNewsTopic(..))
+import Core.Feat.Review.Message.Command.RemoveNewsTopic.Command (RemoveNewsTopic(..))
 import Core.Feat.Review.Message.Query.SearchArticles.Projection.Projection (ArticleFilter(..), findArticles)
+import Core.Feat.Review.Message.Query.SearchNewsTopics.Field.Needs (defaultNeeds)
+import Core.Feat.Review.Message.Query.SearchNewsTopics.Projection.Projection (NewsTopic(..), NewsTopicFilter(..), findNewsTopics)
+import Core.Feat.Review.Message.Query.SearchNewsTopics.SearchNewsTopics (searchNewsTopics)
 import Core.Message.Command.Handle.Handle (handleCommand_)
+import Core.Message.Query.Payload (Need(..))
+import Core.Message.Query.Result (Return(..))
 import Core.Mod.Author.Id.Id (AuthorId)
+import Core.Mod.Url.Url as Url
 import Core.Mod.Book.Id.Id (BookId)
 import Core.Mod.Book.Year.Year (Year(..))
 import Core.Mod.Editor.Id.Id (EditorId)
 import Core.Mod.Html.Html (unsafeFromString)
+import Core.Mod.NonEmptyString.NonEmptyString as NonEmptyString
+import Core.Mod.Projection.Finder.BoundedLimit.BoundedLimit (BoundedLimit(..))
 import Core.Mod.Projection.Finder.Expectation.Expectation (Expectation(..))
 import Core.Mod.Projection.Finder.Filter (EqualsUpToNormalization(..), Limit(..), StrictlyEquals(..), by, noLimit)
 import Core.Mod.Projection.Finder.Finder (defaultFindOpt, findMany_)
@@ -26,7 +35,8 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Effect.Aff (Aff)
 import Infra.Projection.Postgres.Finder.Test.Integration.TestM (TestM)
-import Test.Spec (SpecT, before, it, describe)
+import Test.Spec (SpecT, before, describe, it)
+import Test.Spec.Assertions (fail)
 import Test.Util.Assert ((=?))
 import Util.Type.Random (random)
 import Util.Type.String.ToString (toString)
@@ -36,6 +46,45 @@ fullModuleName = "Infra.Projection.Postgres.Finder.Test.Integration.HandleProjec
 
 spec :: SpecT TestM Ɩ Aff Ɩ
 spec = before setupEntities $ describe fullModuleName do
+  it "can search news topics with needs and exclude removed topics" \_ -> do
+    id <- random
+    otherId <- random
+    let searchInput = NonEmptyString.unsafeFromString "wwegr"
+
+    handleCommand_ false $ AddNewsTopic { id, searchInput }
+    handleCommand_ false $ AddNewsTopic { id: otherId, searchInput: NonEmptyString.unsafeFromString "climat" }
+
+    let
+      payload =
+        { filter: Just $ NewsTopicHasSearchInput { searchInput, weight: 1.0 }
+        , limit: BoundedLimit 5
+        , after: Nothing
+        , expectation: QuickNothingBetterThanSlowerSomething
+        , needs: { id: Needed ι ι, searchInput: Needed ι ι }
+        }
+
+    { newsTopics, limit, hasNextPage } <- searchNewsTopics payload
+    limit =? 5
+    hasNextPage =? false
+    case newsTopics of
+      [ { id: Given foundId, searchInput: Given foundSearchInput } ] -> do
+        foundId =? id
+        foundSearchInput =? searchInput
+      _ -> ʌ' $ fail "Expected the matching news topic with both requested fields"
+
+    { newsTopics: idsOnly } <- searchNewsTopics (payload { needs = defaultNeeds { id = Needed ι ι } })
+    case idsOnly of
+      [ { id: Given foundId, searchInput: NotGivenBecauseNotNeeded } ] -> foundId =? id
+      _ -> ʌ' $ fail "Expected only the requested news topic ID"
+
+    handleCommand_ false $ RemoveNewsTopic { newsTopic: id }
+
+    { newsTopics: removed } <- searchNewsTopics payload
+    length removed =? 0
+
+    { items: remaining } <- findNewsTopics defaultFindOpt
+    (remaining <#> \(NewsTopic { id: remainingId }) -> remainingId) =? [ otherId ]
+
   it "can find a book by exact year" \{ author, editor } -> do
     _ <- referenceBook author editor "Germinal" 1885
     _ <- referenceBook author editor "L'Assommoir" 1877
@@ -50,7 +99,6 @@ spec = before setupEntities $ describe fullModuleName do
     harryPotterBookId <- referenceBook author editor "Harry Potter et la Chambre des Secrets" 1998
     lotrBookId <- referenceBook author editor "Le Seigneur des Anneaux" 1954
     germinalBookId <- referenceBook author editor "Germinal" 1885
-
     writeArticle author [ harryPotterBookId, lotrBookId ] "My Fantasy Article"
     writeArticle author [ germinalBookId ] "My Realistic Article"
 
@@ -88,7 +136,7 @@ spec = before setupEntities $ describe fullModuleName do
       , name: unsafeFromString "Mary Gabriel"
       , biography: Nothing
       , portrait: Nothing
-      , legacyIds: []
+      -- , legacyIds: []
       }
 
     marxMaryGabrielBookId <- do
@@ -101,7 +149,7 @@ spec = before setupEntities $ describe fullModuleName do
         , name: unsafeFromString "Marx intime"
         , year: Just $ Year { year: Time.unsafeFromInt 2014, approximately: false }
         , cover: coverUrl
-        , legacyId: Nothing
+        -- , legacyId: Nothing
         }
       η bId
 
@@ -185,6 +233,31 @@ spec = before setupEntities $ describe fullModuleName do
     { items: page3 } <- findBooks (defaultFindOpt { filter = filter, limit = Finite 2, expectation = QuickNothingBetterThanSlowerSomething, after = afterId2, sort = sort })
     let names3 = map (\(Book { name }) -> toString name) page3
     names3 =? []
+
+  it "can sort books by text search score (implicit sort) with limit and cursor pagination (after)" \{ author, editor } -> do
+    _ <- referenceBook author editor "Apple" 2001
+    _ <- referenceBook author editor "Apple Banana" 2002
+    _ <- referenceBook author editor "Apple Banana Carrot" 2003
+
+    let
+      sort = noSort
+      filter = Just $ BookHasName { name: unsafeFromString "Apple", weight: 1.0 }
+
+    { items: page1 } <- findBooks (defaultFindOpt { filter = filter, limit = Finite 1, expectation = QuickNothingBetterThanSlowerSomething, after = noAfter, sort = sort })
+    let names1 = map (\(Book { name }) -> toString name) page1
+    names1 =? [ "Apple" ]
+
+    let afterId = page1 !! 0 <#> unwrap ▷ _.id
+
+    { items: page2 } <- findBooks (defaultFindOpt { filter = filter, limit = Finite 1, expectation = QuickNothingBetterThanSlowerSomething, after = afterId, sort = sort })
+    let names2 = map (\(Book { name }) -> toString name) page2
+    names2 =? [ "Apple Banana" ]
+
+    let afterId2 = page2 !! 0 <#> unwrap ▷ _.id
+
+    { items: page3 } <- findBooks (defaultFindOpt { filter = filter, limit = Finite 1, expectation = QuickNothingBetterThanSlowerSomething, after = afterId2, sort = sort })
+    let names3 = map (\(Book { name }) -> toString name) page3
+    names3 =? [ "Apple Banana Carrot" ]
 
   it "can find a book by strict name" \{ author, editor } -> do
     let
@@ -574,7 +647,7 @@ referenceBook author editor name year = do
     , name: unsafeFromString name
     , year: Just $ Year { year: Time.unsafeFromInt year, approximately: false }
     , cover: coverUrl
-    , legacyId: Nothing
+    -- , legacyId: Nothing
     }
 
   η bookId
@@ -597,11 +670,12 @@ writeArticle authorId bookIds titleStr = do
     , lead: Nothing
     , notes: Nothing
     , sources: Nothing
-    , content: unsafeFromString "<p>Some HTML Content</p>"
+    , content: Url.unsafeFromString "http://example.com/content.txt"
     , illustrations: []
-    , profitable: true
     , slug: Nothing
-    , magazineIssue: Nothing
+    , frontPagePosition: Nothing
+    -- , profitable: true
+    -- , magazineIssue: Nothing
     }
 
 searchBooks :: String -> Expectation -> TestM (Array Book)
@@ -636,8 +710,7 @@ setupEntities = do
   handleCommand_ false $ ReferenceAuthor
     { id: author
     , name: unsafeFromString "Zola"
-    , biography: Just $ unsafeFromString "Blablah..."
-    , legacyIds: []
+    , biography: Nothing
     , portrait: Nothing
     }
 
@@ -645,7 +718,7 @@ setupEntities = do
   handleCommand_ false $ ReferenceEditor
     { id: editor
     , name: unsafeFromString "Flammarion"
-    , legacyBookIds: [ 1 ]
+    -- , legacyBookIds: [ 1 ]
     }
 
   η { author, editor }

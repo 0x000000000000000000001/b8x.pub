@@ -1,0 +1,10 @@
+services:
+  db2:
+    working_dir: /dumps
+    volumes:
+      - ${DOCKER_DIR}/${ENV}/volume/db2/dumps:/dumps
+      - ${DOCKER_DIR}/${ENV}/volume/db2/data:/var/lib/mysql
+    ports:
+      - 3306:3306
+    security_opt:
+      - apparmor:unconfined

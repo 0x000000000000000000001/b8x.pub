@@ -19,15 +19,17 @@ import Data.Newtype (unwrap)
 import Util.Html.Clean.Clean (untagAll)
 import Util.Type.String.ToString as Util.Type.String.ToString
 import Inter.Ui.Capability.ArticleCache.ArticleCache (extractRequiredCacheValue, extractOptionalCacheValue)
+import Core.Mod.Time.Instant (Instant)
 
 emptyArticle :: Article
 emptyArticle =
-  { slug: Slug.unsafeFromString ""
+    { slug: Slug.unsafeFromString ""
   , title: SanitizedHtmlString ""
   , lead: { lead: Nothing, isFallback: false }
   , bookAuthors: []
   , author: Nothing
   , illustration: Nothing
+  , writtenAt: bottom
   }
 
 inputArticle
@@ -38,29 +40,30 @@ inputArticle
      , author :: Return (Maybe Author.Author)
      , books :: Return Books.Books
      , illustrations :: Return (Array Illustration.Illustration)
+     , writtenAt :: Return Instant
      | r
      }
   -> Article
 inputArticle art =
   let
-    slug = extractRequiredCacheValue art.slug
+    slug = extractRequiredCacheValue "art.slug" art.slug
 
-    title = sanitizeHtml (unwrap (extractRequiredCacheValue art.title))
+    title = sanitizeHtml (unwrap (extractRequiredCacheValue "art.title" art.title))
 
     lead =
       let
-        l = extractRequiredCacheValue art.lead
+        l = extractRequiredCacheValue "art.lead" art.lead
       in
-        { lead: extractOptionalCacheValue l.lead <#> \h -> sanitizeHtml (unwrap h), isFallback: extractRequiredCacheValue l.isFallback }
+        { lead: extractOptionalCacheValue "l.lead" l.lead <#> \h -> sanitizeHtml (unwrap h), isFallback: extractRequiredCacheValue "l.isFallback" l.isFallback }
 
-    articleAuthorTxt = extractOptionalCacheValue art.author <#> \a ->
-      { id: Util.Type.String.ToString.toString (extractRequiredCacheValue a.id), name: sanitizeHtml (untagAll false (unwrap (extractRequiredCacheValue a.name))) }
+    articleAuthorTxt = extractOptionalCacheValue "art.author" art.author <#> \a ->
+      { id: Util.Type.String.ToString.toString (extractRequiredCacheValue "a.id" a.id), name: sanitizeHtml (untagAll false (unwrap (extractRequiredCacheValue "a.name" a.name))) }
 
-    bookAuthors = case extractRequiredCacheValue art.books of
+    bookAuthors = case extractRequiredCacheValue "art.books" art.books of
       Unfolded bks -> case Array.head bks of
         Just b ->
           let
-            names = map (\a -> sanitizeHtml (untagAll false (unwrap a.name))) (extractRequiredCacheValue b.authors)
+            names = map (\a -> sanitizeHtml (untagAll false (unwrap a.name))) (extractRequiredCacheValue "b.authors" b.authors)
           in
             if Array.length names > 2 then case Array.take 2 names of
               [ (SanitizedHtmlString a1), (SanitizedHtmlString a2) ] -> [ SanitizedHtmlString a1, SanitizedHtmlString (a2 <> defaultSuffixValue) ]
@@ -70,19 +73,20 @@ inputArticle art =
         _ -> []
       _ -> []
 
-    illustration = case Array.head (extractRequiredCacheValue art.illustrations) of
+    illustration = case Array.head (extractRequiredCacheValue "art.illustrations" art.illustrations) of
       Just ill ->
         let
-          isFb = extractRequiredCacheValue ill.isFallback
-          illCaption = extractOptionalCacheValue ill.caption <#> \c -> sanitizeHtml (unwrap c)
-          image = extractRequiredCacheValue ill.image
-          dims = extractRequiredCacheValue image.dimensions
-          w = extractRequiredCacheValue dims.width
-          h = extractRequiredCacheValue dims.height
-          src = extractRequiredCacheValue image.src
+          isFb = extractRequiredCacheValue "ill.isFallback" ill.isFallback
+          illCaption = extractOptionalCacheValue "ill.caption" ill.caption <#> \c -> sanitizeHtml (unwrap c)
+          image = extractRequiredCacheValue "ill.image" ill.image
+          dims = extractRequiredCacheValue "image.dimensions" image.dimensions
+          w = extractRequiredCacheValue "dims.width" dims.width
+          h = extractRequiredCacheValue "dims.height" dims.height
+          src = extractRequiredCacheValue "image.src" image.src
         in
           Just { src, dimensions: Just { width: w, height: h }, caption: illCaption, isFallback: isFb }
       Nothing -> Nothing
+
   in
     { slug
     , title
@@ -90,6 +94,7 @@ inputArticle art =
     , bookAuthors
     , author: articleAuthorTxt
     , illustration
+    , writtenAt: extractRequiredCacheValue "art.writtenAt" art.writtenAt
     }
 
 inputUiArticle
@@ -101,29 +106,30 @@ inputUiArticle
      , author :: Return (Maybe { id :: Return aId, name :: Return SanitizedHtmlString | r2 })
      , books :: Return (Fold (Array aBookId) (Array { authors :: Return (Array { name :: SanitizedHtmlString | r3 }) | r }))
      , illustrations :: Return (Array { image :: Return Illustration.Image, caption :: Return (Maybe SanitizedHtmlString), isFallback :: Return Boolean })
+     , writtenAt :: Return Instant
      | r
      }
   -> Article
 inputUiArticle art =
   let
-    slug = extractRequiredCacheValue art.slug
+    slug = extractRequiredCacheValue "art.slug" art.slug
 
-    title = extractRequiredCacheValue art.title
+    title = extractRequiredCacheValue "art.title" art.title
 
     lead =
       let
-        l = extractRequiredCacheValue art.lead
+        l = extractRequiredCacheValue "art.lead" art.lead
       in
-        { lead: extractOptionalCacheValue l.lead, isFallback: extractRequiredCacheValue l.isFallback }
+        { lead: extractOptionalCacheValue "l.lead" l.lead, isFallback: extractRequiredCacheValue "l.isFallback" l.isFallback }
 
-    articleAuthorTxt = extractOptionalCacheValue art.author <#> \a ->
-      { id: Util.Type.String.ToString.toString (extractRequiredCacheValue a.id), name: extractRequiredCacheValue a.name }
+    articleAuthorTxt = extractOptionalCacheValue "art.author" art.author <#> \a ->
+      { id: Util.Type.String.ToString.toString (extractRequiredCacheValue "a.id" a.id), name: extractRequiredCacheValue "a.name" a.name }
 
-    bookAuthors = case extractRequiredCacheValue art.books of
+    bookAuthors = case extractRequiredCacheValue "art.books" art.books of
       Unfolded bks -> case Array.head bks of
         Just b ->
           let
-            names = map (\a -> a.name) (extractRequiredCacheValue b.authors)
+            names = map (\a -> a.name) (extractRequiredCacheValue "b.authors" b.authors)
           in
             if Array.length names > 2 then case Array.take 2 names of
               [ (SanitizedHtmlString a1), (SanitizedHtmlString a2) ] -> [ SanitizedHtmlString a1, SanitizedHtmlString (a2 <> defaultSuffixValue) ]
@@ -133,19 +139,20 @@ inputUiArticle art =
         _ -> []
       _ -> []
 
-    illustration = case Array.head (extractRequiredCacheValue art.illustrations) of
+    illustration = case Array.head (extractRequiredCacheValue "art.illustrations" art.illustrations) of
       Just ill ->
         let
-          isFb = extractRequiredCacheValue ill.isFallback
-          illCaption = extractOptionalCacheValue ill.caption
-          image = extractRequiredCacheValue ill.image
-          dims = extractRequiredCacheValue image.dimensions
-          w = extractRequiredCacheValue dims.width
-          h = extractRequiredCacheValue dims.height
-          src = extractRequiredCacheValue image.src
+          isFb = extractRequiredCacheValue "ill.isFallback" ill.isFallback
+          illCaption = extractOptionalCacheValue "ill.caption" ill.caption
+          image = extractRequiredCacheValue "ill.image" ill.image
+          dims = extractRequiredCacheValue "image.dimensions" image.dimensions
+          w = extractRequiredCacheValue "dims.width" dims.width
+          h = extractRequiredCacheValue "dims.height" dims.height
+          src = extractRequiredCacheValue "image.src" image.src
         in
           Just { src, dimensions: Just { width: w, height: h }, caption: illCaption, isFallback: isFb }
       Nothing -> Nothing
+
   in
     { slug
     , title
@@ -153,6 +160,7 @@ inputUiArticle art =
     , bookAuthors
     , author: articleAuthorTxt
     , illustration
+    , writtenAt: extractRequiredCacheValue "art.writtenAt" art.writtenAt
     }
 
 computeMaxChars :: Boolean -> Article -> Int

@@ -3,6 +3,8 @@ module Inter.Ui.Router.Menu.Core.Core where
 import Proem hiding (top, div)
 
 import Halogen (ComponentHTML, RefLabel(..))
+import Data.Tuple.Nested ((/\))
+import Data.Array (mapWithIndex)
 import Halogen.HTML.Properties as Ref
 import Inter.Ui.Router.Menu.Core.BottomSpacer.BottomSpacer (bottomSpacer)
 import Inter.Ui.Router.Menu.Core.Items.Items (items)
@@ -11,6 +13,7 @@ import Inter.Ui.Router.Menu.Core.Style.Style as Style
 import Inter.Ui.Router.Menu.Core.TopSpacer.TopSpacer (topSpacer)
 import Inter.Ui.Router.Menu.Core.Newsletter.Newsletter (newsletter)
 import Inter.Ui.Router.Menu.Core.Magazine.Magazine (magazine)
+import Inter.Ui.Router.Menu.Core.CloseButton.CloseButton (closeButton)
 import Inter.Ui.Router.Menu.Type.Action (Action)
 import Inter.Ui.Router.Menu.Type.Slots (Slots)
 import Inter.Ui.Router.Menu.Type.State.State (State)
@@ -30,17 +33,26 @@ core state =
     state
     [ Ref.ref ref
     ]
-    ([ topSpacer state ]
+    ([ "top" /\ topSpacer state ]
         <> ( case state.activePanel of
-               ControlledState.Controlled Newsletters -> newsletter state
-               ControlledState.Uncontrolled Newsletters -> newsletter state
-               ControlledState.Controlled Magazines -> magazine state
-               ControlledState.Uncontrolled Magazines -> magazine state
-               ControlledState.Controlled Search -> search state <> [ items state ]
-               ControlledState.Uncontrolled Search -> search state <> [ items state ]
-               ControlledState.Controlled None -> search state <> [ items state ]
-               ControlledState.Uncontrolled None -> search state <> [ items state ]
+               ControlledState.Controlled Newsletters ->
+                 mapWithIndex (\i html -> ("newsletter-" <> show i) /\ html) (newsletter state)
+               ControlledState.Uncontrolled Newsletters ->
+                 mapWithIndex (\i html -> ("newsletter-" <> show i) /\ html) (newsletter state)
+               ControlledState.Controlled Magazines ->
+                 mapWithIndex (\i html -> ("magazine-" <> show i) /\ html) (magazine state)
+               ControlledState.Uncontrolled Magazines ->
+                 mapWithIndex (\i html -> ("magazine-" <> show i) /\ html) (magazine state)
+               ControlledState.Controlled Search ->
+                 mapWithIndex (\i html -> ("search-" <> show i) /\ html) (search state) <> [ "items" /\ items state ]
+               ControlledState.Uncontrolled Search ->
+                 mapWithIndex (\i html -> ("search-" <> show i) /\ html) (search state) <> [ "items" /\ items state ]
+               ControlledState.Controlled None ->
+                 mapWithIndex (\i html -> ("search-" <> show i) /\ html) (search state) <> [ "items" /\ items state ]
+               ControlledState.Uncontrolled None ->
+                 mapWithIndex (\i html -> ("search-" <> show i) /\ html) (search state) <> [ "items" /\ items state ]
            )
-        <> [ bottomSpacer state ]
+        <> [ "bottom" /\ bottomSpacer state ]
+        <> [ "close" /\ closeButton state ]
     )
 

@@ -1,0 +1,65 @@
+x-proj: &proj
+  deploy:
+    replicas: 1
+    update_config:
+      parallelism: 1
+      delay: 5s
+      order: start-first
+    restart_policy:
+      condition: any
+  networks:
+    - stack-default
+
+services:
+  api:
+    command: >
+      bash -c "exec
+        /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} --
+        /wait mq:5672 -t ${WAIT_DELAY} --
+        ./bin/api -e"
+    deploy:
+      replicas: 2
+      # Start the new container and wait for its healthcheck to pass 
+      # before stopping the old one, ensuring zero downtime.
+      update_config:
+        parallelism: 1
+        delay: 5s
+        order: start-first
+      restart_policy:
+        condition: any
+    networks:
+      - stack-default
+
+  api-cli:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    networks:
+      - stack-default
+
+  pauline:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    networks:
+      - stack-default
+
+  api-worker:
+    deploy:
+      replicas: 2
+      # Start the new container and wait for its healthcheck to pass 
+      # before stopping the old one, ensuring zero downtime.
+      update_config:
+        parallelism: 1
+        delay: 5s
+        order: start-first
+      restart_policy:
+        condition: any
+    networks:
+      - stack-default
+
+  api-proj: *proj

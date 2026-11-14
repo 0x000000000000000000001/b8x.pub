@@ -10,6 +10,7 @@ import Core.Mod.MagazineIssue.CustomSection.Name.Name as CustomSectionName
 import Core.Mod.Article.PageNumber.PageNumber (PageNumber)
 import Core.Mod.MagazineIssue.Slug.Slug as MagazineIssueSlug
 import Data.Maybe (Maybe(..))
+import Control.Alt ((<|>))
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
 import Foreign (Foreign)
 import Data.Traversable (traverse)
@@ -38,8 +39,8 @@ instance ReadForeign MagazineIssue where
     issueJson <- (Foreign.Index.readProp "issue" obj >>= readImpl)
     issue <- decodeIssueJson issueJson
     section <- (Foreign.Index.readProp "section" obj >>= decodeSectionJson) <|> pure Nothing
-    pageNumber <- (Foreign.Index.readProp "pageNumber" obj >>= readImpl) <|> pure Nothing
-    onCover <- (Foreign.Index.readProp "onCover" obj >>= readImpl) <|> pure false
+    pageNumber <- (Foreign.Index.readProp "pageNumber" obj >>= readImpl)
+    onCover <- (Foreign.Index.readProp "onCover" obj >>= readImpl)
     η $ MagazineIssue { issue, section, pageNumber, onCover }
 
 decodeIssueJson :: Foreign -> Foreign.F { id :: MagazineIssueId, slug :: MagazineIssueSlug.Slug }

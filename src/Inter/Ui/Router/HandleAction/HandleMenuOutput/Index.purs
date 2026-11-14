@@ -17,8 +17,8 @@ handleMenuOutput :: MenuOutput.Output -> RouteM Ɩ
 handleMenuOutput = case _ of
   MenuOutput.OpenSearchQueryChanged query -> handleMenuOutputOpenSearchQueryChanged query
   MenuOutput.SearchOpened query -> handleMenuOutputSearchOpened query
-  MenuOutput.SearchClosed -> handleMenuOutputSearchClosed
   MenuOutput.Closed -> handleMenuOutputClosed
+  MenuOutput.SearchClosed -> handleMenuOutputSearchClosed
   MenuOutput.Opened payload -> handleMenuOutputOpened payload
   MenuOutput.AuthorFilterRemoved -> handleMenuOutputAuthorFilterRemoved
   MenuOutput.MagazineIssueOpened slug -> navigateToCurrentRouteWithMenuMagazineIssueOpen slug

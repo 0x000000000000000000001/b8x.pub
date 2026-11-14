@@ -1,16 +1,18 @@
 module Inter.Ui.Page.Article.Related.Style
-  (wrapper_
+  ( wrapper_
   , wrapperC
   , staticStyle
   ) where
 
 import Proem hiding (div)
 
-import CSS (em, marginTop)
+import CSS (em, rem, marginTop)
 import CSS as CSS
 import Halogen.HTML (HTML, div)
 import Util.Style.Classname (classes, generateStaticClass, refineClass')
-import Util.Style.Selector ((.?))
+import Util.Style.Selector ((.?), (.*))
+import Inter.Ui.Mod.ArticlesBand.Style as ArticlesBandStyle
+import Util.Style.MediaQuery (onMobileLte)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Page.Article.Related.Style"
@@ -28,6 +30,10 @@ staticStyle :: CSS.CSS
 staticStyle = do
   wrapperC .? do
     marginTop (em 2.0)
+
+    ArticlesBandStyle.staticClass .* do
+      onMobileLte do
+        marginTop (rem 3.0)
 
 wrapper_ :: ∀ w i. Array (HTML w i) -> HTML w i
 wrapper_ children = div [ classes [ wrapperC ] ] children

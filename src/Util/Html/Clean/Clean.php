@@ -1,13 +1,6 @@
 <?php
 
-$exports['_untag'] = function($isWAll, $wTags = null, $isBAll = null, $bTags = null, $replaceWithSpace = null, $str = null) use (&$exports) {
-    if (\func_num_args() < 6) {
-        $__args = \func_get_args();
-        return function(...$more) use ($__args, &$exports) {
-            return $exports['_untag'](...\array_merge($__args, $more));
-        };
-    }
-    
+$exports['_untag'] = function($isWAll, $wTags, $isBAll, $bTags, $replaceWithSpace, $str) {
     // We use a native preg_replace_callback which avoids creating PureScript Thunks 
     // and function invocations on every single HTML tag, boosting performance massively.
     $callback = function($matches) use ($isWAll, $wTags, $isBAll, $bTags, $replaceWithSpace) {
@@ -22,7 +15,11 @@ $exports['_untag'] = function($isWAll, $wTags = null, $isBAll = null, $bTags = n
         return $replaceWithSpace ? " " : "";
     };
     
-    return preg_replace_callback('/<\/?([a-zA-Z0-9:-]+)[^>]*>/', $callback, $str);
+    $stripped = preg_replace_callback('/<\/?([a-zA-Z0-9:-]+)[^>]*>/', $callback, $str);
+    if ($stripped === null) {
+        throw new \RuntimeException('Failed to strip HTML tags');
+    }
+    return $stripped;
 };
 
 return $exports;

@@ -19,4 +19,7 @@ queryMeta _ (UiRoute.Theme theme _) = do
   η $ (_ { title = Just (translate Fr theme) }) <$> meta
 queryMeta ctx (UiRoute.Article slug _) = Article.queryMeta ctx (toString slug)
 queryMeta _ (UiRoute.Donate _) = η Nothing
+queryMeta _ (UiRoute.About _) = η Nothing
+queryMeta _ (UiRoute.Legal _) = η Nothing
+queryMeta _ (UiRoute.Newsletter _) = η Nothing
 queryMeta _ UiRoute.NotFound = η Nothing

@@ -1,5 +1,5 @@
 module Inter.Ui.Page.Home.Component
-  (component
+  ( component
   , home_
   , home
   ) where
@@ -30,6 +30,7 @@ component = mkComponent
       , newsletterArticles: NotAsked
       , bandsForkId: Nothing
       , lastTriggeredFrontPageIds: Nothing
+      , context: input.context
       , input
       }
   , render

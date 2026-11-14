@@ -1,0 +1,4 @@
+networks:
+  stack-default:
+    driver: overlay
+    attachable: true

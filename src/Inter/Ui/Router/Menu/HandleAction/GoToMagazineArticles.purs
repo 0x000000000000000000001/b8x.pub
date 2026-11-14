@@ -114,38 +114,38 @@ goToMagazineArticles intent year slug = do
 cacheMagazineArticles :: Array Article -> MenuM Ɩ
 cacheMagazineArticles articles = for_ articles \art -> do
   let
-    slugVal = extractRequiredCacheValue art.slug
-    titleVal = sanitizeHtml (unwrap (extractRequiredCacheValue art.title))
+    slugVal = extractRequiredCacheValue "art.slug" art.slug
+    titleVal = sanitizeHtml (unwrap (extractRequiredCacheValue "art.title" art.title))
 
-    bookAuthors = case extractRequiredCacheValue art.books of
-      QueryResult.Unfolded bks -> bks >>= \b -> extractRequiredCacheValue b.authors <#> \a -> sanitizeHtml (untagAll false (unwrap a.name))
+    bookAuthors = case extractRequiredCacheValue "art.books" art.books of
+      QueryResult.Unfolded bks -> bks >>= \b -> extractRequiredCacheValue "b.authors" b.authors <#> \a -> sanitizeHtml (untagAll false (unwrap a.name))
       _ -> []
 
-    articleAuthorTxt = extractOptionalCacheValue art.author <#> \a ->
-      { id: Util.Type.String.ToString.toString (extractRequiredCacheValue a.id), name: sanitizeHtml (untagAll false (unwrap (extractRequiredCacheValue a.name))) }
+    articleAuthorTxt = extractOptionalCacheValue "art.author" art.author <#> \a ->
+      { id: Util.Type.String.ToString.toString (extractRequiredCacheValue "a.id" a.id), name: sanitizeHtml (untagAll false (unwrap (extractRequiredCacheValue "a.name" a.name))) }
 
     leadVal =
       let
-        l = extractRequiredCacheValue art.lead
+        l = extractRequiredCacheValue "art.lead" art.lead
       in
-        { lead: extractOptionalCacheValue l.lead <#> \h -> sanitizeHtml (unwrap h)
-        , isFallback: extractRequiredCacheValue l.isFallback
+        { lead: extractOptionalCacheValue "l.lead" l.lead <#> \h -> sanitizeHtml (unwrap h)
+        , isFallback: extractRequiredCacheValue "l.isFallback" l.isFallback
         }
 
-    illustrations = extractRequiredCacheValue art.illustrations
+    illustrations = extractRequiredCacheValue "art.illustrations" art.illustrations
 
     firstIll = Array.head illustrations
 
     imageVal = case firstIll of
       Just ill ->
         let
-          isFb = extractRequiredCacheValue ill.isFallback
-          illCaption = extractOptionalCacheValue ill.caption <#> \cap -> sanitizeHtml (unwrap cap)
-          image = extractRequiredCacheValue ill.image
-          dims = extractRequiredCacheValue image.dimensions
-          w = extractRequiredCacheValue dims.width
-          h = extractRequiredCacheValue dims.height
-          src = extractRequiredCacheValue image.src
+          isFb = extractRequiredCacheValue "ill.isFallback" ill.isFallback
+          illCaption = extractOptionalCacheValue "ill.caption" ill.caption <#> \cap -> sanitizeHtml (unwrap cap)
+          image = extractRequiredCacheValue "ill.image" ill.image
+          dims = extractRequiredCacheValue "image.dimensions" image.dimensions
+          w = extractRequiredCacheValue "dims.width" dims.width
+          h = extractRequiredCacheValue "dims.height" dims.height
+          src = extractRequiredCacheValue "image.src" image.src
         in
           Just { src: src, dimensions: { width: w, height: h }, caption: illCaption, isFallback: isFb }
       Nothing -> Nothing
@@ -157,4 +157,5 @@ cacheMagazineArticles articles = for_ articles \art -> do
     , author: articleAuthorTxt
     , lead: leadVal
     , illustration: imageVal
+    , writtenAt: extractRequiredCacheValue "art.writtenAt" art.writtenAt
     }

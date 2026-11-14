@@ -1,80 +1,68 @@
 <?php
 
-$_createInnerClient = function($region, $accessKeyId = null, $secretAccessKey = null) use (&$_createInnerClient) {
-    if (\func_num_args() < 3) {
-        $__args = \func_get_args();
-        return function(...$more) use ($__args, &$_createInnerClient) {
-            return $_createInnerClient(...\array_merge($__args, $more));
-        };
-    }
-    return function() use ($region, $accessKeyId, $secretAccessKey) {
-        return new \Aws\Ses\SesClient([
-            'region' => $region,
-            'version' => 'latest',
-            'credentials' => [
-                'key' => $accessKeyId,
-                'secret' => $secretAccessKey
-            ]
-        ]);
-    };
+$exports['_createInnerClient'] = static function ($region, $accessKeyId, $secretAccessKey) {
+    return new \Aws\Ses\SesClient([
+        'region' => $region,
+        'version' => 'latest',
+        'credentials' => ['key' => $accessKeyId, 'secret' => $secretAccessKey],
+    ]);
 };
-$exports['_createInnerClient'] = $_createInnerClient;
 
-$_sendMailImpl = function($newPromise, $client = null, $options = null) use (&$_sendMailImpl) {
-    if (\func_num_args() < 3) {
-        $__args = \func_get_args();
-        return function(...$more) use ($__args, &$_sendMailImpl) {
-            return $_sendMailImpl(...\array_merge($__args, $more));
-        };
-    }
-    return function() use ($newPromise, $client, $options) {
-        return $newPromise(function($resolve, $reject) use ($client, $options) {
-            \Amp\async(function() use ($resolve, $reject, $client, $options) {
-                try {
-                    $body = [];
-                    if (property_exists($options, 'html') && !empty($options->html)) {
-                        $body['Html'] = [
-                            'Charset' => 'UTF-8',
-                            'Data' => $options->html
-                        ];
-                    }
-                    if (property_exists($options, 'text') && !empty($options->text)) {
-                        $body['Text'] = [
-                            'Charset' => 'UTF-8',
-                            'Data' => $options->text
-                        ];
-                    }
-
-                    $toName = property_exists($options->to, 'name') ? $options->to->name : '';
-                    $toEmail = property_exists($options->to, 'email') ? $options->to->email : '';
-                    $destination = !empty($toName) ? "{$toName} <{$toEmail}>" : $toEmail;
-
-                    $fromName = property_exists($options->from, 'name') ? $options->from->name : '';
-                    $fromEmail = property_exists($options->from, 'email') ? $options->from->email : '';
-                    $source = !empty($fromName) ? "{$fromName} <{$fromEmail}>" : $fromEmail;
-
-                    $result = $client->sendEmail([
-                        'Destination' => [
-                            'ToAddresses' => [$destination],
-                        ],
-                        'Message' => [
-                            'Body' => $body,
-                            'Subject' => [
-                                'Charset' => 'UTF-8',
-                                'Data' => $options->subject,
-                            ],
-                        ],
-                        'Source' => $source,
-                    ]);
-
-                    $resolve($result);
-                } catch (\Throwable $e) {
-                    $reject($e);
-                }
-            });
+// SDK operations start when Aff registers its callbacks. Cancellation does not
+// abort these operations, matching the previous Promise adapter.
+$runAsync = static function (callable $operation): \Closure {
+    return static function (callable $onError, callable $onSuccess) use ($operation): \Closure {
+        \Amp\async(static function () use ($operation, $onError, $onSuccess): void {
+            try {
+                $result = $operation();
+            } catch (\Throwable $error) {
+                $onError($error);
+                return;
+            }
+            $onSuccess($result);
         });
+        return static function ($cancelError, $onCancelError, $onCancelSuccess): void {
+            $onCancelSuccess(null);
+        };
     };
 };
-$exports['_sendMailImpl'] = $_sendMailImpl;
+
+$exports['_sendMailImpl'] = static function ($client, $fromName, $fromEmail, $toName, $toEmail, $subject, $text, $html) use ($runAsync) {
+    return $runAsync(static function () use ($client, $fromName, $fromEmail, $toName, $toEmail, $subject, $text, $html) {
+        $body = [];
+        if (!empty($html)) {
+            $body['Html'] = [
+                'Charset' => 'UTF-8',
+                'Data' => $html,
+            ];
+        }
+        if (!empty($text)) {
+            $body['Text'] = [
+                'Charset' => 'UTF-8',
+                'Data' => $text,
+            ];
+        }
+
+        $destination = !empty($toName) ? "{$toName} <{$toEmail}>" : $toEmail;
+
+        $source = !empty($fromName) ? "{$fromName} <{$fromEmail}>" : $fromEmail;
+
+        $client->sendEmail([
+            'Destination' => [
+                'ToAddresses' => [$destination],
+            ],
+            'Message' => [
+                'Body' => $body,
+                'Subject' => [
+                    'Charset' => 'UTF-8',
+                    'Data' => $subject,
+                ],
+            ],
+            'Source' => $source,
+        ]);
+
+        return null;
+    });
+};
 
 return $exports;

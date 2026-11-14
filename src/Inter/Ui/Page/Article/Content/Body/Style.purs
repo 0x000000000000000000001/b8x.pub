@@ -1,5 +1,5 @@
 module Inter.Ui.Page.Article.Content.Body.Style
-  (fullModuleName
+  ( fullModuleName
   , class'
   , body
   , body_
@@ -19,7 +19,8 @@ import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Style.Base (raw)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass)
 import Util.Style.Layout (marginBottom, marginTop, maxWidthRem, paddingRight, widthPct)
-import Util.Style.Selector (firstLetter, (.?), (:&))
+import Util.Style.MediaQuery (onMobileLte)
+import Util.Style.Selector (firstLetter, (.?), (:&), (¨*))
 import Util.Style.Typography (fontSizePct, fontSizeRem, lineHeight)
 
 fullModuleName :: String
@@ -42,6 +43,10 @@ staticStyle = do
     raw "letter-spacing" "0.01rem"
     color $ rgba 51 51 51 1.0
 
+    onMobileLte do
+      fontSizePct 115.0
+      raw "line-height" "1.6"
+
     firstLetter :& do
       float floatLeft
       fontSizeRem 6.5
@@ -50,6 +55,14 @@ staticStyle = do
       marginBottom (-0.4)
       paddingRight 0.35
       fontFamily [ "Georgia" ] (serif :| [])
+
+    "blockquote" ¨* do
+      raw "border-left" "0.25rem solid hsl(353.9, 81.7%, 47.3%)"
+      raw "padding-left" "1.25rem"
+      raw "margin-left" "0"
+      raw "margin-right" "0"
+      raw "font-style" "italic"
+      raw "color" "rgba(51, 51, 51, 0.75)"
 
 body :: ∀ w i. InstanceId -> Node HTMLdiv w i
 body id props = div ([ classes [ staticClass, class' id ] ] <> props)

@@ -9,6 +9,7 @@ import Core.Mod.Author.Message.Query.Result (Author)
 import Data.Maybe (Maybe)
 import Core.Mod.Image.Message.Query.Result (Illustration)
 import Core.Mod.Book.Message.Query.Result.Books (Books)
+import Core.Mod.Time.Instant (Instant)
 
 type Result = Maybe
   { quote :: String
@@ -24,4 +25,5 @@ type Article =
   , author :: Return (Maybe Author)
   , illustrations :: Return (Array Illustration)
   , slug :: Return Slug
+  , writtenAt :: Return Instant
   }

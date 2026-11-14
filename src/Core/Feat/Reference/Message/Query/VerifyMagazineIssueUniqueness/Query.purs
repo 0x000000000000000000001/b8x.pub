@@ -1,5 +1,4 @@
 module Core.Feat.Reference.Message.Query.VerifyMagazineIssueUniqueness.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -10,7 +9,7 @@ import Core.Feat.Reference.Message.Query.VerifyMagazineIssueUniqueness.Result (R
 import Core.Feat.Reference.Message.Query.VerifyMagazineIssueUniqueness.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Mod.MagazineIssue.Exception.MagazineIssueAlreadyReferenced (MagazineIssueAlreadyReferenced(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array (any)
 import Data.Generic.Rep (class Generic)
@@ -33,7 +32,7 @@ instance IsQuery VerifyMagazineIssueUniqueness State Fields Payload Result where
   description = "Verify magazine issue uniqueness"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @MagazineIssue Nothing
+    hash <- getReadModelHash @MagazineIssue HashAll
     η $ defaultCached hash
 
   handle (VerifyMagazineIssueUniqueness { number: newNumber, special: newSpecial, complement: newComplement }) = do

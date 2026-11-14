@@ -1,5 +1,5 @@
 module Inter.Ui.Mod.Modal.Core.Core
-  (core
+  ( core
   ) where
 
 import Proem

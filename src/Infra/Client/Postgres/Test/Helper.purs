@@ -26,12 +26,10 @@ createTestDbs :: ∀ r. { store :: DbSubConfig, edge :: DbSubConfig | r } -> { s
 createTestDbs config dbNames = do
   when (dbNames.store /= config.store.database) do
     viaRootDb config.store \handle -> do
-      ø $ PostgreSql.query_ handle ("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '" <> config.store.database <> "' AND pid <> pg_backend_pid()") []
       ø $ PostgreSql.query_ handle ("CREATE DATABASE " <> PostgreSql.escapeIdentifier dbNames.store) []
 
   when (dbNames.edge /= config.edge.database) do
     viaRootDb config.edge \handle -> do
-      ø $ PostgreSql.query_ handle ("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '" <> config.edge.database <> "' AND pid <> pg_backend_pid()") []
       ø $ PostgreSql.query_ handle ("CREATE DATABASE " <> PostgreSql.escapeIdentifier dbNames.edge) []
 
 dropTestDbs :: ∀ r. { store :: DbSubConfig, edge :: DbSubConfig | r } -> { store :: String, edge :: String } -> Aff Ɩ

@@ -1,10 +1,10 @@
 module Core.Feat.Reference.Message.Query.SearchEditors.Projection.Projection where
 
+import Proem hiding (add)
+
 import Yoga.JSON.Generics (genericWriteForeignTaggedSum, genericReadForeignTaggedSum)
 import Yoga.JSON.Generics.TaggedSumRep (defaultOptions)
-import Proem hiding (add)
 import Control.Monad.Except as Control.Monad.Except
-
 import Core.Event.EditorDereferenced.Payload as EditorDereferenced
 import Core.Event.EditorReferenced.Payload as EditorReferenced
 import Core.Event.Event (Event(..), LoadedEvent)
@@ -12,10 +12,10 @@ import Core.Exception.Exception (inj)
 import Core.Mod.Editor.Id.Id (EditorId)
 import Core.Mod.Editor.Name.Name (Name)
 import Core.Feat.Reference.Message.Query.SearchEditors.Exception.InvalidEditorFilter (InvalidEditorFilter(..), InvalidEditorFilterRow)
-import Core.Mod.Projection.Finder.Filter (class IsFilter, Contains(..), EqualsUpToNormalization(..), StrictlyEquals(..), by, compile)
+import Core.Mod.Projection.Finder.Filter (class IsFilter, Contains(..), EqualsUpToNormalization(..), StrictlyEquals(..), by, compile, Matches(..), Weight)
 import Core.Mod.Projection.Finder.Filter as Base
 import Core.Mod.Projection.Finder.Finder (Find, FindOpt, Page, findMany_)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete)
 import Core.Mod.Projection.SearchIndex (EveryTextIndexesWithWeightA, InvertedIndexOnly, RawIndexOnly, everyTextIndexesWithWeightA, invertedIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -39,12 +39,12 @@ instance
     "searchEditorsProjectionWriteOps"
     (SEARCH_EDITORS_PROJECTION_WRITE_OPS ())
     "searchEditorsProjectionReadSyncProject"
-    { searchEditors :: Editor }
-    { searchEditors :: EditorIndexNeeds }
-    { searchEditors :: Record () }
+    { editor :: Editor }
+    { editor :: EditorIndexNeeds }
+    { editor :: Record () }
   where
   indexNeeds =
-    { searchEditors:
+    { editor:
         { id: rawIndexOnly
         , name: everyTextIndexesWithWeightA
         , legacyBookIds: invertedIndexOnly
@@ -58,12 +58,15 @@ type SEARCH_EDITORS_PROJECTION_READ_SYNC_PROJECT fx = (searchEditorsProjectionRe
 
 -- Model 
 
-instance IsPair EditorKey Editor EditorRecord EditorIndexNeeds () "searchEditors" "searchEditorsEditors" "searchEditorsProjectionReadFind" SearchEditorsProjection where
+instance IsPair EditorKey Editor EditorRecord EditorIndexNeeds () "editor" "editors" "searchEditorsProjectionReadFind" SearchEditorsProjection where
   toKey (Editor { id }) = EditorKey id
 
   single = false
 
 newtype Editor = Editor EditorRecord
+
+instance ToAliases Editor where
+  toAliases _ = []
 
 type EditorRecord =
   { id :: EditorId
@@ -89,8 +92,9 @@ derive newtype instance Show Editor
 newtype EditorKey = EditorKey EditorId
 
 derive instance Newtype EditorKey _
-instance ToAliasedPrimary EditorKey where
-  toAliasedPrimary (EditorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary EditorKey where
+  toPrimary (EditorKey id) = toString id
+
 derive newtype instance Eq EditorKey
 derive newtype instance Ord EditorKey
 
@@ -98,6 +102,7 @@ derive newtype instance Ord EditorKey
 
 data EditorFilter
   = EditorHasId EditorId
+  | EditorHasName { name :: Name, weight :: Weight }
   | EditorHasExactName Name
   | EditorHasLegacyBookId Int
   | EditorAnd { left :: EditorFilter, right :: EditorFilter }
@@ -129,6 +134,7 @@ instance HeytingAlgebra EditorFilter where
 
 instance IsFilter EditorFilter Editor where
   compile _ (EditorHasId id) = by @"id" StrictlyEquals id
+  compile e (EditorHasName { name: name, weight: w }) = by @"name" (Matches { weight: w, expectation: e }) name
   compile _ (EditorHasExactName name) = by @"name" EqualsUpToNormalization name
   compile _ (EditorHasLegacyBookId legacyBookId) = by @"legacyBookIds" Contains [ legacyBookId ]
 
@@ -177,6 +183,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   UserEmailChanged _ -> ηι
@@ -204,5 +215,3 @@ onEditorReferenced { id, name, legacyBookIds } = add $ Editor { id, name, legacy
 
 onEditorDereferenced :: ∀ fx. EditorDereferenced.Payload -> Run (SEARCH_EDITORS_PROJECTION_WRITE_OPS fx) Ɩ
 onEditorDereferenced { editor } = delete $ EditorKey editor
-
-

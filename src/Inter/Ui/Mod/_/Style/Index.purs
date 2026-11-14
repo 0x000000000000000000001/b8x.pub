@@ -16,6 +16,7 @@ import Inter.Ui.Mod.Button.Style.Index as Button
 import Inter.Ui.Mod.Newsletter.Style.Style as Newsletter
 import Inter.Ui.Mod.Toast.Style.Style as Toast
 import Inter.Ui.Mod.LoadingDots.Style.Index as LoadingDots
+import Inter.Ui.Mod.StopPub.Style as StopPub
 
 staticStyle :: CSS.CSS
 staticStyle = do
@@ -31,4 +32,5 @@ staticStyle = do
   Newsletter.staticStyle
   Toast.staticStyle
   LoadingDots.staticStyle
+  StopPub.staticStyle
   Button.sheet

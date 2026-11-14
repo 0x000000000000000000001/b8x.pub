@@ -1,0 +1,194 @@
+x-api-env: &api-env
+  TZ: ${TZ}
+  ENV: ${ENV}
+  NODE_ENV: ${ENV}
+
+x-api: &api
+  image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_API_WRAP}"
+  volumes:
+    - ${ROOT_DIR}/bin:/var/www/b8x/bin
+    - ${ROOT_DIR}/scratch:/var/www/b8x/scratch
+    - ${ROOT_DIR}/src:/var/www/b8x/src
+    - ${ROOT_DIR}/test:/var/www/b8x/test
+    - ${ROOT_DIR}/run/bak:/var/www/b8x/run/bak
+    - ${ROOT_DIR}/public:/var/www/b8x/public
+    - ${ROOT_DIR}/var/api/cache:/var/www/b8x/var/api/cache
+    - ${ROOT_DIR}/var/sock:/var/www/b8x/var/sock
+  stdin_open: true
+  tty: true
+  working_dir: /var/www/b8x
+  env_file:
+    - ${ROOT_DIR}/env/${ENV}/target.env
+    - ${ROOT_DIR}/env/_shared/ui.env
+    - ${ROOT_DIR}/env/_shared/api.env
+    - ${ROOT_DIR}/env/${ENV}/api.env
+    - ${ROOT_DIR}/env/_shared/git.env
+    - ${ROOT_DIR}/env/_shared/aws.env
+    - ${ROOT_DIR}/env/_shared/dns.env
+    - ${ROOT_DIR}/env/${ENV}/dns.env
+    - ${ROOT_DIR}/env/_shared/db.env
+    - ${ROOT_DIR}/env/${ENV}/db.env
+    - ${ROOT_DIR}/env/_shared/mail.env
+    - ${ROOT_DIR}/env/_shared/mq.env
+    - ${ROOT_DIR}/env/${ENV}/mq.env
+    - ${ROOT_DIR}/env/_shared/news.env
+    - ${ROOT_DIR}/env/_shared/pay.env
+    - ${ROOT_DIR}/env/_shared/php.env
+    - ${ROOT_DIR}/env/_shared/ses.env
+    - ${ROOT_DIR}/env/_shared/s3.env
+    - ${ROOT_DIR}/env/${ENV}/s3.env
+  sysctls:
+    net.ipv4.tcp_keepalive_time: 9600
+    net.ipv4.tcp_keepalive_intvl: 60
+    net.ipv4.tcp_keepalive_probes: 5
+
+x-sig: &sig 
+  stop_signal: SIGTERM
+  stop_grace_period: 7m30s
+
+x-cli-ping-healthcheck: &cli-ping-healthcheck
+  test: [ 'CMD', './bin/run', '-e', 'Ping' ]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 12s
+
+x-proj: &proj
+  <<: [*api, *sig]
+  command: >
+    bash -c "exec
+      /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- 
+      /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- 
+      /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} --
+      /wait mq:5672 -t ${WAIT_DELAY} --
+      ./bin/run -e Projection \"$$PROJECTION_NAME\""
+  healthcheck: *cli-ping-healthcheck
+
+services:
+  api: 
+    <<: *api
+    environment: *api-env
+
+  api-cli: 
+    <<: *api
+    environment: *api-env
+    command: >
+      bash -c "exec
+        /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} --
+        /wait mq:5672 -t ${WAIT_DELAY} --
+        tail -f /dev/null"
+
+  pauline: 
+    <<: *api
+    environment: *api-env
+    command: >
+      bash -c "exec
+        /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} --
+        /wait mq:5672 -t ${WAIT_DELAY} --
+        tail -f /dev/null"
+
+  api-worker: 
+    <<: [*api, *sig]
+    environment: *api-env
+    command: >
+      bash -c "exec 
+        /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} -- 
+        /wait mq:5672 -t ${WAIT_DELAY} -- 
+        ./bin/run -e Worker --timeout 300"
+    healthcheck: *cli-ping-healthcheck
+
+  api-proj: 
+    <<: *proj
+    environment:
+      <<: *api-env
+      PROJECTION_NAME: "*"
+
+#  proj-author: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: author
+#  
+#  proj-book: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: book
+#  
+#  proj-editor: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: editor
+#  
+#  proj-user: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: user
+#
+#  proj-article: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: article
+#
+#  proj-get-front-page: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: getFrontPage
+#
+#  proj-get-article-quote: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: getArticleQuote
+#
+#  proj-get-magazine-calendar: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: getMagazineCalendar
+#
+#  proj-get-newsletter-calendar: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: getNewsletterCalendar
+#
+#  proj-list-newsletter-articles: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: listNewsletterArticles
+#
+#  proj-list-news-related-articles: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: listNewsRelatedArticles
+#
+#  proj-list-most-read-articles: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: listMostReadArticles
+#  
+#  proj-magazine-issue: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: magazineIssue
+#
+#  proj-newsletter: 
+#    <<: *proj
+#    environment:
+#      <<: *api-env
+#      PROJECTION_NAME: newsletter

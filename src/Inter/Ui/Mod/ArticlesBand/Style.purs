@@ -1,5 +1,5 @@
 module Inter.Ui.Mod.ArticlesBand.Style
-  (fullModuleName
+  ( fullModuleName
   , staticClass
   , staticStyle
   , articlesBand
@@ -10,13 +10,15 @@ module Inter.Ui.Mod.ArticlesBand.Style
   , content_
   , articleContainer
   , articleContainer_
+  , contentClass
+  , articleContainerClass
   ) where
 
 import Proem hiding (div, top)
 
-import CSS (backgroundColor, borderBox, boxSizing, color, column, flexDirection, hover, maxWidth, rem, rgba, textTransform, borderColor, fromString)
+import CSS (backgroundColor, borderBox, borderColor, boxSizing, color, column, flexDirection, fromString, hover, rem, rgba, textTransform)
 import CSS as CSS
-import CSS.Size (px, pct, calcSum)
+import CSS.Size (pct, px)
 import CSS.Text.Transform (uppercase)
 import CSS.Transform (transforms, translateY)
 import DOM.HTML.Indexed (HTMLdiv, HTMLh3)
@@ -32,6 +34,7 @@ import Util.Style.Position (positionRelative)
 import Util.Style.Selector ((.?), (.*), (:&))
 import Util.Style.Typography (fontSizeRem, fontWeightBold, letterSpacingRem)
 import Util.Power (isPowerful)
+import Util.Style.MediaQuery (onMobileLte)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Mod.ArticlesBand.Style"
@@ -51,10 +54,8 @@ articleContainerClass = refineClass' staticClass "article-container"
 staticStyle :: CSS.CSS
 staticStyle = do
   staticClass .? do
-    maxWidth (calcSum (pct 100.0) (rem (-6.0)))
+    widthPct100
     marginTop 7.0
-    raw "margin-left" "auto"
-    raw "margin-right" "auto"
     displayFlex
     flexDirection column
     gapRem 1.5
@@ -62,7 +63,9 @@ staticStyle = do
     boxSizing borderBox
     positionRelative
 
-    -- Glassmorphism & Contours
+    onMobileLte do
+      padding4 3.8 0.0 2.0 0.0
+
     whiteGlassBackground
     borderRadiusRem1 1.0
 
@@ -83,6 +86,9 @@ staticStyle = do
       raw "pointer-events" "none"
       raw "z-index" "10"
 
+      onMobileLte do
+        CSS.width (rem 3.0)
+
   titleClass .? do
     margin0
     centerToTopCenter
@@ -95,6 +101,12 @@ staticStyle = do
     padding4 0.4 2.0 0.4 2.0
     borderRadiusRem1 2.0
     raw "box-shadow" "0 4px 14px rgba(220, 38, 38, 0.4)"
+    raw "z-index" "20"
+    raw "white-space" "nowrap"
+
+    onMobileLte do
+      fontSizeRem 0.95
+      padding4 0.3 1.5 0.3 1.5
 
   contentClass .? do
     widthPct100
@@ -103,6 +115,10 @@ staticStyle = do
     gapRem 0.0
     raw "overflow-x" "auto"
     padding4 0.5 12.0 1.0 1.0
+
+    onMobileLte do
+      raw "scroll-snap-type" "x mandatory"
+      padding4 0.5 4.0 1.0 1.0
 
   articleContainerClass .? do
     CSS.minWidth (px 350.0)
@@ -115,6 +131,17 @@ staticStyle = do
 
     fromString ":last-child" :& do
       raw "margin-right" "auto"
+
+    onMobileLte do
+      CSS.minWidth (px 280.0)
+      CSS.maxWidth (px 280.0)
+      raw "scroll-snap-align" "center"
+
+      fromString ":first-child" :& do
+        raw "margin-left" "0"
+
+      fromString ":last-child" :& do
+        raw "margin-right" "0"
 
     let
       notHovered = fromString ":not(:hover)"

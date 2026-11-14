@@ -1,0 +1,23 @@
+services:
+  news:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_NEWS}"
+    environment:
+      TZ: ${TZ}
+      SENDY_PROTOCOL: https
+      SENDY_FQDN: ${NEWS_DNS_LEVEL_3_GTE}
+      SENDY_API_KEY: ${SENDY_API_KEY}
+      SENDY_OLD_API_KEYS: ${SENDY_OLD_API_KEYS}
+      SENDY_LIST_ID: ${SENDY_LIST_ID}
+      SENDY_AWS_IAM_KEY: ${SENDY_AWS_IAM_KEY}
+      SENDY_AWS_IAM_SECRET: ${SENDY_AWS_IAM_SECRET}
+      MAILCHIMP_API_KEY: ${MAILCHIMP_API_KEY}
+      MAILCHIMP_LIST_ID: ${MAILCHIMP_LIST_ID}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+    entrypoint: '/docker-entrypoint.sh'
+    command: 'apache2-foreground'
+    volumes:
+      - ${ROOT_DIR}/_/sendy:/var/www/html
+      - ${ROOT_DIR}/var/news/tmp:/tmp

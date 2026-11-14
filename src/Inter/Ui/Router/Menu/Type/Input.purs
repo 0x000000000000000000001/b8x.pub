@@ -7,6 +7,7 @@ import Inter.Ui.Type.ControlledProp (ControlledProp)
 import Data.Maybe (Maybe)
 import Core.Mod.Author.Id.Id (AuthorId)
 import Core.Mod.Author.Name.Name as Author
+import Inter.Ui.Type.Device (Device)
 
 
 import Core.Mod.MagazineIssue.Slug.Slug (Slug)
@@ -22,4 +23,4 @@ type Input =
   , magazineIssueOpen :: ControlledProp (Maybe Slug)
   }
 
-type InnerInput = Connected (Maybe GlobalStore.Me) Input
+type ConnectedInput = Connected { me :: Maybe GlobalStore.Me, device :: Device } Input

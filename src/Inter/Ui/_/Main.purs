@@ -24,8 +24,9 @@ import Inter.Ui.UiM (runUiM)
 import Routing.Duplex (parse)
 import Routing.PushState (makeInterface)
 import Util.Env (Env(..))
-import Data.String (Pattern(..), stripSuffix)
 import Inter.Ui.Api.Auth (requestMagicLink, apiRegisterUser)
+import Inter.Ui.Api.Log (apiLogUiBug)
+import Data.String (Pattern(..), stripSuffix)
 import Inter.Ui.AuthGlobal (_exposeAuth, isLoggedIn)
 import Inter.Ui.Store.Store as GlobalStore
 import Inter.Ui.Api.Membership (apiGetUserAccount)
@@ -40,6 +41,15 @@ import Effect.Ref as Ref
 import Util.BroadcastChannel.BroadcastChannel as BC
 import Yoga.JSON (readImpl)
 import Util.Type.String.ToString (toString)
+import Util.Html.Dom.Ad (setAdFree, getAdFree)
+import Web.HTML (window)
+import Web.HTML.Window as Window
+import Web.Event.EventTarget (addEventListener, eventListener)
+import Web.Event.Event (EventType(..))
+import Inter.Ui.Type.Device (Device(..))
+
+foreign import _attachGlobalErrorListeners :: (String -> String -> Effect Unit) -> Effect Unit
+foreign import _isBlacklistedError :: String -> String -> Effect Boolean
 
 main :: Effect Ɩ
 main = do
@@ -60,13 +70,36 @@ main = do
   { emitter: toastEmitter, listener: toastListener } <- ʌ HS.create
   { emitter: modalEmitter, listener: modalListener } <- ʌ HS.create
   isLoggedInVal <- ʌ $ isLoggedIn
-  storeRef <- ʌ $ Ref.new { me: Nothing }
+  initialAdFree <- ʌ $ getAdFree
+  
+  win <- ʌ window
+  let getDevice w = if w < 768 then Mobile else if w < 1024 then Tablet else Desktop
+  initialWidth <- ʌ $ Window.innerWidth win
+  let initialDevice = getDevice initialWidth
+  
+  storeRef <- ʌ $ Ref.new (GlobalStore.initialStore { isAdFree = initialAdFree, device = initialDevice })
   { emitter: storeEmitter, listener: storeListener } <- ʌ HS.create
 
   _ <- ʌ $ HS.subscribe storeEmitter \newStore -> do
-    Console.log $ "Global State 'me' changed: " <> case newStore.me of
-      Nothing -> "Nothing"
-      Just me -> "Just { email: " <> toString me.email <> ", adFree: " <> show me.membership.adFree <> ", hasPaidLastYear: " <> show me.membership.hasPaidLastYear <> " }"
+    case newStore.me of
+      Nothing -> do
+        Console.log $ "Global State 'me' changed: Nothing"
+        setAdFree false
+      Just me -> do
+        Console.log $ "Global State 'me' changed: Just { email: " <> toString me.email <> ", adFree: " <> show me.membership.adFree <> ", hasPaidLastYear: " <> show me.membership.hasPaidLastYear <> " }"
+        setAdFree me.membership.adFree
+
+  resizeListener <- ʌ $ eventListener \_ -> do
+    w <- Window.innerWidth win
+    let newDevice = getDevice w
+    store <- Ref.read storeRef
+    when (store.device /= newDevice) do
+      let newStore = GlobalStore.reduce store (GlobalStore.SetDevice newDevice)
+      Ref.write newStore storeRef
+      HS.notify storeListener newStore
+      Console.log $ "Global State 'device' changed: " <> show newDevice
+
+  ʌ $ addEventListener (EventType "resize") resizeListener false (Window.toEventTarget win)
 
   authChannel <- ʌ $ BC.make "auth_channel"
   ʌ $ BC.onMessage authChannel \msg -> do
@@ -82,6 +115,9 @@ main = do
   let broadcastAuth msg = BC.postMessage authChannel msg
 
   let ctx = { articleCacheRef, apiCacheRef, toastListener, modalListener, storeRef, storeListener, storeEmitter, broadcastAuth }
+
+  ʌ $ _attachGlobalErrorListeners \url errMsg -> do
+    launchAff_ $ void $ runUiM ctx $ apiLogUiBug { error: "Global Crash: " <> errMsg, url }
 
   runHalogenAff do
     when isLoggedInVal $ ʌ $ launchAff_ $ do
@@ -105,12 +141,22 @@ main = do
 
     -- Listen for route changes FIRST, so we don't miss any redirects triggered during initial mount
     ø $ ʌ $ nav.listen \loc -> launchAff_ $ do
-      case parse Navigate.routeCodec (normalizePathname loc.pathname <> loc.search) of
+      let fullUrl = normalizePathname loc.pathname <> loc.search
+      case parse Navigate.routeCodec fullUrl of
         Right route -> ø $ io.query $ mkTell $ RouterType.Navigate route
-        Left _ -> ø $ io.query $ mkTell $ RouterType.Navigate Navigate.NotFound
+        Left err -> do
+          let errMsg = "Routing Error: " <> show err
+          isBlk <- ʌ $ _isBlacklistedError fullUrl errMsg
+          when (not isBlk) $ ø $ runUiM ctx $ apiLogUiBug { error: errMsg, url: fullUrl }
+          ø $ io.query $ mkTell $ RouterType.Navigate Navigate.NotFound
 
     -- Navigate to initial route
     initialLoc <- ʌ nav.locationState
-    case parse Navigate.routeCodec (normalizePathname initialLoc.pathname <> initialLoc.search) of
+    let initialFullUrl = normalizePathname initialLoc.pathname <> initialLoc.search
+    case parse Navigate.routeCodec initialFullUrl of
       Right route -> ø $ io.query $ mkTell $ RouterType.Navigate route
-      Left _ -> ø $ io.query $ mkTell $ RouterType.Navigate Navigate.NotFound
+      Left err -> do
+        let errMsg = "Routing Error: " <> show err
+        isBlk <- ʌ $ _isBlacklistedError initialFullUrl errMsg
+        when (not isBlk) $ ø $ runUiM ctx $ apiLogUiBug { error: errMsg, url: initialFullUrl }
+        ø $ io.query $ mkTell $ RouterType.Navigate Navigate.NotFound

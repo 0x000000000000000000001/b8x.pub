@@ -1,6 +1,6 @@
 module Inter.Ui.Page.Article.Hero.Header.Author.Author where
 
-import Prelude (($), (<>))
+import Prelude (($), (<>), (/=), (||))
 
 import Data.Maybe (Maybe(..))
 import Core.Mod.Id.Id as Id
@@ -23,8 +23,9 @@ import Util.Style.Anchor (AnchorPosition(..))
 import Util.Style.Size (Size(..))
 import Inter.Ui.Page.Article.Hero.Type (IllustrationLayout(..))
 import Data.Newtype (unwrap)
+import Inter.Ui.Type.Device (Device(..))
 
-author :: ∀ slots r. { id :: InstanceId | r } -> IllustrationLayout -> Maybe String -> SanitizedHtmlString -> Maybe SanitizedHtmlString -> Maybe Image -> ComponentHTML Action slots UiM
+author :: ∀ slots r. { id :: InstanceId, context :: Device | r } -> IllustrationLayout -> Maybe String -> SanitizedHtmlString -> Maybe SanitizedHtmlString -> Maybe Image -> ComponentHTML Action slots UiM
 author state layout mAuthorId authorTxt mAuthorBio mAuthorPortrait =
   let
     innerNode = case mAuthorId of
@@ -45,27 +46,31 @@ author state layout mAuthorId authorTxt mAuthorBio mAuthorPortrait =
                   Nothing, Nothing -> text ""
                   p, b ->
                     div [] $
-                      (case p of
-                         Just portrait -> case portrait.src of
-                           Given srcStr -> [ div [ class_ (Halogen.ClassName "tooltipPortrait") ] [ img [ src srcStr ] ] ]
-                           _ -> []
-                         Nothing -> []
-                      ) <>
-                      (case b of
-                         Just bio -> [ render bio ]
-                         Nothing -> []
-                      ) <>
-                      (case mAuthorId of
-                         Just authorId -> [ div [ class_ (Halogen.ClassName "exploreArchives"), onClick \e -> ClickAuthor e { id: Id.unsafeFromString authorId, name: Html.unsafeFromString (unwrap authorTxt), ofBook: false } ] [ text "Explorer ses archives" ] ]
-                         Nothing -> []
+                      ( case p of
+                          Just portrait -> case portrait.src of
+                            Given srcStr -> [ div [ class_ (Halogen.ClassName "tooltipPortrait") ] [ img [ src srcStr ] ] ]
+                            _ -> []
+                          Nothing -> []
                       )
-              , disabled = case mAuthorPortrait, mAuthorBio of
+                        <>
+                          ( case b of
+                              Just bio -> [ render bio ]
+                              Nothing -> []
+                          )
+                        <>
+                          ( case mAuthorId of
+                              Just authorId -> [ div [ class_ (Halogen.ClassName "exploreArchives"), onClick \e -> ClickAuthor e { id: Id.unsafeFromString authorId, name: Html.unsafeFromString (unwrap authorTxt), ofBook: false } ] [ text "Explorer ses archives" ] ]
+                              Nothing -> []
+                          )
+              , disabled = state.context /= Desktop || case mAuthorPortrait, mAuthorBio of
                   Nothing, Nothing -> true
                   _, _ -> false
               , style = defaultInput.style
-                  { anchorPosition = Just (case layout of
-                      Side -> TopLeftToBottomLeft
-                      _ -> TopCenterToBottomCenter)
+                  { anchorPosition = Just
+                      ( case layout of
+                          Side -> TopLeftToBottomLeft
+                          _ -> TopCenterToBottomCenter
+                      )
                   , offset = Just { vertical: 0.6, horizontal: 0.0 }
                   , width = Just (Rem 35.0)
                   }

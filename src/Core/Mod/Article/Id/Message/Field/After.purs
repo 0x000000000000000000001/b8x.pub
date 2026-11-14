@@ -13,10 +13,10 @@ type AfterArticle = Maybe ArticleId
 newtype AfterArticleField = AfterArticleField AfterArticle
 
 description :: String
-description = "After article ID"
+description = "After article"
 
 instance IsField AfterArticleField AfterArticle () where
-  name = "Article"
+  name = "AfterArticle"
 
   description = description
 

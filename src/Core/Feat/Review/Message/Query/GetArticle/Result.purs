@@ -16,6 +16,7 @@ import Data.Maybe (Maybe)
 import Core.Mod.Image.Message.Query.Result (Illustration)
 import Core.Mod.Author.Message.Query.Result (Author)
 import Core.Mod.Article.Projection.MagazineIssue (MagazineIssue)
+import Core.Mod.Time.Instant (Instant)
 
 type Result = Maybe Article
 
@@ -32,5 +33,6 @@ type Article =
   , author :: Return (Maybe Author)
   , illustrations :: Return (Array Illustration)
   , magazineIssue :: Return (Maybe MagazineIssue)
+  , writtenAt :: Return Instant
   }
 

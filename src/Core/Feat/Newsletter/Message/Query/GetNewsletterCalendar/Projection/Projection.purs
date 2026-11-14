@@ -8,7 +8,7 @@ import Control.Monad.Except as Control.Monad.Except
 import Core.Event.Event (Event(..), LoadedEvent)
 import Core.Event.NewsletterScheduled.Payload as NewsletterScheduled
 import Core.Mod.Projection.Finder.Finder (Find, findOneByKey)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, get, put)
 import Core.Mod.Projection.SyncProject (SyncProject)
 import Core.Mod.Time.Instant (Instant(..))
@@ -63,7 +63,7 @@ instance
     CalendarIndexNeeds
     ()
     "calendar"
-    "calendar"
+    "calendars"
     "getNewsletterCalendarCalendarProjectionReadFind"
     GetNewsletterCalendarProjection
   where
@@ -72,6 +72,9 @@ instance
   single = true
 
 newtype Calendar = Calendar CalendarRecord
+
+instance ToAliases Calendar where
+  toAliases _ = []
 
 type CalendarRecord =
   { calendar :: Map Year (Map Month (Array { id :: NewsletterId, scheduledFor :: Instant }))
@@ -86,8 +89,8 @@ derive instance Ord Calendar
 
 instance ReadForeign Calendar where
   readImpl f = do
-    arr <- readImpl f :: Control.Monad.Except.ExceptT _ _ (Array (Tuple Year (Array (Tuple Month (Array { id :: NewsletterId, scheduledFor :: Instant })))))
-    calendar <- pure (Map.fromFoldable (map (\(Tuple y arr2) -> Tuple y (Map.fromFoldable arr2)) arr))
+    obj <- readImpl f :: Control.Monad.Except.ExceptT _ _ { calendar :: Array (Tuple Year (Array (Tuple Month (Array { id :: NewsletterId, scheduledFor :: Instant })))) }
+    calendar <- pure (Map.fromFoldable (map (\(Tuple y arr2) -> Tuple y (Map.fromFoldable arr2)) obj.calendar))
     pure (Calendar { calendar })
 
 
@@ -108,8 +111,8 @@ derive instance Generic CalendarKey _
 derive instance Eq CalendarKey
 derive instance Ord CalendarKey
 
-instance ToAliasedPrimary CalendarKey where
-  toAliasedPrimary _ = { primary: "calendar", aliases: [] }
+instance ToPrimary CalendarKey where
+  toPrimary _ = "calendar"
 
 -- Find
 
@@ -131,6 +134,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι

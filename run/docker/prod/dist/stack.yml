@@ -1,0 +1,1142 @@
+version: "3.7"
+networks: 
+  stack-default: 
+    driver: "overlay"
+    attachable: true
+services: 
+  api: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_API_WRAP}"
+    volumes: 
+      - "${ROOT_DIR}/bin:/var/www/b8x/bin"
+      - "${ROOT_DIR}/scratch:/var/www/b8x/scratch"
+      - "${ROOT_DIR}/src:/var/www/b8x/src"
+      - "${ROOT_DIR}/test:/var/www/b8x/test"
+      - "${ROOT_DIR}/run/bak:/var/www/b8x/run/bak"
+      - "${ROOT_DIR}/public:/var/www/b8x/public"
+      - "${ROOT_DIR}/var/api/cache:/var/www/b8x/var/api/cache"
+      - "${ROOT_DIR}/var/sock:/var/www/b8x/var/sock"
+    stdin_open: true
+    tty: true
+    working_dir: "/var/www/b8x"
+    sysctls: 
+      net.ipv4.tcp_keepalive_time: 9600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+    environment: 
+      TZ: "${TZ}"
+      ENV: "${ENV}"
+      NODE_ENV: "${ENV}"
+      TARGET: "${TARGET}"
+      UI_APP_ID: "${UI_APP_ID}"
+      API_DOCKER_RESTART_ESTIMATED_DELAY: "${API_DOCKER_RESTART_ESTIMATED_DELAY}"
+      API_DOCKER_HEALTHCHECK_INTERVAL: "${API_DOCKER_HEALTHCHECK_INTERVAL}"
+      API_DOCKER_HEALTHCHECK_TIMEOUT: "${API_DOCKER_HEALTHCHECK_TIMEOUT}"
+      API_DOCKER_HEALTHCHECK_RETRIES: "${API_DOCKER_HEALTHCHECK_RETRIES}"
+      API_DOCKER_HEALTHCHECK_START_PERIOD: "${API_DOCKER_HEALTHCHECK_START_PERIOD}"
+      API_DNS_LEVEL_3: "${API_DNS_LEVEL_3}"
+      API_ALLOWED_HEADERS: "${API_ALLOWED_HEADERS}"
+      API_SECRET: "${API_SECRET}"
+      API_TOKEN_ISSUER: "${API_TOKEN_ISSUER}"
+      API_DNS_LEVEL_3_GTE: "${API_DNS_LEVEL_3_GTE}"
+      AUTH_PASETO_LOCAL_KEY: "${AUTH_PASETO_LOCAL_KEY}"
+      GIT_HOST: "${GIT_HOST}"
+      GIT_ACCESS_TOKEN: "${GIT_ACCESS_TOKEN}"
+      GIT_USER_EMAIL: "${GIT_USER_EMAIL}"
+      GIT_USER_NAME: "${GIT_USER_NAME}"
+      GIT_REPO_URL_SSH: "${GIT_REPO_URL_SSH}"
+      GIT_REPO_URL_HTTP: "${GIT_REPO_URL_HTTP}"
+      GIT_REPO_NAME: "${GIT_REPO_NAME}"
+      GIT_TO: "${GIT_TO}"
+      CTL_DOCKER_HEALTHCHECK_INTERVAL: "${CTL_DOCKER_HEALTHCHECK_INTERVAL}"
+      CTL_DOCKER_HEALTHCHECK_TIMEOUT: "${CTL_DOCKER_HEALTHCHECK_TIMEOUT}"
+      CTL_DOCKER_HEALTHCHECK_RETRIES: "${CTL_DOCKER_HEALTHCHECK_RETRIES}"
+      CTL_MAX_PULL_DURATION: "${CTL_MAX_PULL_DURATION}"
+      AWS_REGION: "${AWS_REGION}"
+      AWS_VERSION: "${AWS_VERSION}"
+      DNS_DEFAULT_PORT: "${DNS_DEFAULT_PORT}"
+      DNS_DEFAULT_SCHEME: "${DNS_DEFAULT_SCHEME}"
+      LEGACY_DNS_LEVEL_1: "${LEGACY_DNS_LEVEL_1}"
+      LEGACY_DNS_LEVEL_2: "${LEGACY_DNS_LEVEL_2}"
+      LEGACY_DNS_LEVEL_2_GTE: "${LEGACY_DNS_LEVEL_2_GTE}"
+      FLOATING_IP: "${FLOATING_IP}"
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2_a: "${DNS_LEVEL_2_a}"
+      DNS_LEVEL_2_b: "${DNS_LEVEL_2_b}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      DNS_LEVEL_2_GTE: "${DNS_LEVEL_2_GTE}"
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_HOST_STORE: "${POSTGRES_HOST_STORE}"
+      POSTGRES_HOST_EDGE: "${POSTGRES_HOST_EDGE}"
+      POSTGRES_HOST_STORE_LOCK: "${POSTGRES_HOST_STORE_LOCK}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB_STORE: "${POSTGRES_DB_STORE}"
+      POSTGRES_DB_EDGE: "${POSTGRES_DB_EDGE}"
+      DB_DNS_LEVEL_3: "${DB_DNS_LEVEL_3}"
+      DB_DNS_LEVEL_3_GTE: "${DB_DNS_LEVEL_3_GTE}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
+      MAIL_FROM_TRANSACTION_EMAIL: "${MAIL_FROM_TRANSACTION_EMAIL}"
+      MAIL_FROM_BUG_EMAIL: "${MAIL_FROM_BUG_EMAIL}"
+      MAIL_FROM_NEWSLETTER_EMAIL: "${MAIL_FROM_NEWSLETTER_EMAIL}"
+      MAIL_TO_BUG_EMAIL: "${MAIL_TO_BUG_EMAIL}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASS: "${RABBITMQ_PASS}"
+      MQ_DNS_LEVEL_3: "${MQ_DNS_LEVEL_3}"
+      MQ_DNS_LEVEL_3_GTE: "${MQ_DNS_LEVEL_3_GTE}"
+      NEWS_DNS_LEVEL_3: "${NEWS_DNS_LEVEL_3}"
+      NEWS_DNS_LEVEL_3_GTE: "${NEWS_DNS_LEVEL_3_GTE}"
+      SENDY_LICENSE_KEY: "${SENDY_LICENSE_KEY}"
+      SENDY_AWS_IAM_KEY: "${SENDY_AWS_IAM_KEY}"
+      SENDY_AWS_IAM_SECRET: "${SENDY_AWS_IAM_SECRET}"
+      SENDY_USER: "${SENDY_USER}"
+      SENDY_PASSWORD: "${SENDY_PASSWORD}"
+      SENDY_FORUM_PASSWORD: "${SENDY_FORUM_PASSWORD}"
+      SENDY_API_KEY: "${SENDY_API_KEY}"
+      SENDY_OLD_API_KEYS: "${SENDY_OLD_API_KEYS}"
+      SENDY_BRAND_ID: "${SENDY_BRAND_ID}"
+      SENDY_LIST_ID: "${SENDY_LIST_ID}"
+      MAILCHIMP_API_KEY: "${MAILCHIMP_API_KEY}"
+      MAILCHIMP_LIST_ID: "${MAILCHIMP_LIST_ID}"
+      MAILCHIMP_SERVER_PREFIX: "${MAILCHIMP_SERVER_PREFIX}"
+      MAILCHIMP_MASTER_DRAFT_ID: "${MAILCHIMP_MASTER_DRAFT_ID}"
+      HELLOASSO_CLIENT_ID: "${HELLOASSO_CLIENT_ID}"
+      HELLOASSO_CLIENT_SECRET: "${HELLOASSO_CLIENT_SECRET}"
+      HELLOASSO_WEBHOOK_SECRET: "${HELLOASSO_WEBHOOK_SECRET}"
+      OPCACHE: "${OPCACHE}"
+      JIT: "${JIT}"
+      SES_ACCESS_KEY: "${SES_ACCESS_KEY}"
+      SES_SECRET_ACCESS_KEY: "${SES_SECRET_ACCESS_KEY}"
+      S3_URI_HOST: "${S3_URI_HOST}"
+      S3_BUCKET_SHARED: "${S3_BUCKET_SHARED}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_URL_BASE: "${S3_URL_BASE}"
+    healthcheck: 
+      test: 
+        - "CMD"
+        - "/healthcheck.sh"
+      interval: "${API_DOCKER_HEALTHCHECK_INTERVAL}s"
+      timeout: "10s"
+      retries: "${API_DOCKER_HEALTHCHECK_RETRIES}"
+      start_period: "${API_DOCKER_HEALTHCHECK_START_PERIOD}s"
+    command: "bash -c \"exec /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} -- /wait mq:5672 -t ${WAIT_DELAY} -- ./bin/api -e\""
+    deploy: 
+      replicas: 2
+      update_config: 
+        parallelism: 1
+        delay: "5s"
+        order: "start-first"
+      restart_policy: 
+        condition: "any"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1772404113
+  api-cli: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_API_WRAP}"
+    volumes: 
+      - "${ROOT_DIR}/bin:/var/www/b8x/bin"
+      - "${ROOT_DIR}/scratch:/var/www/b8x/scratch"
+      - "${ROOT_DIR}/src:/var/www/b8x/src"
+      - "${ROOT_DIR}/test:/var/www/b8x/test"
+      - "${ROOT_DIR}/run/bak:/var/www/b8x/run/bak"
+      - "${ROOT_DIR}/public:/var/www/b8x/public"
+      - "${ROOT_DIR}/var/api/cache:/var/www/b8x/var/api/cache"
+      - "${ROOT_DIR}/var/sock:/var/www/b8x/var/sock"
+    stdin_open: true
+    tty: true
+    working_dir: "/var/www/b8x"
+    sysctls: 
+      net.ipv4.tcp_keepalive_time: 9600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+    environment: 
+      TZ: "${TZ}"
+      ENV: "${ENV}"
+      NODE_ENV: "${ENV}"
+      TARGET: "${TARGET}"
+      UI_APP_ID: "${UI_APP_ID}"
+      API_DOCKER_RESTART_ESTIMATED_DELAY: "${API_DOCKER_RESTART_ESTIMATED_DELAY}"
+      API_DOCKER_HEALTHCHECK_INTERVAL: "${API_DOCKER_HEALTHCHECK_INTERVAL}"
+      API_DOCKER_HEALTHCHECK_TIMEOUT: "${API_DOCKER_HEALTHCHECK_TIMEOUT}"
+      API_DOCKER_HEALTHCHECK_RETRIES: "${API_DOCKER_HEALTHCHECK_RETRIES}"
+      API_DOCKER_HEALTHCHECK_START_PERIOD: "${API_DOCKER_HEALTHCHECK_START_PERIOD}"
+      API_DNS_LEVEL_3: "${API_DNS_LEVEL_3}"
+      API_ALLOWED_HEADERS: "${API_ALLOWED_HEADERS}"
+      API_SECRET: "${API_SECRET}"
+      API_TOKEN_ISSUER: "${API_TOKEN_ISSUER}"
+      API_DNS_LEVEL_3_GTE: "${API_DNS_LEVEL_3_GTE}"
+      AUTH_PASETO_LOCAL_KEY: "${AUTH_PASETO_LOCAL_KEY}"
+      GIT_HOST: "${GIT_HOST}"
+      GIT_ACCESS_TOKEN: "${GIT_ACCESS_TOKEN}"
+      GIT_USER_EMAIL: "${GIT_USER_EMAIL}"
+      GIT_USER_NAME: "${GIT_USER_NAME}"
+      GIT_REPO_URL_SSH: "${GIT_REPO_URL_SSH}"
+      GIT_REPO_URL_HTTP: "${GIT_REPO_URL_HTTP}"
+      GIT_REPO_NAME: "${GIT_REPO_NAME}"
+      GIT_TO: "${GIT_TO}"
+      CTL_DOCKER_HEALTHCHECK_INTERVAL: "${CTL_DOCKER_HEALTHCHECK_INTERVAL}"
+      CTL_DOCKER_HEALTHCHECK_TIMEOUT: "${CTL_DOCKER_HEALTHCHECK_TIMEOUT}"
+      CTL_DOCKER_HEALTHCHECK_RETRIES: "${CTL_DOCKER_HEALTHCHECK_RETRIES}"
+      CTL_MAX_PULL_DURATION: "${CTL_MAX_PULL_DURATION}"
+      AWS_REGION: "${AWS_REGION}"
+      AWS_VERSION: "${AWS_VERSION}"
+      DNS_DEFAULT_PORT: "${DNS_DEFAULT_PORT}"
+      DNS_DEFAULT_SCHEME: "${DNS_DEFAULT_SCHEME}"
+      LEGACY_DNS_LEVEL_1: "${LEGACY_DNS_LEVEL_1}"
+      LEGACY_DNS_LEVEL_2: "${LEGACY_DNS_LEVEL_2}"
+      LEGACY_DNS_LEVEL_2_GTE: "${LEGACY_DNS_LEVEL_2_GTE}"
+      FLOATING_IP: "${FLOATING_IP}"
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2_a: "${DNS_LEVEL_2_a}"
+      DNS_LEVEL_2_b: "${DNS_LEVEL_2_b}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      DNS_LEVEL_2_GTE: "${DNS_LEVEL_2_GTE}"
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_HOST_STORE: "${POSTGRES_HOST_STORE}"
+      POSTGRES_HOST_EDGE: "${POSTGRES_HOST_EDGE}"
+      POSTGRES_HOST_STORE_LOCK: "${POSTGRES_HOST_STORE_LOCK}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB_STORE: "${POSTGRES_DB_STORE}"
+      POSTGRES_DB_EDGE: "${POSTGRES_DB_EDGE}"
+      DB_DNS_LEVEL_3: "${DB_DNS_LEVEL_3}"
+      DB_DNS_LEVEL_3_GTE: "${DB_DNS_LEVEL_3_GTE}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
+      MAIL_FROM_TRANSACTION_EMAIL: "${MAIL_FROM_TRANSACTION_EMAIL}"
+      MAIL_FROM_BUG_EMAIL: "${MAIL_FROM_BUG_EMAIL}"
+      MAIL_FROM_NEWSLETTER_EMAIL: "${MAIL_FROM_NEWSLETTER_EMAIL}"
+      MAIL_TO_BUG_EMAIL: "${MAIL_TO_BUG_EMAIL}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASS: "${RABBITMQ_PASS}"
+      MQ_DNS_LEVEL_3: "${MQ_DNS_LEVEL_3}"
+      MQ_DNS_LEVEL_3_GTE: "${MQ_DNS_LEVEL_3_GTE}"
+      NEWS_DNS_LEVEL_3: "${NEWS_DNS_LEVEL_3}"
+      NEWS_DNS_LEVEL_3_GTE: "${NEWS_DNS_LEVEL_3_GTE}"
+      SENDY_LICENSE_KEY: "${SENDY_LICENSE_KEY}"
+      SENDY_AWS_IAM_KEY: "${SENDY_AWS_IAM_KEY}"
+      SENDY_AWS_IAM_SECRET: "${SENDY_AWS_IAM_SECRET}"
+      SENDY_USER: "${SENDY_USER}"
+      SENDY_PASSWORD: "${SENDY_PASSWORD}"
+      SENDY_FORUM_PASSWORD: "${SENDY_FORUM_PASSWORD}"
+      SENDY_API_KEY: "${SENDY_API_KEY}"
+      SENDY_OLD_API_KEYS: "${SENDY_OLD_API_KEYS}"
+      SENDY_BRAND_ID: "${SENDY_BRAND_ID}"
+      SENDY_LIST_ID: "${SENDY_LIST_ID}"
+      MAILCHIMP_API_KEY: "${MAILCHIMP_API_KEY}"
+      MAILCHIMP_LIST_ID: "${MAILCHIMP_LIST_ID}"
+      MAILCHIMP_SERVER_PREFIX: "${MAILCHIMP_SERVER_PREFIX}"
+      MAILCHIMP_MASTER_DRAFT_ID: "${MAILCHIMP_MASTER_DRAFT_ID}"
+      HELLOASSO_CLIENT_ID: "${HELLOASSO_CLIENT_ID}"
+      HELLOASSO_CLIENT_SECRET: "${HELLOASSO_CLIENT_SECRET}"
+      HELLOASSO_WEBHOOK_SECRET: "${HELLOASSO_WEBHOOK_SECRET}"
+      OPCACHE: "${OPCACHE}"
+      JIT: "${JIT}"
+      SES_ACCESS_KEY: "${SES_ACCESS_KEY}"
+      SES_SECRET_ACCESS_KEY: "${SES_SECRET_ACCESS_KEY}"
+      S3_URI_HOST: "${S3_URI_HOST}"
+      S3_BUCKET_SHARED: "${S3_BUCKET_SHARED}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_URL_BASE: "${S3_URL_BASE}"
+    command: "bash -c \"exec /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} -- /wait mq:5672 -t ${WAIT_DELAY} -- tail -f /dev/null\""
+    deploy: 
+      replicas: 1
+      restart_policy: 
+        condition: "any"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1772443995
+  pauline: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_API_WRAP}"
+    volumes: 
+      - "${ROOT_DIR}/bin:/var/www/b8x/bin"
+      - "${ROOT_DIR}/scratch:/var/www/b8x/scratch"
+      - "${ROOT_DIR}/src:/var/www/b8x/src"
+      - "${ROOT_DIR}/test:/var/www/b8x/test"
+      - "${ROOT_DIR}/run/bak:/var/www/b8x/run/bak"
+      - "${ROOT_DIR}/public:/var/www/b8x/public"
+      - "${ROOT_DIR}/var/api/cache:/var/www/b8x/var/api/cache"
+      - "${ROOT_DIR}/var/sock:/var/www/b8x/var/sock"
+    stdin_open: true
+    tty: true
+    working_dir: "/var/www/b8x"
+    sysctls: 
+      net.ipv4.tcp_keepalive_time: 9600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+    environment: 
+      TZ: "${TZ}"
+      ENV: "${ENV}"
+      NODE_ENV: "${ENV}"
+      TARGET: "${TARGET}"
+      UI_APP_ID: "${UI_APP_ID}"
+      API_DOCKER_RESTART_ESTIMATED_DELAY: "${API_DOCKER_RESTART_ESTIMATED_DELAY}"
+      API_DOCKER_HEALTHCHECK_INTERVAL: "${API_DOCKER_HEALTHCHECK_INTERVAL}"
+      API_DOCKER_HEALTHCHECK_TIMEOUT: "${API_DOCKER_HEALTHCHECK_TIMEOUT}"
+      API_DOCKER_HEALTHCHECK_RETRIES: "${API_DOCKER_HEALTHCHECK_RETRIES}"
+      API_DOCKER_HEALTHCHECK_START_PERIOD: "${API_DOCKER_HEALTHCHECK_START_PERIOD}"
+      API_DNS_LEVEL_3: "${API_DNS_LEVEL_3}"
+      API_ALLOWED_HEADERS: "${API_ALLOWED_HEADERS}"
+      API_SECRET: "${API_SECRET}"
+      API_TOKEN_ISSUER: "${API_TOKEN_ISSUER}"
+      API_DNS_LEVEL_3_GTE: "${API_DNS_LEVEL_3_GTE}"
+      AUTH_PASETO_LOCAL_KEY: "${AUTH_PASETO_LOCAL_KEY}"
+      GIT_HOST: "${GIT_HOST}"
+      GIT_ACCESS_TOKEN: "${GIT_ACCESS_TOKEN}"
+      GIT_USER_EMAIL: "${GIT_USER_EMAIL}"
+      GIT_USER_NAME: "${GIT_USER_NAME}"
+      GIT_REPO_URL_SSH: "${GIT_REPO_URL_SSH}"
+      GIT_REPO_URL_HTTP: "${GIT_REPO_URL_HTTP}"
+      GIT_REPO_NAME: "${GIT_REPO_NAME}"
+      GIT_TO: "${GIT_TO}"
+      CTL_DOCKER_HEALTHCHECK_INTERVAL: "${CTL_DOCKER_HEALTHCHECK_INTERVAL}"
+      CTL_DOCKER_HEALTHCHECK_TIMEOUT: "${CTL_DOCKER_HEALTHCHECK_TIMEOUT}"
+      CTL_DOCKER_HEALTHCHECK_RETRIES: "${CTL_DOCKER_HEALTHCHECK_RETRIES}"
+      CTL_MAX_PULL_DURATION: "${CTL_MAX_PULL_DURATION}"
+      AWS_REGION: "${AWS_REGION}"
+      AWS_VERSION: "${AWS_VERSION}"
+      DNS_DEFAULT_PORT: "${DNS_DEFAULT_PORT}"
+      DNS_DEFAULT_SCHEME: "${DNS_DEFAULT_SCHEME}"
+      LEGACY_DNS_LEVEL_1: "${LEGACY_DNS_LEVEL_1}"
+      LEGACY_DNS_LEVEL_2: "${LEGACY_DNS_LEVEL_2}"
+      LEGACY_DNS_LEVEL_2_GTE: "${LEGACY_DNS_LEVEL_2_GTE}"
+      FLOATING_IP: "${FLOATING_IP}"
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2_a: "${DNS_LEVEL_2_a}"
+      DNS_LEVEL_2_b: "${DNS_LEVEL_2_b}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      DNS_LEVEL_2_GTE: "${DNS_LEVEL_2_GTE}"
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_HOST_STORE: "${POSTGRES_HOST_STORE}"
+      POSTGRES_HOST_EDGE: "${POSTGRES_HOST_EDGE}"
+      POSTGRES_HOST_STORE_LOCK: "${POSTGRES_HOST_STORE_LOCK}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB_STORE: "${POSTGRES_DB_STORE}"
+      POSTGRES_DB_EDGE: "${POSTGRES_DB_EDGE}"
+      DB_DNS_LEVEL_3: "${DB_DNS_LEVEL_3}"
+      DB_DNS_LEVEL_3_GTE: "${DB_DNS_LEVEL_3_GTE}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
+      MAIL_FROM_TRANSACTION_EMAIL: "${MAIL_FROM_TRANSACTION_EMAIL}"
+      MAIL_FROM_BUG_EMAIL: "${MAIL_FROM_BUG_EMAIL}"
+      MAIL_FROM_NEWSLETTER_EMAIL: "${MAIL_FROM_NEWSLETTER_EMAIL}"
+      MAIL_TO_BUG_EMAIL: "${MAIL_TO_BUG_EMAIL}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASS: "${RABBITMQ_PASS}"
+      MQ_DNS_LEVEL_3: "${MQ_DNS_LEVEL_3}"
+      MQ_DNS_LEVEL_3_GTE: "${MQ_DNS_LEVEL_3_GTE}"
+      NEWS_DNS_LEVEL_3: "${NEWS_DNS_LEVEL_3}"
+      NEWS_DNS_LEVEL_3_GTE: "${NEWS_DNS_LEVEL_3_GTE}"
+      SENDY_LICENSE_KEY: "${SENDY_LICENSE_KEY}"
+      SENDY_AWS_IAM_KEY: "${SENDY_AWS_IAM_KEY}"
+      SENDY_AWS_IAM_SECRET: "${SENDY_AWS_IAM_SECRET}"
+      SENDY_USER: "${SENDY_USER}"
+      SENDY_PASSWORD: "${SENDY_PASSWORD}"
+      SENDY_FORUM_PASSWORD: "${SENDY_FORUM_PASSWORD}"
+      SENDY_API_KEY: "${SENDY_API_KEY}"
+      SENDY_OLD_API_KEYS: "${SENDY_OLD_API_KEYS}"
+      SENDY_BRAND_ID: "${SENDY_BRAND_ID}"
+      SENDY_LIST_ID: "${SENDY_LIST_ID}"
+      MAILCHIMP_API_KEY: "${MAILCHIMP_API_KEY}"
+      MAILCHIMP_LIST_ID: "${MAILCHIMP_LIST_ID}"
+      MAILCHIMP_SERVER_PREFIX: "${MAILCHIMP_SERVER_PREFIX}"
+      MAILCHIMP_MASTER_DRAFT_ID: "${MAILCHIMP_MASTER_DRAFT_ID}"
+      HELLOASSO_CLIENT_ID: "${HELLOASSO_CLIENT_ID}"
+      HELLOASSO_CLIENT_SECRET: "${HELLOASSO_CLIENT_SECRET}"
+      HELLOASSO_WEBHOOK_SECRET: "${HELLOASSO_WEBHOOK_SECRET}"
+      OPCACHE: "${OPCACHE}"
+      JIT: "${JIT}"
+      SES_ACCESS_KEY: "${SES_ACCESS_KEY}"
+      SES_SECRET_ACCESS_KEY: "${SES_SECRET_ACCESS_KEY}"
+      S3_URI_HOST: "${S3_URI_HOST}"
+      S3_BUCKET_SHARED: "${S3_BUCKET_SHARED}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_URL_BASE: "${S3_URL_BASE}"
+    command: "bash -c \"exec /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} -- /wait mq:5672 -t ${WAIT_DELAY} -- tail -f /dev/null\""
+    deploy: 
+      replicas: 1
+      restart_policy: 
+        condition: "any"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1788525828
+  api-worker: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_API_WRAP}"
+    volumes: 
+      - "${ROOT_DIR}/bin:/var/www/b8x/bin"
+      - "${ROOT_DIR}/scratch:/var/www/b8x/scratch"
+      - "${ROOT_DIR}/src:/var/www/b8x/src"
+      - "${ROOT_DIR}/test:/var/www/b8x/test"
+      - "${ROOT_DIR}/run/bak:/var/www/b8x/run/bak"
+      - "${ROOT_DIR}/public:/var/www/b8x/public"
+      - "${ROOT_DIR}/var/api/cache:/var/www/b8x/var/api/cache"
+      - "${ROOT_DIR}/var/sock:/var/www/b8x/var/sock"
+    stdin_open: true
+    tty: true
+    working_dir: "/var/www/b8x"
+    sysctls: 
+      net.ipv4.tcp_keepalive_time: 9600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+    stop_signal: "SIGTERM"
+    stop_grace_period: "7m30s"
+    environment: 
+      TZ: "${TZ}"
+      ENV: "${ENV}"
+      NODE_ENV: "${ENV}"
+      TARGET: "${TARGET}"
+      UI_APP_ID: "${UI_APP_ID}"
+      API_DOCKER_RESTART_ESTIMATED_DELAY: "${API_DOCKER_RESTART_ESTIMATED_DELAY}"
+      API_DOCKER_HEALTHCHECK_INTERVAL: "${API_DOCKER_HEALTHCHECK_INTERVAL}"
+      API_DOCKER_HEALTHCHECK_TIMEOUT: "${API_DOCKER_HEALTHCHECK_TIMEOUT}"
+      API_DOCKER_HEALTHCHECK_RETRIES: "${API_DOCKER_HEALTHCHECK_RETRIES}"
+      API_DOCKER_HEALTHCHECK_START_PERIOD: "${API_DOCKER_HEALTHCHECK_START_PERIOD}"
+      API_DNS_LEVEL_3: "${API_DNS_LEVEL_3}"
+      API_ALLOWED_HEADERS: "${API_ALLOWED_HEADERS}"
+      API_SECRET: "${API_SECRET}"
+      API_TOKEN_ISSUER: "${API_TOKEN_ISSUER}"
+      API_DNS_LEVEL_3_GTE: "${API_DNS_LEVEL_3_GTE}"
+      AUTH_PASETO_LOCAL_KEY: "${AUTH_PASETO_LOCAL_KEY}"
+      GIT_HOST: "${GIT_HOST}"
+      GIT_ACCESS_TOKEN: "${GIT_ACCESS_TOKEN}"
+      GIT_USER_EMAIL: "${GIT_USER_EMAIL}"
+      GIT_USER_NAME: "${GIT_USER_NAME}"
+      GIT_REPO_URL_SSH: "${GIT_REPO_URL_SSH}"
+      GIT_REPO_URL_HTTP: "${GIT_REPO_URL_HTTP}"
+      GIT_REPO_NAME: "${GIT_REPO_NAME}"
+      GIT_TO: "${GIT_TO}"
+      CTL_DOCKER_HEALTHCHECK_INTERVAL: "${CTL_DOCKER_HEALTHCHECK_INTERVAL}"
+      CTL_DOCKER_HEALTHCHECK_TIMEOUT: "${CTL_DOCKER_HEALTHCHECK_TIMEOUT}"
+      CTL_DOCKER_HEALTHCHECK_RETRIES: "${CTL_DOCKER_HEALTHCHECK_RETRIES}"
+      CTL_MAX_PULL_DURATION: "${CTL_MAX_PULL_DURATION}"
+      AWS_REGION: "${AWS_REGION}"
+      AWS_VERSION: "${AWS_VERSION}"
+      DNS_DEFAULT_PORT: "${DNS_DEFAULT_PORT}"
+      DNS_DEFAULT_SCHEME: "${DNS_DEFAULT_SCHEME}"
+      LEGACY_DNS_LEVEL_1: "${LEGACY_DNS_LEVEL_1}"
+      LEGACY_DNS_LEVEL_2: "${LEGACY_DNS_LEVEL_2}"
+      LEGACY_DNS_LEVEL_2_GTE: "${LEGACY_DNS_LEVEL_2_GTE}"
+      FLOATING_IP: "${FLOATING_IP}"
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2_a: "${DNS_LEVEL_2_a}"
+      DNS_LEVEL_2_b: "${DNS_LEVEL_2_b}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      DNS_LEVEL_2_GTE: "${DNS_LEVEL_2_GTE}"
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_HOST_STORE: "${POSTGRES_HOST_STORE}"
+      POSTGRES_HOST_EDGE: "${POSTGRES_HOST_EDGE}"
+      POSTGRES_HOST_STORE_LOCK: "${POSTGRES_HOST_STORE_LOCK}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB_STORE: "${POSTGRES_DB_STORE}"
+      POSTGRES_DB_EDGE: "${POSTGRES_DB_EDGE}"
+      DB_DNS_LEVEL_3: "${DB_DNS_LEVEL_3}"
+      DB_DNS_LEVEL_3_GTE: "${DB_DNS_LEVEL_3_GTE}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
+      MAIL_FROM_TRANSACTION_EMAIL: "${MAIL_FROM_TRANSACTION_EMAIL}"
+      MAIL_FROM_BUG_EMAIL: "${MAIL_FROM_BUG_EMAIL}"
+      MAIL_FROM_NEWSLETTER_EMAIL: "${MAIL_FROM_NEWSLETTER_EMAIL}"
+      MAIL_TO_BUG_EMAIL: "${MAIL_TO_BUG_EMAIL}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASS: "${RABBITMQ_PASS}"
+      MQ_DNS_LEVEL_3: "${MQ_DNS_LEVEL_3}"
+      MQ_DNS_LEVEL_3_GTE: "${MQ_DNS_LEVEL_3_GTE}"
+      NEWS_DNS_LEVEL_3: "${NEWS_DNS_LEVEL_3}"
+      NEWS_DNS_LEVEL_3_GTE: "${NEWS_DNS_LEVEL_3_GTE}"
+      SENDY_LICENSE_KEY: "${SENDY_LICENSE_KEY}"
+      SENDY_AWS_IAM_KEY: "${SENDY_AWS_IAM_KEY}"
+      SENDY_AWS_IAM_SECRET: "${SENDY_AWS_IAM_SECRET}"
+      SENDY_USER: "${SENDY_USER}"
+      SENDY_PASSWORD: "${SENDY_PASSWORD}"
+      SENDY_FORUM_PASSWORD: "${SENDY_FORUM_PASSWORD}"
+      SENDY_API_KEY: "${SENDY_API_KEY}"
+      SENDY_OLD_API_KEYS: "${SENDY_OLD_API_KEYS}"
+      SENDY_BRAND_ID: "${SENDY_BRAND_ID}"
+      SENDY_LIST_ID: "${SENDY_LIST_ID}"
+      MAILCHIMP_API_KEY: "${MAILCHIMP_API_KEY}"
+      MAILCHIMP_LIST_ID: "${MAILCHIMP_LIST_ID}"
+      MAILCHIMP_SERVER_PREFIX: "${MAILCHIMP_SERVER_PREFIX}"
+      MAILCHIMP_MASTER_DRAFT_ID: "${MAILCHIMP_MASTER_DRAFT_ID}"
+      HELLOASSO_CLIENT_ID: "${HELLOASSO_CLIENT_ID}"
+      HELLOASSO_CLIENT_SECRET: "${HELLOASSO_CLIENT_SECRET}"
+      HELLOASSO_WEBHOOK_SECRET: "${HELLOASSO_WEBHOOK_SECRET}"
+      OPCACHE: "${OPCACHE}"
+      JIT: "${JIT}"
+      SES_ACCESS_KEY: "${SES_ACCESS_KEY}"
+      SES_SECRET_ACCESS_KEY: "${SES_SECRET_ACCESS_KEY}"
+      S3_URI_HOST: "${S3_URI_HOST}"
+      S3_BUCKET_SHARED: "${S3_BUCKET_SHARED}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_URL_BASE: "${S3_URL_BASE}"
+    command: "bash -c \"exec /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} -- /wait mq:5672 -t ${WAIT_DELAY} -- ./bin/run -e Worker --timeout 300\""
+    healthcheck: 
+      test: 
+        - "CMD"
+        - "./bin/run"
+        - "-e"
+        - "Ping"
+      interval: "30s"
+      timeout: "10s"
+      retries: 3
+      start_period: "12s"
+    deploy: 
+      replicas: 2
+      update_config: 
+        parallelism: 1
+        delay: "5s"
+        order: "start-first"
+      restart_policy: 
+        condition: "any"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1772453510
+  api-proj: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_API_WRAP}"
+    volumes: 
+      - "${ROOT_DIR}/bin:/var/www/b8x/bin"
+      - "${ROOT_DIR}/scratch:/var/www/b8x/scratch"
+      - "${ROOT_DIR}/src:/var/www/b8x/src"
+      - "${ROOT_DIR}/test:/var/www/b8x/test"
+      - "${ROOT_DIR}/run/bak:/var/www/b8x/run/bak"
+      - "${ROOT_DIR}/public:/var/www/b8x/public"
+      - "${ROOT_DIR}/var/api/cache:/var/www/b8x/var/api/cache"
+      - "${ROOT_DIR}/var/sock:/var/www/b8x/var/sock"
+    stdin_open: true
+    tty: true
+    working_dir: "/var/www/b8x"
+    sysctls: 
+      net.ipv4.tcp_keepalive_time: 9600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+    stop_signal: "SIGTERM"
+    stop_grace_period: "7m30s"
+    command: "bash -c \"exec /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} -- /wait mq:5672 -t ${WAIT_DELAY} -- ./bin/run -e Projection \\\"$$PROJECTION_NAME\\\"\""
+    healthcheck: 
+      test: 
+        - "CMD"
+        - "./bin/run"
+        - "-e"
+        - "Ping"
+      interval: "30s"
+      timeout: "10s"
+      retries: 3
+      start_period: "12s"
+    environment: 
+      TZ: "${TZ}"
+      ENV: "${ENV}"
+      NODE_ENV: "${ENV}"
+      PROJECTION_NAME: "*"
+      TARGET: "${TARGET}"
+      UI_APP_ID: "${UI_APP_ID}"
+      API_DOCKER_RESTART_ESTIMATED_DELAY: "${API_DOCKER_RESTART_ESTIMATED_DELAY}"
+      API_DOCKER_HEALTHCHECK_INTERVAL: "${API_DOCKER_HEALTHCHECK_INTERVAL}"
+      API_DOCKER_HEALTHCHECK_TIMEOUT: "${API_DOCKER_HEALTHCHECK_TIMEOUT}"
+      API_DOCKER_HEALTHCHECK_RETRIES: "${API_DOCKER_HEALTHCHECK_RETRIES}"
+      API_DOCKER_HEALTHCHECK_START_PERIOD: "${API_DOCKER_HEALTHCHECK_START_PERIOD}"
+      API_DNS_LEVEL_3: "${API_DNS_LEVEL_3}"
+      API_ALLOWED_HEADERS: "${API_ALLOWED_HEADERS}"
+      API_SECRET: "${API_SECRET}"
+      API_TOKEN_ISSUER: "${API_TOKEN_ISSUER}"
+      API_DNS_LEVEL_3_GTE: "${API_DNS_LEVEL_3_GTE}"
+      AUTH_PASETO_LOCAL_KEY: "${AUTH_PASETO_LOCAL_KEY}"
+      GIT_HOST: "${GIT_HOST}"
+      GIT_ACCESS_TOKEN: "${GIT_ACCESS_TOKEN}"
+      GIT_USER_EMAIL: "${GIT_USER_EMAIL}"
+      GIT_USER_NAME: "${GIT_USER_NAME}"
+      GIT_REPO_URL_SSH: "${GIT_REPO_URL_SSH}"
+      GIT_REPO_URL_HTTP: "${GIT_REPO_URL_HTTP}"
+      GIT_REPO_NAME: "${GIT_REPO_NAME}"
+      GIT_TO: "${GIT_TO}"
+      CTL_DOCKER_HEALTHCHECK_INTERVAL: "${CTL_DOCKER_HEALTHCHECK_INTERVAL}"
+      CTL_DOCKER_HEALTHCHECK_TIMEOUT: "${CTL_DOCKER_HEALTHCHECK_TIMEOUT}"
+      CTL_DOCKER_HEALTHCHECK_RETRIES: "${CTL_DOCKER_HEALTHCHECK_RETRIES}"
+      CTL_MAX_PULL_DURATION: "${CTL_MAX_PULL_DURATION}"
+      AWS_REGION: "${AWS_REGION}"
+      AWS_VERSION: "${AWS_VERSION}"
+      DNS_DEFAULT_PORT: "${DNS_DEFAULT_PORT}"
+      DNS_DEFAULT_SCHEME: "${DNS_DEFAULT_SCHEME}"
+      LEGACY_DNS_LEVEL_1: "${LEGACY_DNS_LEVEL_1}"
+      LEGACY_DNS_LEVEL_2: "${LEGACY_DNS_LEVEL_2}"
+      LEGACY_DNS_LEVEL_2_GTE: "${LEGACY_DNS_LEVEL_2_GTE}"
+      FLOATING_IP: "${FLOATING_IP}"
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2_a: "${DNS_LEVEL_2_a}"
+      DNS_LEVEL_2_b: "${DNS_LEVEL_2_b}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      DNS_LEVEL_2_GTE: "${DNS_LEVEL_2_GTE}"
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_HOST_STORE: "${POSTGRES_HOST_STORE}"
+      POSTGRES_HOST_EDGE: "${POSTGRES_HOST_EDGE}"
+      POSTGRES_HOST_STORE_LOCK: "${POSTGRES_HOST_STORE_LOCK}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB_STORE: "${POSTGRES_DB_STORE}"
+      POSTGRES_DB_EDGE: "${POSTGRES_DB_EDGE}"
+      DB_DNS_LEVEL_3: "${DB_DNS_LEVEL_3}"
+      DB_DNS_LEVEL_3_GTE: "${DB_DNS_LEVEL_3_GTE}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
+      MAIL_FROM_TRANSACTION_EMAIL: "${MAIL_FROM_TRANSACTION_EMAIL}"
+      MAIL_FROM_BUG_EMAIL: "${MAIL_FROM_BUG_EMAIL}"
+      MAIL_FROM_NEWSLETTER_EMAIL: "${MAIL_FROM_NEWSLETTER_EMAIL}"
+      MAIL_TO_BUG_EMAIL: "${MAIL_TO_BUG_EMAIL}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASS: "${RABBITMQ_PASS}"
+      MQ_DNS_LEVEL_3: "${MQ_DNS_LEVEL_3}"
+      MQ_DNS_LEVEL_3_GTE: "${MQ_DNS_LEVEL_3_GTE}"
+      NEWS_DNS_LEVEL_3: "${NEWS_DNS_LEVEL_3}"
+      NEWS_DNS_LEVEL_3_GTE: "${NEWS_DNS_LEVEL_3_GTE}"
+      SENDY_LICENSE_KEY: "${SENDY_LICENSE_KEY}"
+      SENDY_AWS_IAM_KEY: "${SENDY_AWS_IAM_KEY}"
+      SENDY_AWS_IAM_SECRET: "${SENDY_AWS_IAM_SECRET}"
+      SENDY_USER: "${SENDY_USER}"
+      SENDY_PASSWORD: "${SENDY_PASSWORD}"
+      SENDY_FORUM_PASSWORD: "${SENDY_FORUM_PASSWORD}"
+      SENDY_API_KEY: "${SENDY_API_KEY}"
+      SENDY_OLD_API_KEYS: "${SENDY_OLD_API_KEYS}"
+      SENDY_BRAND_ID: "${SENDY_BRAND_ID}"
+      SENDY_LIST_ID: "${SENDY_LIST_ID}"
+      MAILCHIMP_API_KEY: "${MAILCHIMP_API_KEY}"
+      MAILCHIMP_LIST_ID: "${MAILCHIMP_LIST_ID}"
+      MAILCHIMP_SERVER_PREFIX: "${MAILCHIMP_SERVER_PREFIX}"
+      MAILCHIMP_MASTER_DRAFT_ID: "${MAILCHIMP_MASTER_DRAFT_ID}"
+      HELLOASSO_CLIENT_ID: "${HELLOASSO_CLIENT_ID}"
+      HELLOASSO_CLIENT_SECRET: "${HELLOASSO_CLIENT_SECRET}"
+      HELLOASSO_WEBHOOK_SECRET: "${HELLOASSO_WEBHOOK_SECRET}"
+      OPCACHE: "${OPCACHE}"
+      JIT: "${JIT}"
+      SES_ACCESS_KEY: "${SES_ACCESS_KEY}"
+      SES_SECRET_ACCESS_KEY: "${SES_SECRET_ACCESS_KEY}"
+      S3_URI_HOST: "${S3_URI_HOST}"
+      S3_BUCKET_SHARED: "${S3_BUCKET_SHARED}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_URL_BASE: "${S3_URL_BASE}"
+    deploy: 
+      replicas: 1
+      update_config: 
+        parallelism: 1
+        delay: "5s"
+        order: "start-first"
+      restart_policy: 
+        condition: "any"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1780958204
+  db: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB_WRAP}"
+    environment: 
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB_STORE}"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    stdin_open: true
+    tty: true
+    sysctls: 
+      net.ipv4.tcp_keepalive_time: 600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+    shm_size: "2g"
+    deploy: 
+      restart_policy: 
+        condition: "any"
+      placement: 
+        constraints: 
+          - "node.role == manager"
+    networks: 
+      - "stack-default"
+    volumes: 
+      - "${DOCKER_DIR}/${ENV}/volume/db/data:/var/lib/postgresql/data"
+    ports: 
+      - 
+        published: 5432
+        target: 5432
+        mode: "host"
+    command: 
+      - "-c"
+      - "ssl=on"
+      - "-c"
+      - "ssl_cert_file=/var/lib/postgresql/server.crt"
+      - "-c"
+      - "ssl_key_file=/var/lib/postgresql/server.key"
+      - "-c"
+      - "max_connections=400"
+      - "-c"
+      - "checkpoint_timeout=30min"
+      - "-c"
+      - "max_wal_size=2GB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "commit_delay=5000"
+      - "-c"
+      - "commit_siblings=5"
+      - "-c"
+      - "idle_in_transaction_session_timeout=10000"
+    labels: 
+      com.b8x.deploy.ts: 1772223867
+  db-multiplex-store: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB_MULTIPLEX}"
+    environment: 
+      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB_STORE}"
+      POOL_MODE: "transaction"
+      MAX_CLIENT_CONN: "65000"
+      DEFAULT_POOL_SIZE: "50"
+      MIN_POOL_SIZE: "1"
+      SERVER_RESET_QUERY: "DISCARD ALL"
+      AUTH_TYPE: "scram-sha-256"
+    command: "sh -c \"exec /wait db:5432 -t ${WAIT_DELAY} -- pgbouncer /etc/pgbouncer/pgbouncer.ini\""
+    deploy: 
+      restart_policy: 
+        condition: "any"
+      placement: 
+        constraints: 
+          - "node.role == manager"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1782402875
+  db-multiplex-store-lock: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB_MULTIPLEX}"
+    environment: 
+      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB_STORE}"
+      POOL_MODE: "session"
+      MAX_CLIENT_CONN: "65000"
+      DEFAULT_POOL_SIZE: "50"
+      MIN_POOL_SIZE: "1"
+      SERVER_RESET_QUERY: "DISCARD ALL"
+      AUTH_TYPE: "scram-sha-256"
+    command: "sh -c \"exec /wait db:5432 -t ${WAIT_DELAY} -- pgbouncer /etc/pgbouncer/pgbouncer.ini\""
+    deploy: 
+      restart_policy: 
+        condition: "any"
+      placement: 
+        constraints: 
+          - "node.role == manager"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1782402875
+  db-multiplex-edge: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB_MULTIPLEX}"
+    environment: 
+      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB_EDGE}"
+      POOL_MODE: "transaction"
+      MAX_CLIENT_CONN: "65000"
+      DEFAULT_POOL_SIZE: "100"
+      MIN_POOL_SIZE: "1"
+      SERVER_RESET_QUERY: "DISCARD ALL"
+      AUTH_TYPE: "scram-sha-256"
+    command: "sh -c \"exec /wait db:5432 -t ${WAIT_DELAY} -- pgbouncer /etc/pgbouncer/pgbouncer.ini\""
+    deploy: 
+      restart_policy: 
+        condition: "any"
+      placement: 
+        constraints: 
+          - "node.role == manager"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1782402875
+  mq: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_MQ}"
+    environment: 
+      TZ: "${TZ}"
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASS}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+    sysctls: 
+      net.ipv4.tcp_keepalive_time: 600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+    deploy: 
+      resources: 
+        limits: 
+          memory: "1500M"
+      restart_policy: 
+        condition: "any"
+    networks: 
+      - "stack-default"
+    volumes: 
+      - "${DOCKER_DIR}/${ENV}/volume/mq/mnesia:/var/lib/rabbitmq/mnesia"
+    labels: 
+      com.b8x.deploy.ts: 1772223867
+  env: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_ENV}"
+    environment: 
+      ENV: "${ENV}"
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      SWARM_MODE: "${SWARM_MODE}"
+      SUBDOMAINS: "v2 ${API_DNS_LEVEL_3} ${MQ_DNS_LEVEL_3} ${NEWS_DNS_LEVEL_3}"
+      EXTRA_DOMAINS: "books.fr www.books.fr"
+    command: "tail -f /dev/null"
+    stdin_open: true
+    tty: true
+    working_dir: "/var/www/b8x"
+    deploy: 
+      replicas: 0
+      restart_policy: 
+        condition: "any"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1772223867
+  gateway: 
+    volumes: 
+      - "${DOCKER_CONTEXT_SOCK}:/var/run/docker.sock"
+      - "${ROOT_DIR}/var/gateway:/etc/traefik/mnt"
+    environment: 
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+    ports: 
+      - 
+        published: 80
+        target: 80
+        mode: "host"
+      - 
+        published: 443
+        target: 443
+        mode: "host"
+    deploy: 
+      mode: "global"
+      restart_policy: 
+        condition: "any"
+      placement: 
+        constraints: 
+          - "node.role == manager"
+    networks: 
+      - "stack-default"
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_PROD_GATEWAY}"
+    labels: 
+      com.b8x.deploy.ts: 1772292993
+  webserver: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_PROD_WEBSERVER}"
+    volumes: 
+      - "${ROOT_DIR}/:/var/www/b8x"
+      - "${DOCKER_DIR}/${ENV}/file/webserver/conf.d/b8x.conf:/etc/nginx/templates/b8x.conf.template"
+    stdin_open: true
+    working_dir: "/var/www/b8x"
+    tty: true
+    environment: 
+      ENV: "${ENV}"
+      TZ: "${TZ}"
+      DEFAULT_LOCALE: "${DEFAULT_LOCALE}"
+      API_DNS_LEVEL_3_GTE: "${API_DNS_LEVEL_3_GTE}"
+      MQ_DNS_LEVEL_3_GTE: "${MQ_DNS_LEVEL_3_GTE}"
+      NEWS_DNS_LEVEL_3_GTE: "${NEWS_DNS_LEVEL_3_GTE}"
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2_a: "${DNS_LEVEL_2_a}"
+      DNS_LEVEL_2_GTE: "${DNS_LEVEL_2_GTE}"
+      DNS_DEFAULT_PORT: "${DNS_DEFAULT_PORT}"
+      DNS_DEFAULT_SCHEME: "${DNS_DEFAULT_SCHEME}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      DNS_LEVEL_2_b: "${DNS_LEVEL_2_b}"
+      NGINX_DEFAULT_HTTP_PORT: "${NGINX_DEFAULT_HTTP_PORT}"
+      HEALTHCHECK_INTERVAL: "${WEBSERVER_DOCKER_HEALTHCHECK_INTERVAL}"
+      HEALTHCHECK_TIMEOUT: "${WEBSERVER_DOCKER_HEALTHCHECK_TIMEOUT}"
+      HEALTHCHECK_RETRIES: "${WEBSERVER_DOCKER_HEALTHCHECK_RETRIES}"
+    deploy: 
+      replicas: 2
+      update_config: 
+        parallelism: 1
+        delay: "5s"
+        order: "start-first"
+      restart_policy: 
+        condition: "any"
+      placement: 
+        constraints: 
+          - "node.role == manager"
+      labels: 
+        x.traefik.gateway: "gateway"
+        traefik.enable: "true"
+        traefik.http.services.webserver.loadbalancer.server.port: "80"
+        traefik.http.services.swebserver.loadbalancer.server.scheme: "https"
+        traefik.http.services.swebserver.loadbalancer.server.port: "443"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1772288545
+  db2: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB2}"
+    environment: 
+      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DB}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    command: "--character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=3000 --binlog-expire-logs-seconds=259200"
+    stdin_open: true
+    tty: true
+    sysctls: 
+      net.ipv4.tcp_keepalive_time: 600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+    healthcheck: 
+      test: 
+        - "CMD-SHELL"
+        - "mysqladmin ping -h localhost -uroot -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"
+      interval: "20s"
+      timeout: "10s"
+      retries: 6
+      start_period: "60s"
+    shm_size: "2g"
+    deploy: 
+      restart_policy: 
+        condition: "any"
+      placement: 
+        constraints: 
+          - "node.role == manager"
+    networks: 
+      - "stack-default"
+    volumes: 
+      - "${DOCKER_DIR}/${ENV}/volume/db2/data:/var/lib/mysql"
+    ports: 
+      - 
+        published: 3306
+        target: 3306
+        mode: "host"
+    labels: 
+      com.b8x.deploy.ts: 1777467809
+  news: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_NEWS}"
+    environment: 
+      TZ: "${TZ}"
+      SENDY_PROTOCOL: "https"
+      SENDY_FQDN: "${NEWS_DNS_LEVEL_3_GTE}"
+      SENDY_API_KEY: "${SENDY_API_KEY}"
+      SENDY_OLD_API_KEYS: "${SENDY_OLD_API_KEYS}"
+      SENDY_LIST_ID: "${SENDY_LIST_ID}"
+      SENDY_AWS_IAM_KEY: "${SENDY_AWS_IAM_KEY}"
+      SENDY_AWS_IAM_SECRET: "${SENDY_AWS_IAM_SECRET}"
+      MAILCHIMP_API_KEY: "${MAILCHIMP_API_KEY}"
+      MAILCHIMP_LIST_ID: "${MAILCHIMP_LIST_ID}"
+      MYSQL_HOST: "${MYSQL_HOST}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DB}"
+    entrypoint: "/docker-entrypoint.sh"
+    command: "apache2-foreground"
+    volumes: 
+      - "${ROOT_DIR}/_/sendy:/var/www/html"
+      - "${ROOT_DIR}/var/news/tmp:/tmp"
+    deploy: 
+      restart_policy: 
+        condition: "any"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1773145873
+  cron: 
+    volumes: 
+      - "${DOCKER_CONTEXT_SOCK}:/var/run/docker.sock"
+      - "${ROOT_DIR}:/var/www/b8x"
+    entrypoint: 
+      - "sh"
+      - "/docker-entrypoint.sh"
+    command: "bash -c \" /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} -- /wait db2:3306 -t ${WAIT_DELAY} -- /wait mq:5672 -t ${WAIT_DELAY} -- cron -f -L15 && tail -f /var/log/cron.log\""
+    stdin_open: true
+    tty: true
+    working_dir: "/var/www/b8x"
+    environment: 
+      API_DOCKER_RESTART_ESTIMATED_DELAY: "${API_DOCKER_RESTART_ESTIMATED_DELAY}"
+      API_DOCKER_HEALTHCHECK_INTERVAL: "${API_DOCKER_HEALTHCHECK_INTERVAL}"
+      API_DOCKER_HEALTHCHECK_TIMEOUT: "${API_DOCKER_HEALTHCHECK_TIMEOUT}"
+      API_DOCKER_HEALTHCHECK_RETRIES: "${API_DOCKER_HEALTHCHECK_RETRIES}"
+      API_DOCKER_HEALTHCHECK_START_PERIOD: "${API_DOCKER_HEALTHCHECK_START_PERIOD}"
+      API_DNS_LEVEL_3: "${API_DNS_LEVEL_3}"
+      API_ALLOWED_HEADERS: "${API_ALLOWED_HEADERS}"
+      API_SECRET: "${API_SECRET}"
+      API_TOKEN_ISSUER: "${API_TOKEN_ISSUER}"
+      API_DNS_LEVEL_3_GTE: "${API_DNS_LEVEL_3_GTE}"
+      AUTH_PASETO_LOCAL_KEY: "${AUTH_PASETO_LOCAL_KEY}"
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_HOST_STORE: "${POSTGRES_HOST_STORE}"
+      POSTGRES_HOST_EDGE: "${POSTGRES_HOST_EDGE}"
+      POSTGRES_HOST_STORE_LOCK: "${POSTGRES_HOST_STORE_LOCK}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB_STORE: "${POSTGRES_DB_STORE}"
+      POSTGRES_DB_EDGE: "${POSTGRES_DB_EDGE}"
+      DB_DNS_LEVEL_3: "${DB_DNS_LEVEL_3}"
+      DB_DNS_LEVEL_3_GTE: "${DB_DNS_LEVEL_3_GTE}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      MYSQL_HOST: "${MYSQL_HOST}"
+      MYSQL_PORT: "${MYSQL_PORT}"
+      MYSQL_DB: "${MYSQL_DB}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      DB2_DNS_LEVEL_3: "${DB2_DNS_LEVEL_3}"
+      DB2_DNS_LEVEL_3_GTE: "${DB2_DNS_LEVEL_3_GTE}"
+      S3_URI_HOST: "${S3_URI_HOST}"
+      S3_BUCKET_SHARED: "${S3_BUCKET_SHARED}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_URL_BASE: "${S3_URL_BASE}"
+    deploy: 
+      mode: "global"
+      restart_policy: 
+        condition: "any"
+      resources: 
+        limits: 
+          memory: "3000M"
+    networks: 
+      - "stack-default"
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_PROD_CRON}"
+    labels: 
+      com.b8x.deploy.ts: 1772724450
+  ctl: 
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_CTL_WRAP}"
+    environment: 
+      TZ: "${TZ}"
+      ENV: "${ENV}"
+      SOURCE: ""
+      MAX_PULL_DURATION: "${CTL_MAX_PULL_DURATION}"
+      REMOTE: "${GIT_REPO_URL_SSH}"
+      TO: "${GIT_TO}"
+      UI_APP_ID: "${UI_APP_ID}"
+      API_DOCKER_RESTART_ESTIMATED_DELAY: "${API_DOCKER_RESTART_ESTIMATED_DELAY}"
+      API_DOCKER_HEALTHCHECK_INTERVAL: "${API_DOCKER_HEALTHCHECK_INTERVAL}"
+      API_DOCKER_HEALTHCHECK_TIMEOUT: "${API_DOCKER_HEALTHCHECK_TIMEOUT}"
+      API_DOCKER_HEALTHCHECK_RETRIES: "${API_DOCKER_HEALTHCHECK_RETRIES}"
+      API_DOCKER_HEALTHCHECK_START_PERIOD: "${API_DOCKER_HEALTHCHECK_START_PERIOD}"
+      API_DNS_LEVEL_3: "${API_DNS_LEVEL_3}"
+      API_ALLOWED_HEADERS: "${API_ALLOWED_HEADERS}"
+      API_SECRET: "${API_SECRET}"
+      API_TOKEN_ISSUER: "${API_TOKEN_ISSUER}"
+      API_DNS_LEVEL_3_GTE: "${API_DNS_LEVEL_3_GTE}"
+      AUTH_PASETO_LOCAL_KEY: "${AUTH_PASETO_LOCAL_KEY}"
+      GIT_HOST: "${GIT_HOST}"
+      GIT_ACCESS_TOKEN: "${GIT_ACCESS_TOKEN}"
+      GIT_USER_EMAIL: "${GIT_USER_EMAIL}"
+      GIT_USER_NAME: "${GIT_USER_NAME}"
+      GIT_REPO_URL_SSH: "${GIT_REPO_URL_SSH}"
+      GIT_REPO_URL_HTTP: "${GIT_REPO_URL_HTTP}"
+      GIT_REPO_NAME: "${GIT_REPO_NAME}"
+      GIT_TO: "${GIT_TO}"
+      CTL_DOCKER_HEALTHCHECK_INTERVAL: "${CTL_DOCKER_HEALTHCHECK_INTERVAL}"
+      CTL_DOCKER_HEALTHCHECK_TIMEOUT: "${CTL_DOCKER_HEALTHCHECK_TIMEOUT}"
+      CTL_DOCKER_HEALTHCHECK_RETRIES: "${CTL_DOCKER_HEALTHCHECK_RETRIES}"
+      CTL_MAX_PULL_DURATION: "${CTL_MAX_PULL_DURATION}"
+      AWS_REGION: "${AWS_REGION}"
+      AWS_VERSION: "${AWS_VERSION}"
+      DNS_DEFAULT_PORT: "${DNS_DEFAULT_PORT}"
+      DNS_DEFAULT_SCHEME: "${DNS_DEFAULT_SCHEME}"
+      LEGACY_DNS_LEVEL_1: "${LEGACY_DNS_LEVEL_1}"
+      LEGACY_DNS_LEVEL_2: "${LEGACY_DNS_LEVEL_2}"
+      LEGACY_DNS_LEVEL_2_GTE: "${LEGACY_DNS_LEVEL_2_GTE}"
+      FLOATING_IP: "${FLOATING_IP}"
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2_a: "${DNS_LEVEL_2_a}"
+      DNS_LEVEL_2_b: "${DNS_LEVEL_2_b}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      DNS_LEVEL_2_GTE: "${DNS_LEVEL_2_GTE}"
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_HOST_STORE: "${POSTGRES_HOST_STORE}"
+      POSTGRES_HOST_EDGE: "${POSTGRES_HOST_EDGE}"
+      POSTGRES_HOST_STORE_LOCK: "${POSTGRES_HOST_STORE_LOCK}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB_STORE: "${POSTGRES_DB_STORE}"
+      POSTGRES_DB_EDGE: "${POSTGRES_DB_EDGE}"
+      DB_DNS_LEVEL_3: "${DB_DNS_LEVEL_3}"
+      DB_DNS_LEVEL_3_GTE: "${DB_DNS_LEVEL_3_GTE}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      MYSQL_HOST: "${MYSQL_HOST}"
+      MYSQL_PORT: "${MYSQL_PORT}"
+      MYSQL_DB: "${MYSQL_DB}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      DB2_DNS_LEVEL_3: "${DB2_DNS_LEVEL_3}"
+      DB2_DNS_LEVEL_3_GTE: "${DB2_DNS_LEVEL_3_GTE}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME}"
+      MAIL_FROM_TRANSACTION_EMAIL: "${MAIL_FROM_TRANSACTION_EMAIL}"
+      MAIL_FROM_BUG_EMAIL: "${MAIL_FROM_BUG_EMAIL}"
+      MAIL_FROM_NEWSLETTER_EMAIL: "${MAIL_FROM_NEWSLETTER_EMAIL}"
+      MAIL_TO_BUG_EMAIL: "${MAIL_TO_BUG_EMAIL}"
+      HELLOASSO_CLIENT_ID: "${HELLOASSO_CLIENT_ID}"
+      HELLOASSO_CLIENT_SECRET: "${HELLOASSO_CLIENT_SECRET}"
+      HELLOASSO_WEBHOOK_SECRET: "${HELLOASSO_WEBHOOK_SECRET}"
+      RABBITMQ_HOST: "${RABBITMQ_HOST}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
+      RABBITMQ_USER: "${RABBITMQ_USER}"
+      RABBITMQ_PASS: "${RABBITMQ_PASS}"
+      MQ_DNS_LEVEL_3: "${MQ_DNS_LEVEL_3}"
+      MQ_DNS_LEVEL_3_GTE: "${MQ_DNS_LEVEL_3_GTE}"
+      SES_ACCESS_KEY: "${SES_ACCESS_KEY}"
+      SES_SECRET_ACCESS_KEY: "${SES_SECRET_ACCESS_KEY}"
+      S3_URI_HOST: "${S3_URI_HOST}"
+      S3_BUCKET_SHARED: "${S3_BUCKET_SHARED}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_URL_BASE: "${S3_URL_BASE}"
+      NEWS_DNS_LEVEL_3: "${NEWS_DNS_LEVEL_3}"
+      NEWS_DNS_LEVEL_3_GTE: "${NEWS_DNS_LEVEL_3_GTE}"
+      SENDY_LICENSE_KEY: "${SENDY_LICENSE_KEY}"
+      SENDY_AWS_IAM_KEY: "${SENDY_AWS_IAM_KEY}"
+      SENDY_AWS_IAM_SECRET: "${SENDY_AWS_IAM_SECRET}"
+      SENDY_USER: "${SENDY_USER}"
+      SENDY_PASSWORD: "${SENDY_PASSWORD}"
+      SENDY_FORUM_PASSWORD: "${SENDY_FORUM_PASSWORD}"
+      SENDY_API_KEY: "${SENDY_API_KEY}"
+      SENDY_OLD_API_KEYS: "${SENDY_OLD_API_KEYS}"
+      SENDY_BRAND_ID: "${SENDY_BRAND_ID}"
+      SENDY_LIST_ID: "${SENDY_LIST_ID}"
+      MAILCHIMP_API_KEY: "${MAILCHIMP_API_KEY}"
+      MAILCHIMP_LIST_ID: "${MAILCHIMP_LIST_ID}"
+      MAILCHIMP_SERVER_PREFIX: "${MAILCHIMP_SERVER_PREFIX}"
+      MAILCHIMP_MASTER_DRAFT_ID: "${MAILCHIMP_MASTER_DRAFT_ID}"
+    volumes: 
+      - "${DOCKER_CONTEXT_SOCK}:/var/run/docker.sock"
+      - "${ROOT_DIR}:/var/www/b8x"
+      - "${ROOT_DIR}/run/docker/_shared/file/ctl/postpull.sh:/postpull.sh"
+    command: "/run.sh"
+    stdin_open: true
+    tty: true
+    working_dir: "/var/www/b8x"
+    deploy: 
+      mode: "global"
+      restart_policy: 
+        condition: "any"
+    healthcheck: 
+      test: 
+        - "CMD"
+        - "/healthcheck.sh"
+      interval: "${CTL_DOCKER_HEALTHCHECK_INTERVAL}s"
+      timeout: "${CTL_DOCKER_HEALTHCHECK_TIMEOUT}s"
+      retries: "${CTL_DOCKER_HEALTHCHECK_RETRIES}"
+      start_period: "${CTL_MAX_PULL_DURATION}s"
+    networks: 
+      - "stack-default"
+    labels: 
+      com.b8x.deploy.ts: 1772400959

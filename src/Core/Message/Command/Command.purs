@@ -7,6 +7,7 @@ import Core.Event.EventStore (EVENT_STORE, appendEvents, loadEvents)
 import Core.Event.Filter (Filter)
 import Core.Exception.Index (EXCEPT_LOGIC)
 import Core.Message.Command.Handle.Exception (TooMuchConcurrency(..))
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Mod.Projection.Index (PROJECTION_READ)
 import Core.Feat.Effect.Newsletter (NEWSLETTER)
@@ -79,7 +80,7 @@ class
   where
   description :: String
 
-  handle :: ∀ fx. payload -> Run (PHANTOM_CHILD_CONSTRAINT cmd + EVENT_STORE + EXCEPT_LOGIC + PROJECTION_READ + UPLOAD + NEWSLETTER + RATE_LIMIT + CACHE + MAIL + READER_TRACE + GENERATE + SLEEP + READER_PUBLIC_CONFIG + fx) (Either TooMuchConcurrency (Result a))
+  handle :: ∀ fx. payload -> Run (PHANTOM_CHILD_CONSTRAINT cmd + EVENT_STORE + EXCEPT_LOGIC + PROJECTION_READ + DOWNLOAD + UPLOAD + NEWSLETTER + RATE_LIMIT + CACHE + MAIL + READER_TRACE + GENERATE + SLEEP + READER_PUBLIC_CONFIG + fx) (Either TooMuchConcurrency (Result a))
 
 defaultCheckLoadedEvents :: ∀ fx. Array LoadedEvent -> Run fx Ɩ
 defaultCheckLoadedEvents = κηι
@@ -95,10 +96,10 @@ defaultHandle
   -> (∀ fx'. Array LoadedEvent -> Run (EVENT_STORE + EXCEPT_LOGIC + fx') Ɩ) -- checkLoadedEvents
   -> (payload -> state) -- initialState
   -> (state -> LoadedEvent -> state) -- play
-  -> (∀ fx'. state -> payload -> Run (EXCEPT_LOGIC + UPLOAD + RATE_LIMIT + READER_TRACE + fx') (Array Event)) -- decide
-  -> (∀ fx'. payload -> state -> Array Event -> Run (EXCEPT_LOGIC + UPLOAD + fx') a) -- toResult
+  -> (∀ fx'. state -> payload -> Run (EXCEPT_LOGIC + DOWNLOAD + UPLOAD + RATE_LIMIT + READER_TRACE + fx') (Array Event)) -- decide
+  -> (∀ fx'. payload -> state -> Array Event -> Run (EXCEPT_LOGIC + DOWNLOAD + UPLOAD + fx') a) -- toResult
   -> payload
-  -> Run (EVENT_STORE + EXCEPT_LOGIC + PROJECTION_READ + UPLOAD + NEWSLETTER + RATE_LIMIT + CACHE + MAIL + READER_TRACE + GENERATE + READER_PUBLIC_CONFIG + fx) (Either TooMuchConcurrency (Result a))
+  -> Run (EVENT_STORE + EXCEPT_LOGIC + PROJECTION_READ + DOWNLOAD + UPLOAD + NEWSLETTER + RATE_LIMIT + CACHE + MAIL + READER_TRACE + GENERATE + READER_PUBLIC_CONFIG + fx) (Either TooMuchConcurrency (Result a))
 defaultHandle
   filter
   checkLoadedEvents

@@ -1,18 +1,17 @@
 module Core.Message.Field.Field where
 
 import Proem
+
 import Control.Monad.Except as Control.Monad.Except
-
-import Data.Enum (class BoundedEnum, enumFromTo)
-
-import Foreign (Foreign)
-import Foreign as Foreign
-import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
+import Core.Message.MakeMessageM (MakeMessageM)
 import Data.Either (Either(..))
+import Data.Enum (class BoundedEnum, enumFromTo)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.String (trim)
-import Core.Message.MakeMessageM (MakeMessageM)
+import Foreign (Foreign)
+import Foreign as Foreign
+import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
 
 type FieldCli =
   { description :: String

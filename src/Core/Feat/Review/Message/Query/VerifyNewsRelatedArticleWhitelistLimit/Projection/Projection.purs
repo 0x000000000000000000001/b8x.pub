@@ -1,10 +1,7 @@
 module Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.Projection.Projection where
 
-import Proem (class Eq, class Ord, class Show, Ɩ, ηι, ($), (<#>), (<<<), (▷))
+import Proem (class Eq, class Ord, class Show, Ɩ, ηι, ($), (<#>), (▷))
 
-import Core.Mod.Article.Slug.Slug (Slug)
-import Data.Array as Array
-import Data.Maybe (Maybe(..), maybe)
 import Core.Event.Event (Event(..), LoadedEvent)
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
 import Core.Event.ArticleAddedToNewsRelatedWhitelist.Payload as ArticleAddedToNewsRelatedWhitelist
@@ -12,7 +9,7 @@ import Core.Event.ArticleRemovedFromNewsRelatedWhitelist.Payload as ArticleRemov
 import Core.Mod.Article.Id.Id (ArticleId)
 import Core.Mod.Projection.Finder.Finder (Find, FindOpt, findMany_)
 import Core.Mod.Projection.Finder.Filter (class IsFilter)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
 import Partial.Unsafe (unsafeCrashWith)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
@@ -35,12 +32,12 @@ instance
     "verifyNewsRelatedArticleWhitelistLimitProjectionWriteOps"
     (VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_OPS ())
     "verifyNewsRelatedArticleWhitelistLimitProjectionReadSyncProject"
-    { verifyNewsRelatedArticleWhitelistLimit :: Article }
-    { verifyNewsRelatedArticleWhitelistLimit :: ArticleIndexNeeds }
-    { verifyNewsRelatedArticleWhitelistLimit :: Record () }
+    { article :: Article }
+    { article :: ArticleIndexNeeds }
+    { article :: Record () }
   where
   indexNeeds =
-    { verifyNewsRelatedArticleWhitelistLimit:
+    { article:
         { id: rawIndexOnly
         }
     }
@@ -59,15 +56,18 @@ instance
     ArticleRecord
     ArticleIndexNeeds
     ()
-    "verifyNewsRelatedArticleWhitelistLimit"
-    "verifyNewsRelatedArticleWhitelistLimitArticles"
+    "article"
+    "articles"
     "verifyNewsRelatedArticleWhitelistLimitProjectionReadFind"
     VerifyNewsRelatedArticleWhitelistLimitProjection
   where
-  toKey (Article { id }) = ArticleKey { id: Just id, slug: Nothing }
+  toKey (Article { id }) = ArticleKey id
   single = false
 
 newtype Article = Article ArticleRecord
+
+instance ToAliases Article where
+  toAliases _ = []
 
 type ArticleRecord =
   { id :: ArticleId
@@ -88,11 +88,11 @@ derive newtype instance Random Article
 instance Show Article where
   show = genericShow
 
-newtype ArticleKey = ArticleKey { id :: Maybe ArticleId, slug :: Maybe Slug }
+newtype ArticleKey = ArticleKey ArticleId
 
 derive instance Newtype ArticleKey _
-instance ToAliasedPrimary ArticleKey where
-  toAliasedPrimary (ArticleKey k) = { primary: maybe "" toString k.id, aliases: maybe [] (Array.singleton <<< toString) k.slug }
+instance ToPrimary ArticleKey where
+  toPrimary (ArticleKey id) = toString id
 
 derive instance Eq ArticleKey
 derive instance Ord ArticleKey
@@ -117,7 +117,7 @@ type VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_READ fx =
     + fx
 
 findArticles :: ∀ fx. FindOpt ArticleFilter ArticleId Article -> Run (VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_READ + fx) { hasNextPage :: Boolean, items :: Array Article }
-findArticles opt = findMany_ opt { after = opt.after <#> (\id -> ArticleKey { id: Just id, slug: Nothing }) ▷ persistenceKeyFromKey }
+findArticles opt = findMany_ opt { after = opt.after <#> (\id -> ArticleKey id) ▷ persistenceKeyFromKey }
 
 -- Play
 
@@ -129,10 +129,10 @@ play { event } = case event of
   _ -> ηι
 
 onArticleDiscarded :: ∀ fx. ArticleDiscarded.Payload -> Run (VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_OPS fx) Ɩ
-onArticleDiscarded { article } = delete (ArticleKey { id: Just article, slug: Nothing })
+onArticleDiscarded { article } = delete (ArticleKey article)
 
 onArticleAddedToNewsRelatedWhitelist :: ∀ fx. ArticleAddedToNewsRelatedWhitelist.Payload -> Run (VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleAddedToNewsRelatedWhitelist { article } = add $ Article { id: article }
 
 onArticleRemovedFromNewsRelatedWhitelist :: ∀ fx. ArticleRemovedFromNewsRelatedWhitelist.Payload -> Run (VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_OPS fx) Ɩ
-onArticleRemovedFromNewsRelatedWhitelist { article } = delete (ArticleKey { id: Just article, slug: Nothing })
+onArticleRemovedFromNewsRelatedWhitelist { article } = delete (ArticleKey article)

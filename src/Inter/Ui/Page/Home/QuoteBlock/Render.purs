@@ -14,7 +14,8 @@ import Data.Maybe (Maybe(..))
 import Inter.Ui.Mod.Link.Component (link_)
 import Inter.Ui.Capability.Navigate.Navigate (Route(..))
 import CSS (block)
-import Inter.Ui.Page.Home.QuoteBlock.Style.Style (quoteBlock_, leftCol_, rightCol_, articleTitle_, quoteText_, quoteImage_, imageBand_, quoteIcon_, quoteTitle_, quoteImageBlur, quoteImageContain)
+import Inter.Ui.Page.Home.QuoteBlock.Style.Style (staticClass, quoteBlock_, leftCol_, rightCol_, articleTitle_, quoteText_, quoteImage_, imageBand_, quoteIcon_, quoteTitle_, quoteImageBlur, quoteImageContain)
+import Util.Style.ContainerQuery (containerQueryStyle)
 import Data.Newtype (unwrap)
 import Util.Html.Clean.Clean (untagAll)
 import Data.Array as Array
@@ -72,7 +73,15 @@ renderQuoteBlock s = case s.articleQuote of
         , classes: Nothing
         , display: block
         , children:
-            [ quoteBlock_
+            [ containerQueryStyle "homeMainCol" "max-width: 850px"
+                ( "." <> staticClass <> " { flex-direction: column !important; width: 100% !important; margin: -1rem 0 -1.5rem 0 !important; }"
+               <> " ." <> staticClass <> "-left { flex: none !important; width: 100% !important; padding: 2.5rem 1.5rem 2rem 1.5rem !important; }"
+               <> " ." <> staticClass <> "-right { flex: none !important; width: 100% !important; height: 250px !important; border-top-right-radius: 0 !important; border-bottom-left-radius: 1rem !important; }"
+               <> " ." <> staticClass <> "-text { font-size: 1.35rem !important; line-height: 140% !important; }"
+               <> " ." <> staticClass <> "-quote-title { font-size: 1rem !important; padding: 0.3rem 1.2rem !important; }"
+               <> " ." <> staticClass <> "-icon { left: 0.5rem !important; top: 0.5rem !important; width: 3.5rem !important; height: 3.5rem !important; opacity: 0.1 !important; }"
+                )
+            , quoteBlock_
                 [ leftCol_
                     [ quoteIcon_ []
                     , quoteText_ [ HH.text ("« " <> quote <> " »") ]

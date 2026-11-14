@@ -8,7 +8,7 @@ import Core.Event.UserRegistered.Payload as UserRegistered
 import Core.Event.UserUnregistered.Payload as UserUnregistered
 import Core.Mod.Email.Email (Email)
 import Core.Mod.Projection.Finder.Finder (Find, findOneByKey)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete, patch, get)
 import Core.Mod.Projection.SyncProject (SyncProject)
 import Core.Mod.User.Id.Id (UserId)
@@ -21,6 +21,7 @@ import Run (Run)
 import Type.Row (type (+))
 import Util.Type.Random (class Random)
 import Util.Type.String.ToString (toString)
+import Data.Array as Array
 
 data GetUserAccountProjection
 
@@ -65,6 +66,9 @@ instance
 
 newtype Account = Account AccountRecord
 
+instance ToAliases Account where
+  toAliases _ = []
+
 type AccountRecord =
   { id :: UserId
   , email :: Email
@@ -85,8 +89,8 @@ newtype AccountKey = AccountKey UserId
 derive instance Generic AccountKey _
 derive instance Eq AccountKey
 derive instance Ord AccountKey
-instance ToAliasedPrimary AccountKey where
-  toAliasedPrimary (AccountKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary AccountKey where
+  toPrimary (AccountKey id) = toString id
 
 instance
   IsPair
@@ -105,10 +109,12 @@ instance
 
 newtype Donation = Donation DonationRecord
 
+instance ToAliases Donation where
+  toAliases _ = []
+
 type DonationRecord =
   { email :: Email
-  , latestDonation :: Instant
-  , totalDonatedAmount :: Int
+  , history :: Array { amount :: Int, date :: Instant }
   }
 
 type DonationIndexNeeds = {}
@@ -126,8 +132,8 @@ newtype DonationKey = DonationKey Email
 derive instance Generic DonationKey _
 derive instance Eq DonationKey
 derive instance Ord DonationKey
-instance ToAliasedPrimary DonationKey where
-  toAliasedPrimary (DonationKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary DonationKey where
+  toPrimary (DonationKey id) = toString id
 
 -- Find
 
@@ -155,6 +161,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι
@@ -189,9 +200,5 @@ onUserDonated { thirdPartyEmail, donatedAt, amount } = do
   case mDonation of
     Just (Donation _) -> do
       patch (DonationKey thirdPartyEmail) \(Donation doc) -> 
-        let nextAmount = doc.totalDonatedAmount + amount
-        in if donatedAt > doc.latestDonation then
-             Donation (doc { latestDonation = donatedAt, totalDonatedAmount = nextAmount })
-           else 
-             Donation (doc { totalDonatedAmount = nextAmount })
-    Nothing -> add $ Donation { email: thirdPartyEmail, latestDonation: donatedAt, totalDonatedAmount: amount }
+        Donation (doc { history = Array.snoc doc.history { amount, date: donatedAt } })
+    Nothing -> add $ Donation { email: thirdPartyEmail, history: [ { amount, date: donatedAt } ] }

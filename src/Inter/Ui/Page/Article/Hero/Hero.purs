@@ -18,8 +18,9 @@ import Inter.Ui.Capability.ArticleCache.ArticleCache (AlreadyKnown)
 import Inter.Ui.Page.Article.Type (Action)
 import Halogen (ComponentHTML)
 import Inter.Ui.UiM (UiM)
+import Inter.Ui.Type.Device (Device)
 
-hero :: ∀ slots r. { id :: InstanceId | r } -> UiArticle -> ComponentHTML Action slots UiM
+hero :: ∀ slots r. { id :: InstanceId, context :: Device | r } -> UiArticle -> ComponentHTML Action slots UiM
 hero state articleData =
   let
     illustrations = case articleData.illustrations of
@@ -55,7 +56,7 @@ hero state articleData =
       , illustration state layout articleData
       ]
 
-heroLoading :: ∀ slots r. { id :: InstanceId | r } -> Maybe AlreadyKnown -> ComponentHTML Action slots UiM
+heroLoading :: ∀ slots r. { id :: InstanceId, context :: Device | r } -> Maybe AlreadyKnown -> ComponentHTML Action slots UiM
 heroLoading state mKnown =
   let
     layout = case mKnown of

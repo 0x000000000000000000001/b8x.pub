@@ -13,7 +13,7 @@ type AfterNewsletter = Maybe NewsletterId
 newtype AfterNewsletterField = AfterNewsletterField AfterNewsletter
 
 description :: String
-description = "After newsletter ID"
+description = "After newsletter"
 
 instance IsField AfterNewsletterField AfterNewsletter () where
   name = "Newsletter"

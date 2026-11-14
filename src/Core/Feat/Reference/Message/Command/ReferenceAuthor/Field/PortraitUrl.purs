@@ -2,11 +2,11 @@ module Core.Feat.Reference.Message.Command.ReferenceAuthor.Field.PortraitUrl whe
 
 import Proem
 
-import Core.Message.Field.Field (class IsField, Sanitized(..), defaultMaybePresence, defaultShouldSanitizeInner)
+import Core.Message.Field.Field (class IsField, Sanitized(..), defaultMaybePresence, defaultSanitize, defaultShouldSanitizeInner)
 import Core.Mod.Url.Url as Base
-import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
+import Yoga.JSON (class ReadForeign, class WriteForeign)
 
 type Portrait = Maybe Base.Url
 
@@ -22,7 +22,7 @@ instance IsField PortraitField Portrait () where
 
   presence = defaultMaybePresence
 
-  sanitize = κ Intact
+  sanitize = defaultSanitize ConsideredMissingSoShouldBeDefault
 
   shouldSanitizeInner = defaultShouldSanitizeInner
 

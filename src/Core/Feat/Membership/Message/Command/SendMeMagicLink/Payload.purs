@@ -40,11 +40,20 @@ derive newtype instance Show ReturnToField
 
 instance IsField ReturnToField ReturnTo () where
   name = "returnTo"
+
   description = "The path to return to after login"
+
   presence = Required
+
   sanitize = defaultSanitize Intact
+
   shouldSanitizeInner = true
-  cli = { description: "Return path", multiline: false, choices: Nothing }
+
+  cli =
+    { description: "Return path"
+    , multiline: false
+    , choices: Nothing
+    }
 
 type Fields =
   ( email :: EmailField

@@ -10,7 +10,6 @@ module Inter.Ui.Remote
   , commandModify'
   , command
   , command_
-  , getCsrfToken
   ) where
 
 import Proem
@@ -44,6 +43,7 @@ import Effect.Class (liftEffect)
 import Effect.Ref as Ref
 import Effect.Unsafe (unsafePerformEffect)
 import Halogen (HalogenM, modify_)
+import Inter.Ui.Api.CsrfToken (getCsrfToken)
 import Inter.Api.Social.Meta.Type (Meta)
 import Inter.Api.Whitelist.Command (CommandRow)
 import Inter.Api.Whitelist.Query (QueryRow)
@@ -63,7 +63,6 @@ import Util.Type.String.String (caseToKebab)
 import Util.Type.Type (reflectName)
 import Config.PublicConfig (publicConfig)
 
-foreign import getCsrfToken :: Effect String
 foreign import runWithWebLockImpl :: ∀ a. Effect (Promise a) -> Effect (Promise a)
 
 runWithWebLock :: ∀ a. Promise.Flatten a a => Aff a -> Aff a
@@ -267,7 +266,7 @@ performRequest useCache url payload = go 4
     else if code >= 500 && retriesLeft > 0 then
       retryWithDelay retriesLeft
     else if code >= 200 && code < 400 then
-      handle2xx useCache url payload response
+      handle2xx useCache url payload response retriesLeft retryWithDelay
     else if code == 401 && retriesLeft > 0 then
       handle401 retriesLeft
     else
@@ -278,7 +277,7 @@ performRequest useCache url payload = go 4
     go (retriesLeft - 1)
 
   handle401 retriesLeft = do
-    attemptTokenRefresh
+    attemptTokenRefresh url
     go (retriesLeft - 1)
 
 buildRequest
@@ -320,27 +319,31 @@ handle304 url mCached = case mCached of
     error $ "Received 304 but no cache found for " <> url
     η $ Failure "Received 304 but no cache found"
 
-handle2xx :: ∀ t a. MonadTrans t => MonadAff (t UiM) => FromRemoteOutput a => Boolean -> String -> Foreign -> Affjax.Response String -> t UiM (Remote a)
-handle2xx useCache url payload response = do
-  let
-    bodyForeign = case readJSON response.body of
-      Right (f :: Foreign) -> f
-      Left _ -> payload -- Fallback dummy, decodePayload will fail anyway if invalid json
+handle2xx :: ∀ t a. MonadTrans t => MonadAff (t UiM) => FromRemoteOutput a => Boolean -> String -> Foreign -> Affjax.Response String -> Int -> (Int -> t UiM (Remote a)) -> t UiM (Remote a)
+handle2xx useCache url payload response retriesLeft retryWithDelayFn = do
+  case readJSON response.body of
+    Left _ -> do
+      if retriesLeft > 0 then do
+        error $ "Invalid JSON from API " <> url <> ". Retrying..."
+        retryWithDelayFn retriesLeft
+      else do
+        error $ "Invalid JSON from API " <> url <> " and max retries reached."
+        η $ Failure "Invalid JSON response"
+    Right (bodyForeign :: Foreign) -> do
+      when useCache do
+        let etagM = Array.findMap (\(ResponseHeader k v) -> if toLower k == "etag" then Just v else Nothing) response.headers
+        case etagM of
+          Just etag -> ApiCache.putApiCache url payload { etag, data: bodyForeign }
+          Nothing -> η ι
 
-  when useCache do
-    let etagM = Array.findMap (\(ResponseHeader k v) -> if toLower k == "etag" then Just v else Nothing) response.headers
-    case etagM of
-      Just etag -> ApiCache.putApiCache url payload { etag, data: bodyForeign }
-      Nothing -> η ι
+      case decodePayload bodyForeign of
+        Right data' -> η $ Success data'
+        Left err -> do
+          error $ "Error fetching API " <> url <> ": " <> err
+          η $ Failure err
 
-  case decodePayload bodyForeign of
-    Right data' -> η $ Success data'
-    Left err -> do
-      error $ "Error fetching API " <> url <> ": " <> err
-      η $ Failure err
-
-attemptTokenRefresh :: ∀ t. MonadTrans t => MonadAff (t UiM) => t UiM Ɩ
-attemptTokenRefresh = do
+attemptTokenRefresh :: ∀ t. MonadTrans t => MonadAff (t UiM) => String -> t UiM Ɩ
+attemptTokenRefresh _ = do
   oldCsrfToken <- ʌ' $ liftEffect getCsrfToken
   refreshRes <- ʌ' $ runWithWebLock do
     acquireLock
@@ -403,7 +406,6 @@ attemptTokenRefresh = do
       _ <- ʌ' $ Http.request logoutRequest
       _ <- navigate (Home { consumeMagicLoginToken: Nothing, menu: { magazineIssueOpen: Nothing, search: { openWith: Nothing, withAuthorFilter: Nothing } } })
       error $ "Error requesting token refresh: " <> printError refreshErr
-
 
 class FromRemoteOutput a where
   fromRemoteOutput :: Foreign -> Either String a

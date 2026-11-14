@@ -9,6 +9,7 @@ import Core.Exception.Index (EXCEPT_LOGIC)
 import Core.Message.Command.Command (class IsCommand, maxRetries, baseRetryDelayMs)
 import Core.Message.Command.Command as Command
 import Core.Message.Command.Handle.Exception (TooMuchConcurrency(..))
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Message.Queue (QUEUE)
 import Core.Feat.Effect.Newsletter (NEWSLETTER)
@@ -53,6 +54,7 @@ handleCommand'
            + EXCEPT_LOGIC
            + QUEUE
            + PROJECTION_READ
+           + DOWNLOAD
            + UPLOAD
            + NEWSLETTER
            + RATE_LIMIT
@@ -95,6 +97,7 @@ handleCommand
            + EXCEPT_LOGIC
            + QUEUE
            + PROJECTION_READ
+           + DOWNLOAD
            + UPLOAD
            + NEWSLETTER
            + RATE_LIMIT
@@ -119,6 +122,7 @@ handleCommand_
            + EXCEPT_LOGIC
            + QUEUE
            + PROJECTION_READ
+           + DOWNLOAD
            + UPLOAD
            + NEWSLETTER
            + RATE_LIMIT

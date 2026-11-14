@@ -9,7 +9,6 @@ import Core.Message.Command.Command (Result) as Command
 import Core.Message.Command.Compose (child)
 import Core.Message.Command.Handle.Exception (TooMuchConcurrency)
 import Core.Message.Command.Handle.Handle (handleCommand)
-
 import Config.PublicConfig (READER_PUBLIC_CONFIG)
 import Core.Event.EventStore (EVENT_STORE)
 import Core.Exception.Index (EXCEPT_LOGIC)
@@ -19,6 +18,7 @@ import Core.Feat.Effect.Sleep (SLEEP)
 import Core.Feat.Effect.Mail (MAIL)
 import Core.Feat.Effect.Newsletter (NEWSLETTER)
 import Core.Feat.Effect.RateLimit (RATE_LIMIT)
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Message.Queue (QUEUE)
 import Core.Mod.Projection.Index (PROJECTION_READ)
@@ -34,6 +34,7 @@ childReferenceEditor
        ( EVENT_STORE
            + EXCEPT_LOGIC
            + PROJECTION_READ
+           + DOWNLOAD
            + UPLOAD
            + NEWSLETTER
            + RATE_LIMIT
@@ -43,7 +44,7 @@ childReferenceEditor
            + GENERATE
            + SLEEP
            + READER_PUBLIC_CONFIG
-           
+
            + fx
        )
        (Either TooMuchConcurrency (Command.Result Result))
@@ -57,6 +58,7 @@ referenceEditor
            + EXCEPT_LOGIC
            + QUEUE
            + PROJECTION_READ
+           + DOWNLOAD
            + UPLOAD
            + NEWSLETTER
            + RATE_LIMIT
@@ -66,7 +68,7 @@ referenceEditor
            + SLEEP
            + READER_TRACE
            + READER_PUBLIC_CONFIG
-           
+
            + fx
        )
        Result

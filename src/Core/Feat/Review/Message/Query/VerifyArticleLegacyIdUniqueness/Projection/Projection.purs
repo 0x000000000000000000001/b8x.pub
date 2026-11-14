@@ -3,10 +3,9 @@ module Core.Feat.Review.Message.Query.VerifyArticleLegacyIdUniqueness.Projection
 import Core.Event.ArticleWritten.Payload as ArticleWritten
 import Core.Event.Event (Event(..), LoadedEvent)
 import Core.Mod.Article.Id.Id (ArticleId)
-import Core.Mod.Article.Slug.Slug (Slug)
 import Core.Mod.Projection.Finder.Filter (StrictlyEquals(..))
 import Core.Mod.Projection.Finder.Finder (Find, findOneBy)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -14,6 +13,7 @@ import Data.Array as Array
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
+import Data.Show (show)
 import Data.Show.Generic (genericShow)
 import Proem (class Eq, class Ord, class Show, Ɩ, ηι, ($), (<<<))
 import Run (Run)
@@ -31,12 +31,12 @@ instance
     "verifyArticleLegacyIdUniquenessProjectionWriteOps"
     (VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_WRITE_OPS ())
     "verifyArticleLegacyIdUniquenessProjectionReadSyncProject"
-    { verifyArticleLegacyIdUniqueness :: Article }
-    { verifyArticleLegacyIdUniqueness :: ArticleIndexNeeds }
-    { verifyArticleLegacyIdUniqueness :: Record () }
+    { article :: Article }
+    { article :: ArticleIndexNeeds }
+    { article :: Record () }
   where
   indexNeeds =
-    { verifyArticleLegacyIdUniqueness:
+    { article:
         { id: rawIndexOnly
         , legacyId: rawIndexOnly
         }
@@ -56,15 +56,18 @@ instance
     ArticleRecord
     ArticleIndexNeeds
     ()
-    "verifyArticleLegacyIdUniqueness"
-    "verifyArticleLegacyIdUniquenessArticles"
+    "article"
+    "articles"
     "verifyArticleLegacyIdUniquenessProjectionReadFind"
     VerifyArticleLegacyIdUniquenessProjection
   where
-  toKey (Article { id }) = ArticleKey { id: Just id, slug: Nothing }
+  toKey (Article { id }) = ArticleKey id
   single = false
 
 newtype Article = Article ArticleRecord
+
+instance ToAliases Article where
+  toAliases (Article { legacyId }) = maybe [] (Array.singleton <<< show) legacyId
 
 type ArticleRecord =
   { id :: ArticleId
@@ -87,11 +90,11 @@ derive newtype instance Random Article
 instance Show Article where
   show = genericShow
 
-newtype ArticleKey = ArticleKey { id :: Maybe ArticleId, slug :: Maybe Slug }
+newtype ArticleKey = ArticleKey ArticleId
 
 derive instance Newtype ArticleKey _
-instance ToAliasedPrimary ArticleKey where
-  toAliasedPrimary (ArticleKey k) = { primary: maybe "" toString k.id, aliases: maybe [] (Array.singleton <<< toString) k.slug }
+instance ToPrimary ArticleKey where
+  toPrimary (ArticleKey id) = toString id
 
 derive instance Eq ArticleKey
 derive instance Ord ArticleKey
@@ -120,6 +123,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι

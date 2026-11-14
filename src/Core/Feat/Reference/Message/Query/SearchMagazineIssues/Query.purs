@@ -1,5 +1,4 @@
 module Core.Feat.Reference.Message.Query.SearchMagazineIssues.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 import Core.Message.Query.Query (class IsQuery, defaultCached)
@@ -8,7 +7,7 @@ import Core.Feat.Reference.Message.Query.SearchMagazineIssues.Payload (Fields, P
 import Core.Feat.Reference.Message.Query.SearchMagazineIssues.Result (Result)
 import Core.Feat.Reference.Message.Query.SearchMagazineIssues.State (State)
 import Core.Feat.Reference.Message.Query.SearchMagazineIssues.Projection.Projection (MagazineIssue, findMagazineIssues)
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.BoundedLimit.BoundedLimit (BoundedLimit(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
@@ -34,7 +33,7 @@ instance IsQuery SearchMagazineIssues State Fields Payload Result where
   description = "Search magazine issues"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @MagazineIssue Nothing
+    hash <- getReadModelHash @MagazineIssue HashAll
     η $ defaultCached hash
 
   handle (SearchMagazineIssues { sort, filter, limit: BoundedLimit limit_, expectation, after, needs }) = do

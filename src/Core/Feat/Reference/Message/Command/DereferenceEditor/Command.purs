@@ -1,5 +1,6 @@
 module Core.Feat.Reference.Message.Command.DereferenceEditor.Command
-  (DereferenceEditor(..)
+  ( DereferenceEditor(..)
+  , DereferenceEditorAliasRow
   ) where
 
 import Core.Message.Command.Command (class IsCommand, class IsProtectedAgainstConcurrency, defaultMaxConcurrencyRetries, ConcurrencyPriority(..), defaultCheckLoadedEvents, defaultHandle)
@@ -44,4 +45,39 @@ instance
 
   handle = defaultHandle @DereferenceEditor (Just filter) defaultCheckLoadedEvents initialState play decide toResult
 
-  
+type DereferenceEditorAliasRow r =
+  ( "DereferenceAnEditor" :: DereferenceEditor
+  , "DereferenceEditeur" :: DereferenceEditor
+  , "DereferenceUnEditeur" :: DereferenceEditor
+  , "DereferencerEditeur" :: DereferenceEditor
+  , "DereferencerUnEditeur" :: DereferenceEditor
+  , "DereferencementEditeur" :: DereferenceEditor
+  , "DereferencementDEditeur" :: DereferenceEditor
+  , "DereferencementDUnEditeur" :: DereferenceEditor
+  , "SupprimeEditeur" :: DereferenceEditor
+  , "SupprimeUnEditeur" :: DereferenceEditor
+  , "SupprimerEditeur" :: DereferenceEditor
+  , "SupprimerUnEditeur" :: DereferenceEditor
+  , "SuppressionEditeur" :: DereferenceEditor
+  , "SuppressionDEditeur" :: DereferenceEditor
+  , "SuppressionDUnEditeur" :: DereferenceEditor
+  , "EffaceEditeur" :: DereferenceEditor
+  , "EffaceUnEditeur" :: DereferenceEditor
+  , "EffacerEditeur" :: DereferenceEditor
+  , "EffacerUnEditeur" :: DereferenceEditor
+  , "EffacementEditeur" :: DereferenceEditor
+  , "EffacementDEditeur" :: DereferenceEditor
+  , "EffacementDUnEditeur" :: DereferenceEditor
+  , "RetireEditeur" :: DereferenceEditor
+  , "RetireUnEditeur" :: DereferenceEditor
+  , "RetirerEditeur" :: DereferenceEditor
+  , "RetirerUnEditeur" :: DereferenceEditor
+  , "RetraitEditeur" :: DereferenceEditor
+  , "RetraitDEditeur" :: DereferenceEditor
+  , "RetraitDUnEditeur" :: DereferenceEditor
+  , "JetteEditeur" :: DereferenceEditor
+  , "JetteUnEditeur" :: DereferenceEditor
+  , "JeterEditeur" :: DereferenceEditor
+  , "JeterUnEditeur" :: DereferenceEditor
+  | r
+  )

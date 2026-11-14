@@ -1,0 +1,13 @@
+x-security-opt: &security-opt
+  security_opt:
+    - apparmor:unconfined # remove some linux firewalls if set
+
+services:
+  pilot:
+    #volumes:
+    #  - ${DOCKER_DIR}/${ENV}/volume/pilot/data/:/data
+    <<: *security-opt
+
+  pilot-gateway:
+    ports:
+      - 8081:8080

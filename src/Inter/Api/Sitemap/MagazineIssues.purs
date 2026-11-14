@@ -28,7 +28,7 @@ handleSitemapMagazineIssues ctx _ res = do
   case resEither of
     Right { magazineIssues } -> do
       let
-        xslUrl = toAbsolute_ publicConfig.api.host (print ApiRoute.routeCodec ApiRoute.SitemapXsl) <> "?v=3"
+        xslUrl = toAbsolute_ publicConfig.ui.host (print ApiRoute.routeCodec ApiRoute.SitemapXsl) <> "?v=3"
         xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet type=\"text/xsl\" href=\"" <> xslUrl <> "\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
         xmlFooter = "</urlset>"
 

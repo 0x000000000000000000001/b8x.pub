@@ -4,7 +4,7 @@ import Proem hiding (div)
 
 import Data.Maybe (Maybe(..))
 import Util.Type.String.ToString (toString)
-import Halogen.HTML (ComponentHTML, div, strong, text)
+import Halogen.HTML (ComponentHTML, div, div_, strong, text)
 import Halogen.HTML.Events (onClick)
 import Inter.Ui.Mod.Tooltip.Tooltip (tooltip)
 import Inter.Ui.Mod.Tooltip.Type (defaultInput)
@@ -17,9 +17,11 @@ import Inter.Ui.Type.ControlledState (ControlledState(..))
 import Inter.Ui.UiM (UiM)
 import Util.Style.Anchor (AnchorPosition(..))
 import Util.Style.Classname (class_)
+import Util.Style.Size (Size(..))
+import Inter.Ui.Type.Device (Device(..))
 
 authorFilter :: State -> Maybe (ComponentHTML Action Slots UiM)
-authorFilter { activePanel, search: { authorFilter: mAuthorFilter } } = do
+authorFilter { activePanel, search: { authorFilter: mAuthorFilter }, context: { device } } = do
   let
     activePanel' = case activePanel of
       Controlled a -> a
@@ -32,10 +34,12 @@ authorFilter { activePanel, search: { authorFilter: mAuthorFilter } } = do
     let name = filter.name
     Just $ authorFilterNode
       []
-      [ text $ (if filter.ofBook then "Livre de" else "Article de") <> " :\x00A0"
-      , strong [] [ text (toString name) ]
+      [ div [ class_ "texts" ]
+          [ div_ [ text $ (if filter.ofBook then "Livre de" else "Article de") <> " :" ]
+          , strong [] [ text (toString name) ]
+          ]
       , tooltip
-          { disabled: false
+          { disabled: device /= Desktop
           , inner: div
               [ onClick (κ RemoveAuthorFilter)
               , class_ "closeIcon"
@@ -45,6 +49,7 @@ authorFilter { activePanel, search: { authorFilter: mAuthorFilter } } = do
           , style: defaultInput.style
               { offset = Just { vertical: 1.0, horizontal: 0.0 }
               , anchorPosition = Just BottomRightToTopRight
+              , width = Just (Rem 15.0)
               }
           }
       ]

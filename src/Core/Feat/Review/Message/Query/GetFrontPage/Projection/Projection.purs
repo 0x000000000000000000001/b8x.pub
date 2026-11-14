@@ -3,15 +3,19 @@ module Core.Feat.Review.Message.Query.GetFrontPage.Projection.Projection where
 import Yoga.JSON.Generics (genericWriteForeignTaggedSum, genericReadForeignTaggedSum)
 import Yoga.JSON.Generics.TaggedSumRep (defaultOptions)
 import Foreign as Foreign
+import Foreign.Index as Foreign.Index
 import Proem hiding (add)
 import Data.Bifunctor (lmap)
+import Control.Alt ((<|>))
 import Control.Monad.Except as Control.Monad.Except
-
 import Core.Mod.Author.Biography.Biography (Biography)
+import Core.Event.ArticleContentCorrected.Payload as ArticleContentCorrected
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
 import Core.Event.ArticleFeaturedOnFrontPage.Payload as ArticleFeaturedOnFrontPage
+import Core.Event.ArticleTitleCorrected.Payload as ArticleTitleCorrected
 import Core.Event.ArticleWritten.Payload as ArticleWritten
 import Core.Event.AuthorReferenced.Payload as AuthorReferenced
+import Core.Event.BookCoverCorrected.Payload as BookCoverCorrected
 import Core.Event.BookReferenced.Payload as BookReferenced
 import Core.Event.EditorReferenced.Payload as EditorReferenced
 import Core.Event.Event (Event(..), LoadedEvent)
@@ -41,7 +45,7 @@ import Core.Mod.Projection.Finder.Filter (StrictlyEquals(..), StrictlyNotEquals(
 import Core.Mod.Projection.Finder.Filter as Base
 import Core.Mod.Projection.Finder.Finder (Find, FindOpt, Page, findManyByKeys, findMany_, findOneBy, findOneByKey)
 import Core.Mod.Projection.Finder.Sort (SortCriteria)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
 import Core.Mod.Projection.Projection (ProjectionWriteOps, add, class IsProjection, coerce, delete, get, patch, put)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -53,7 +57,7 @@ import Data.Either (Either(..), note)
 import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Set (Set)
 import Data.Set as Set
@@ -118,11 +122,14 @@ type GET_FRONT_PAGE_PROJECTION_READ_FIND fx =
 ---- Article 
 
 instance IsPair ArticleKey Article ArticleRecord ArticleIndexNeeds ArticleSortRow "article" "articles" "getFrontPageArticleProjectionReadFind" GetFrontPageProjection where
-  toKey (Article { id, slug }) = ArticleKey { id: Just id, slug: Just slug }
+  toKey (Article { id, slug: _ }) = ArticleKey id
 
   single = false
 
 newtype Article = Article ArticleRecord
+
+instance ToAliases Article where
+  toAliases (Article { slug }) = [toString slug]
 
 type ArticleAuthor =
   { id :: AuthorId
@@ -221,11 +228,12 @@ instance Random Article where
       , writtenAt
       }
 
-newtype ArticleKey = ArticleKey { id :: Maybe ArticleId, slug :: Maybe Slug }
+newtype ArticleKey = ArticleKey ArticleId
 
 derive instance Newtype ArticleKey _
-instance ToAliasedPrimary ArticleKey where
-  toAliasedPrimary (ArticleKey k) = { primary: maybe "" toString k.id, aliases: maybe [] (Array.singleton <<< toString) k.slug }
+instance ToPrimary ArticleKey where
+  toPrimary (ArticleKey id) = toString id
+
 derive instance Eq ArticleKey
 derive instance Ord ArticleKey
 derive instance Generic ArticleKey _
@@ -241,6 +249,9 @@ instance IsPair FrontPageKey FrontPage FrontPageRecord FrontPageIndexNeeds () "f
   single = false
 
 newtype FrontPage = FrontPage FrontPageRecord
+
+instance ToAliases FrontPage where
+  toAliases _ = []
 
 type FrontPageArticles =
   { topLeft :: Maybe ArticleId
@@ -290,9 +301,9 @@ derive instance Generic FrontPageKey _
 instance Show FrontPageKey where
   show = genericShow
 
-instance ToAliasedPrimary FrontPageKey where
-  toAliasedPrimary (FrontPageKey Nothing) = { primary: "main", aliases: [] }
-  toAliasedPrimary (FrontPageKey (Just themeId)) = { primary: "theme:" <> toString themeId, aliases: [] }
+instance ToPrimary FrontPageKey where
+  toPrimary (FrontPageKey Nothing) = "main"
+  toPrimary (FrontPageKey (Just themeId)) = "theme:" <> toString themeId
 
 instance FromString FrontPageKey where
   fromString "main" = Just (FrontPageKey Nothing)
@@ -317,6 +328,9 @@ instance IsPair AuthorKey Author AuthorRecord AuthorIndexNeeds () "author" "auth
   single = false
 
 newtype Author = Author AuthorRecord
+
+instance ToAliases Author where
+  toAliases _ = []
 
 type AuthorRecord =
   { id :: AuthorId
@@ -354,8 +368,8 @@ derive instance Generic AuthorKey _
 instance Show AuthorKey where
   show = genericShow
 
-instance ToAliasedPrimary AuthorKey where
-  toAliasedPrimary (AuthorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary AuthorKey where
+  toPrimary (AuthorKey id) = toString id
 
 ---- Editor 
 
@@ -365,6 +379,9 @@ instance IsPair EditorKey Editor EditorRecord EditorIndexNeeds () "editor" "edit
   single = false
 
 newtype Editor = Editor EditorRecord
+
+instance ToAliases Editor where
+  toAliases _ = []
 
 type EditorRecord =
   { id :: EditorId
@@ -394,8 +411,8 @@ derive instance Generic EditorKey _
 instance Show EditorKey where
   show = genericShow
 
-instance ToAliasedPrimary EditorKey where
-  toAliasedPrimary (EditorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary EditorKey where
+  toPrimary (EditorKey id) = toString id
 
 ---- Book 
 
@@ -406,6 +423,9 @@ instance IsPair BookKey Book BookRecord BookIndexNeeds () "book" "books" "getFro
 
 newtype Book = Book BookRecord
 
+instance ToAliases Book where
+  toAliases _ = []
+
 type BookRecord =
   { id :: BookId
   , name :: Name
@@ -413,6 +433,7 @@ type BookRecord =
   , cover :: Maybe Image
   , authors :: Array AuthorId
   , editor :: Maybe EditorId
+  , articles :: Array ArticleId
   }
 
 type BookIndexNeeds = {}
@@ -421,7 +442,28 @@ derive instance Newtype Book _
 derive instance Generic Book _
 derive instance Eq Book
 derive instance Ord Book
-derive newtype instance ReadForeign Book
+
+instance ReadForeign Book where
+  readImpl json = do
+    r <- readImpl json :: Foreign.F
+      { id :: BookId
+      , name :: Name
+      , year :: Maybe Year
+      , cover :: Maybe Image
+      , authors :: Array AuthorId
+      , editor :: Maybe EditorId
+      }
+    articles <- (Foreign.Index.readProp "articles" json >>= readImpl) <|> pure []
+    η $ Book
+      { id: r.id
+      , name: r.name
+      , year: r.year
+      , cover: r.cover
+      , authors: r.authors
+      , editor: r.editor
+      , articles
+      }
+
 derive newtype instance WriteForeign Book
 derive newtype instance Random Book
 
@@ -438,8 +480,8 @@ derive instance Generic BookKey _
 instance Show BookKey where
   show = genericShow
 
-instance ToAliasedPrimary BookKey where
-  toAliasedPrimary (BookKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary BookKey where
+  toPrimary (BookKey id) = toString id
 
 -- Filter
 
@@ -534,10 +576,10 @@ type GET_FRONT_PAGE_ARTICLE_PROJECTION_READ fx =
     + fx
 
 findArticleById :: ∀ fx. ArticleId -> Run (GET_FRONT_PAGE_ARTICLE_PROJECTION_READ + fx) (Maybe Article)
-findArticleById id = findOneByKey (ArticleKey { id: Just id, slug: Nothing })
+findArticleById id = findOneByKey (ArticleKey id)
 
 findArticlesByIds :: ∀ fx. Array ArticleId -> Run (GET_FRONT_PAGE_ARTICLE_PROJECTION_READ + fx) (Array Article)
-findArticlesByIds ids = findManyByKeys (ids <#> \id -> ArticleKey { id: Just id, slug: Nothing })
+findArticlesByIds ids = findManyByKeys (ids <#> \id -> ArticleKey id)
 
 findArticleByLegacyId :: ∀ fx. Int -> Run (GET_FRONT_PAGE_ARTICLE_PROJECTION_READ + fx) (Maybe Article)
 findArticleByLegacyId legacyId = findOneBy @Article @"legacyId" StrictlyEquals (Just legacyId)
@@ -546,7 +588,7 @@ findArticles
   :: ∀ fx
    . FindOpt ArticleFilter ArticleId Article
   -> Run (GET_FRONT_PAGE_ARTICLE_PROJECTION_READ + fx) (Page Article)
-findArticles opt = findMany_ opt { after = opt.after <#> (\id -> ArticleKey { id: Just id, slug: Nothing }) ▷ persistenceKeyFromKey }
+findArticles opt = findMany_ opt { after = opt.after <#> (\id -> ArticleKey id) ▷ persistenceKeyFromKey }
 
 type GET_FRONT_PAGE_FRONT_PAGE_PROJECTION_READ_FIND fx = (getFrontPageFrontPageProjectionReadFind :: Find FrontPage | fx)
 type GET_FRONT_PAGE_FRONT_PAGE_PROJECTION_READ fx =
@@ -569,6 +611,11 @@ play { event, at } = case event of
   BookReferenced payload -> onBookReferenced payload
   AuthorDereferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected payload -> onBookCoverCorrected payload
+  ArticleTitleCorrected payload -> onArticleTitleCorrected payload
+  ArticleContentCorrected payload -> onArticleContentCorrected payload
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorDereferenced _ -> ηι
@@ -591,11 +638,11 @@ play { event, at } = case event of
 
 onArticleDiscarded :: ∀ fx. ArticleDiscarded.Payload -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleDiscarded { article } = do
-  mArticle <- get (ArticleKey { id: Just article, slug: Nothing })
+  mArticle <- get (ArticleKey article)
 
   case mArticle of
     Nothing -> ηι
-    Just (Article { onFrontPages }) -> do
+    Just (Article { onFrontPages, books }) -> do
       for_ (Array.fromFoldable onFrontPages) \key -> do
         mFp <- get key
 
@@ -613,7 +660,9 @@ onArticleDiscarded { article } = do
             in
               put $ FrontPage (fp { articles = set r })
 
-  delete $ ArticleKey { id: Just article, slug: Nothing }
+      for_ (unwrap books).ids \bookId -> unregisterArticleFromBook article bookId
+
+  delete $ ArticleKey article
 
 onArticleFeaturedOnFrontPage :: ∀ fx. ArticleFeaturedOnFrontPage.Payload -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleFeaturedOnFrontPage { article, position, theme } = do
@@ -643,10 +692,16 @@ onArticleFeaturedOnFrontPage { article, position, theme } = do
   put $ FrontPage (fp { articles = updatedArticles })
 
   case oldArticle of
-    Just rId -> patch (ArticleKey { id: Just rId, slug: Nothing }) (unwrap ▷ (\r -> r { onFrontPages = Set.delete fpKey r.onFrontPages }) ▷ wrap)
+    Just rId -> patch (ArticleKey rId) (unwrap ▷ (\r -> r { onFrontPages = Set.delete fpKey r.onFrontPages }) ▷ wrap)
     Nothing -> ηι
 
-  patch (ArticleKey { id: Just article, slug: Nothing }) (unwrap ▷ (\r -> r { onFrontPages = Set.insert fpKey r.onFrontPages }) ▷ wrap)
+  patch (ArticleKey article) (unwrap ▷ (\r -> r { onFrontPages = Set.insert fpKey r.onFrontPages }) ▷ wrap)
+
+onArticleTitleCorrected :: ∀ fx. ArticleTitleCorrected.Payload -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleTitleCorrected { article, title } = patch (ArticleKey article) \(Article a) -> Article (a { title = title })
+
+onArticleContentCorrected :: ∀ fx. ArticleContentCorrected.Payload -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleContentCorrected { article, content } = patch (ArticleKey article) \(Article a) -> Article (a { content = content })
 
 onArticleWritten :: ∀ fx. Instant -> ArticleWritten.Payload -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleWritten
@@ -663,6 +718,7 @@ onArticleWritten
   , author
   , illustrations
   , slug
+  , frontPagePosition
   } = do
   let bookIds = books
   fetchedBooks <- Array.catMaybes <$> traverse (get ◁ BookKey) bookIds
@@ -709,6 +765,12 @@ onArticleWritten
     , writtenAt: at
     }
 
+  for_ bookIds \bookId -> registerArticleInBook id bookId
+
+  for_ 
+    frontPagePosition 
+    \position -> onArticleFeaturedOnFrontPage { article: id, position, theme: Nothing }
+
 onAuthorReferenced :: ∀ fx. AuthorReferenced.Payload -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
 onAuthorReferenced { id, name, biography, portrait } = add $ Author { id, name, biography, portrait }
 
@@ -716,8 +778,25 @@ onEditorReferenced :: ∀ fx. EditorReferenced.Payload -> Run (GET_FRONT_PAGE_PR
 onEditorReferenced { id, name } = add $ Editor { id, name }
 
 onBookReferenced :: ∀ fx. BookReferenced.Payload -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
-onBookReferenced { id, name, year, cover, authors, editor } = add $ Book { id, name, year, cover, authors, editor }
+onBookReferenced { id, name, year, cover, authors, editor } = add $ Book { id, name, year, cover, authors, editor, articles: [] }
 
+registerArticleInBook :: ∀ fx. ArticleId -> BookId -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
+registerArticleInBook articleId bookId =
+  patch (BookKey bookId) \(Book b) -> Book (b { articles = Array.snoc (Array.filter (_ /= articleId) b.articles) articleId })
 
+unregisterArticleFromBook :: ∀ fx. ArticleId -> BookId -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
+unregisterArticleFromBook articleId bookId =
+  patch (BookKey bookId) \(Book b) -> Book (b { articles = Array.filter (_ /= articleId) b.articles })
 
+onBookCoverCorrected :: ∀ fx. BookCoverCorrected.Payload -> Run (GET_FRONT_PAGE_PROJECTION_WRITE_OPS fx) Ɩ
+onBookCoverCorrected { book: bookId, cover } = do
+  mBook <- get (BookKey bookId)
 
+  case mBook of
+    Nothing -> ηι
+    Just (Book b) -> do
+      put $ Book (b { cover = cover })
+
+      for_ (Array.nub b.articles) \articleId ->
+        patch (ArticleKey articleId) \(Article a) ->
+          Article (a { books = Books.updateBookCover bookId cover a.books })

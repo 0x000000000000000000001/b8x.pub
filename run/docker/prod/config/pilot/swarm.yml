@@ -1,0 +1,4 @@
+services:
+  pilot:
+    volumes:
+      - ${DOCKER_DIR}/${ENV}/volume/pilot/data/:/data

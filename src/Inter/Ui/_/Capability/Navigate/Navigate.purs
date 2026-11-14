@@ -5,12 +5,12 @@ import Proem hiding ((/))
 import Control.Alt ((<|>))
 import Core.Mod.Article.Slug.Slug (Slug, unsafeFromString)
 import Core.Mod.MagazineIssue.Slug.Slug as MagazineIssueSlug
-import Core.Mod.Article.Theme.Theme (Theme) as ArticleTheme
+import Core.Mod.Article.Theme.Theme (Theme(..)) as ArticleTheme
 import Core.Mod.Author.Id.Id (AuthorId)
 import Core.Mod.Author.Name.Name as Author
 
 import Core.Mod.Html.Html as Html
-import Data.Either (Either(..), note)
+import Data.Either (Either(..))
 
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..), isNothing)
@@ -19,6 +19,7 @@ import Data.Show.Generic (genericShow)
 import Effect (Effect)
 import Foreign (unsafeToForeign)
 import Inter.Api.Social.Meta.Type (Meta, defaultDescription, defaultMeta, defaultTitle)
+import Inter.Ui.Analytics (trackPageView)
 import Routing.Duplex (RouteDuplex', as, optional, params, path, print, root, segment)
 import Routing.Duplex.Generic (noArgs, product, sum)
 import Routing.Duplex.Generic.Syntax ((/))
@@ -51,8 +52,12 @@ type Params =
 data Route
   = Home Params
   | Theme ArticleTheme.Theme Params
+  -- Static single-segment routes must precede article slugs.
+  | Newsletter Params
   | Article Slug Params
   | Donate Params
+  | About Params
+  | Legal Params
   | NotFound
 
 derive instance Generic Route _
@@ -76,6 +81,23 @@ menuMagazineIssueCodec = as toString fromString'
   where
   fromString' s = Right (MagazineIssueSlug.unsafeFromString s)
 
+themeSlugCodec :: RouteDuplex' ArticleTheme.Theme
+themeSlugCodec = as toSlug fromSlug segment
+  where
+  toSlug = case _ of
+    ArticleTheme.Literature -> "litterature"
+    ArticleTheme.Science -> "science"
+    ArticleTheme.History -> "histoire"
+    ArticleTheme.Ideas -> "idees"
+    ArticleTheme.Politics -> "politique"
+  fromSlug = case _ of
+    "litterature" -> Right ArticleTheme.Literature
+    "science" -> Right ArticleTheme.Science
+    "histoire" -> Right ArticleTheme.History
+    "idees" -> Right ArticleTheme.Ideas
+    "politique" -> Right ArticleTheme.Politics
+    _ -> Left "Invalid Theme Slug"
+
 routeCodec :: RouteDuplex' Route
 routeCodec = root $ sum routeConfig
   where
@@ -85,7 +107,12 @@ routeCodec = root $ sum routeConfig
         , menuMagazineIssueOpen: optional ◁ menuMagazineIssueCodec
         , consumeMagicLoginToken: optional :: RouteDuplex' String -> RouteDuplex' (Maybe String)
         }
-    , "Theme": path "theme" $ product (as toString (fromString ▷ note "Invalid Theme") segment) $ dimap to from $ params
+    , "Theme": path "theme" $ product themeSlugCodec $ dimap to from $ params
+        { menuSearchOpenWith: optional ◁ menuSearchCodec
+        , menuMagazineIssueOpen: optional ◁ menuMagazineIssueCodec
+        , consumeMagicLoginToken: optional :: RouteDuplex' String -> RouteDuplex' (Maybe String)
+        }
+    , "Newsletter": path "newsletter" $ dimap to from $ params
         { menuSearchOpenWith: optional ◁ menuSearchCodec
         , menuMagazineIssueOpen: optional ◁ menuMagazineIssueCodec
         , consumeMagicLoginToken: optional :: RouteDuplex' String -> RouteDuplex' (Maybe String)
@@ -95,7 +122,17 @@ routeCodec = root $ sum routeConfig
         , menuMagazineIssueOpen: optional ◁ menuMagazineIssueCodec
         , consumeMagicLoginToken: optional :: RouteDuplex' String -> RouteDuplex' (Maybe String)
         }
-    , "Donate": path "page" $ path "donate" $ dimap to from $ params
+    , "Donate": path "page" $ path "don" $ dimap to from $ params
+        { menuSearchOpenWith: optional ◁ menuSearchCodec
+        , menuMagazineIssueOpen: optional ◁ menuMagazineIssueCodec
+        , consumeMagicLoginToken: optional :: RouteDuplex' String -> RouteDuplex' (Maybe String)
+        }
+    , "About": path "page" $ path "qui-nous-sommes" $ dimap to from $ params
+        { menuSearchOpenWith: optional ◁ menuSearchCodec
+        , menuMagazineIssueOpen: optional ◁ menuMagazineIssueCodec
+        , consumeMagicLoginToken: optional :: RouteDuplex' String -> RouteDuplex' (Maybe String)
+        }
+    , "Legal": path "page" $ path "mentions-legales" $ dimap to from $ params
         { menuSearchOpenWith: optional ◁ menuSearchCodec
         , menuMagazineIssueOpen: optional ◁ menuMagazineIssueCodec
         , consumeMagicLoginToken: optional :: RouteDuplex' String -> RouteDuplex' (Maybe String)
@@ -173,5 +210,9 @@ interpretNavigate = Run.interpret (Run.on navigate' handle Run.send)
       setMetaContent "description" description
       setMetaContent "og:title" title
       setMetaContent "og:description" description
+
+      -- The metadata is settled: this is the right moment to report the
+      -- navigation to Google Analytics.
+      trackPageView
 
     η next

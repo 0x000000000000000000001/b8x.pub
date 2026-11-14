@@ -14,7 +14,7 @@ type Content = Base.Content
 newtype ContentField = ContentField Content
 
 description :: String
-description = "Article content"
+description = "Content URL (.docx file)"
 
 instance IsField ContentField Content () where
   name = "Content"

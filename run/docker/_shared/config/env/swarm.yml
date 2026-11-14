@@ -1,0 +1,8 @@
+services:
+  env:
+    deploy:
+      replicas: 0
+      restart_policy:
+        condition: any
+    networks:
+      - stack-default

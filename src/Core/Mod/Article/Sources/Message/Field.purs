@@ -15,7 +15,7 @@ type Sources = Base.Sources
 newtype SourcesField = SourcesField Sources
 
 description :: String
-description = "Article sources"
+description = "Article sources (HTML)"
 
 instance IsField SourcesField Sources () where
   name = "Sources"

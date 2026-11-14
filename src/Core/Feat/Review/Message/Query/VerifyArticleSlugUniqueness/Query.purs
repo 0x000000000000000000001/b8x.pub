@@ -4,12 +4,11 @@ import Proem
 
 import Core.Exception.Exception (throw)
 import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Payload (Payload, Fields)
-import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Projection.Projection (Article, ArticleKey(..), findArticleBySlug)
+import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Projection.Projection (findArticleBySlug)
 import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Result (Result)
 import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.State (State)
-import Core.Message.Query.Query (class IsQuery, defaultCached)
+import Core.Message.Query.Query (class IsQuery, CacheStrategy(NotCached))
 import Core.Mod.Article.Exception.ArticleSlugAlreadyTaken (ArticleSlugAlreadyTaken(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
@@ -31,9 +30,7 @@ instance Reflect VerifyArticleSlugUniqueness where
 instance IsQuery VerifyArticleSlugUniqueness State Fields Payload Result where
   description = "Verify that an article slug is unique"
 
-  cacheStrategy (VerifyArticleSlugUniqueness { slug }) = do
-    hash <- getReadModelHash @Article (Just (ArticleKey { id: Nothing, slug: Just slug }))
-    η $ defaultCached hash
+  cacheStrategy _ = η NotCached
 
   handle (VerifyArticleSlugUniqueness payload) = do
     mArticle <- findArticleBySlug payload.slug

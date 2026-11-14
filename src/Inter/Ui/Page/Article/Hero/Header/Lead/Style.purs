@@ -1,5 +1,5 @@
 module Inter.Ui.Page.Article.Hero.Header.Lead.Style
-  (class'
+  ( class'
   , lead
   , lead_
   , staticClass
@@ -15,6 +15,7 @@ import Halogen.HTML (HTML, Node, div)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass)
 import Util.Style.Base (raw)
 import Util.Style.Selector ((.?))
+import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Layout (marginBottom, marginTop)
 import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Style.Typography (fontSizeRem)
@@ -32,9 +33,13 @@ staticStyle :: CSS.CSS
 staticStyle = do
   staticClass .? do
     fontSizeRem 1.5
+    onTabletLte do
+      fontSizeRem 1.1
     raw "line-height" "1.5"
     color $ rgba 51 51 51 1.0
     raw "text-shadow" "0 0 0.5rem rgba(255,255,255,1.0), 0 0 1rem rgba(255,255,255,0.8)"
+    raw "word-break" "break-word"
+    raw "hyphens" "auto"
     marginTop 0.0
     marginBottom 0.0
 

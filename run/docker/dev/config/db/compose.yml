@@ -1,0 +1,41 @@
+services:
+  db:
+    working_dir: /dumps
+    volumes:
+      - ${DOCKER_DIR}/${ENV}/volume/db/dumps:/dumps
+      - ${DOCKER_DIR}/${ENV}/volume/db/data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    security_opt:
+      - apparmor:unconfined # remove some linux firewalls if set
+    command:
+      - "-c"
+      - "ssl=on"
+      - "-c"
+      - "ssl_cert_file=/var/lib/postgresql/server.crt"
+      - "-c"
+      - "ssl_key_file=/var/lib/postgresql/server.key"
+      - "-c"
+      - "max_connections=400"
+      - "-c"
+      - "checkpoint_timeout=30min"
+      - "-c"
+      - "max_wal_size=2GB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "commit_delay=5000"
+      - "-c"
+      - "commit_siblings=5"
+      - "-c"
+      - "idle_in_transaction_session_timeout=10000"
+      # NOTE: That ONLY sacrifices durability (surviving an immediate crash).
+      # It will be fetchable by other queries elsewhere. It just lives in the RAM.
+      # It fully preserves isolation, concurrency (advisory locks, OCC) and data consistency.
+      # This bypasses the massive fsync I/O penalties of Docker Desktop on macOS during tests.
+      - "-c"
+      - "fsync=off"
+      - "-c"
+      - "synchronous_commit=off"

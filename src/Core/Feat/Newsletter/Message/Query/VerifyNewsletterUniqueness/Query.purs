@@ -9,7 +9,7 @@ import Core.Feat.Newsletter.Message.Query.VerifyNewsletterUniqueness.Result (Res
 import Core.Feat.Newsletter.Message.Query.VerifyNewsletterUniqueness.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Mod.Newsletter.Exception.NewsletterAlreadyScheduled (NewsletterAlreadyScheduled(..))
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Time.Instant (Instant(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.DateTime.Instant (unInstant, instant) as Base
@@ -38,7 +38,7 @@ instance IsQuery VerifyNewsletterUniqueness State Fields Payload Result where
   description = "Verify newsletter uniqueness"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Newsletter Nothing
+    hash <- getReadModelHash @Newsletter HashAll
     η $ defaultCached hash
 
   handle (VerifyNewsletterUniqueness { scheduledFor: scheduledForObj, articles: articlesObj }) = do

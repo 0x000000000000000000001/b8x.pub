@@ -8,7 +8,9 @@ import Halogen.HTML (HTML, IProp, div)
 import Util.Style.Classname (class_, generateStaticClass)
 import Util.Style.Layout (marginBottom)
 import Util.Style.Typography (fontSizeRem, fontWeightBold, lineHeightRem)
+import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Selector ((.?))
+import Util.Style.Base (raw_)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Router.Menu.Core.Search.Results.Item.Core.Title.Style"
@@ -24,6 +26,9 @@ staticStyle = do
     marginBottom 0.4
     color $ rgba 0 0 0 0.85
     lineHeightRem 1.3
+
+    onTabletLte do
+      raw_ "align-self" "center"
 
 title :: ∀ w i. Array (IProp HTMLdiv i) -> Array (HTML w i) -> HTML w i
 title props = div ([ class_ staticClass ] <> props)

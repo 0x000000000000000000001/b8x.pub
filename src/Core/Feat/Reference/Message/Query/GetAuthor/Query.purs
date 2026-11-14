@@ -6,7 +6,7 @@ import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Feat.Reference.Message.Query.GetAuthor.Payload (Fields, Payload)
 import Core.Feat.Reference.Message.Query.GetAuthor.Result (Result)
 import Core.Feat.Reference.Message.Query.GetAuthor.State (State)
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Core.Feat.Reference.Message.Query.GetAuthor.Projection.Projection (Author(..), AuthorKey(..), findAuthorById)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
@@ -35,7 +35,7 @@ instance IsQuery GetAuthor State Fields Payload Result where
   description = "Get an author"
 
   cacheStrategy (GetAuthor { id }) = do
-    hash <- getReadModelHash @Author (Just (AuthorKey id))
+    hash <- getReadModelHash @Author (HashByKey (AuthorKey id))
     η $ defaultCached hash
 
   handle (GetAuthor { id, needs }) = do

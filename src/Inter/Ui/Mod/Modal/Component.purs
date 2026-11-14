@@ -33,6 +33,7 @@ component innerComponent = mkComponent
           { handleAction = handleAction
           , receive = Just ◁ Receive
           , initialize = Just Initialize
+          , finalize = Just Finalize
           }
   }
 

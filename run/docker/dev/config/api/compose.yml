@@ -1,0 +1,29 @@
+x-api: &api
+  security_opt:
+    - apparmor:unconfined
+  networks:
+    - compose-default
+
+x-proj: &proj
+  <<: *api
+  profiles:
+    - swarm
+
+services:
+  api:
+    <<: *api
+    command: >
+      bash -c "exec
+        /wait db-multiplex-store:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-store-lock:5432 -t ${WAIT_DELAY} -- 
+        /wait db-multiplex-edge:5432 -t ${WAIT_DELAY} --
+        /wait mq:5672 -t ${WAIT_DELAY} --
+        ./bin/api -e -w"
+
+  api-cli: *api
+
+  pauline: *api
+
+  api-worker: *api
+
+  api-proj: *proj

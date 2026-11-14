@@ -7,9 +7,10 @@ import DOM.HTML.Indexed (HTMLdiv)
 import Halogen.HTML (HTML, IProp, div)
 import Inter.Ui.Mod.Input.Style.Index as Input
 import Util.Style.Classname (classes, generateStaticClass, refineClass')
-import Util.Style.Layout (marginBottom, widthPct100)
+import Util.Style.Layout (marginBottom, widthPct100, padding2)
+import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Typography (fontSizePct)
-import Util.Style.Selector ((.?), (.*), (¨&))
+import Util.Style.Selector ((.?), (.*), (¨&), (¨<))
 import Util.Style.Transition (transitionNone)
 import Inter.Ui.Router.Menu.Type.State.State (State)
 import Inter.Ui.Router.Menu.Type.State.ActivePanel (ActivePanel(..))
@@ -30,6 +31,8 @@ staticStyle = do
     transitionNone
     widthPct100
     marginBottom 2.0
+    onTabletLte do
+      marginBottom 1.0
     CSS.display CSS.flex
     CSS.key (CSS.fromString "flex-shrink") "0"
     CSS.key (CSS.fromString "align-items") "center"
@@ -40,12 +43,21 @@ staticStyle = do
     ":focus-within" ¨& do
       CSS.borderColor (CSS.rgba 0 50 150 1.0) -- Blue focus ring
 
+    "div:first-child" ¨< do
+      CSS.flexGrow 1.0
+      CSS.key (CSS.fromString "min-width") "0px"
+
     Input.rootStaticClass .* do
       transitionNone
       widthPct100
-      CSS.flexGrow 1.0
-      CSS.key (CSS.fromString "min-width") "0px"
       fontSizePct 130.0
+
+      onTabletLte do
+        fontSizePct 100.0
+        padding2 0.0 0.0
+        "input" ¨& do
+          CSS.key (CSS.fromString "padding") "1.4rem 0.7rem 0.4rem 0.7rem !important"
+          CSS.key (CSS.fromString "text-overflow") "ellipsis"
 
 input :: ∀ w i. State -> Array (IProp HTMLdiv i) -> Array (HTML w i) -> HTML w i
 input { activePanel } props =

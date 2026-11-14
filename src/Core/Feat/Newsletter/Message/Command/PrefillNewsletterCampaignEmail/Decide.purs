@@ -8,7 +8,9 @@ import Core.Feat.Newsletter.Message.Command.PrefillNewsletterCampaignEmail.State
 import Run (Run)
 import Type.Row (type (+))
 import Core.Exception.Index (EXCEPT_LOGIC)
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 
-decide :: ∀ fx. State -> Payload -> Run (EXCEPT_LOGIC + UPLOAD + fx) (Array Event)
+decide :: ∀ fx. State -> Payload -> Run (EXCEPT_LOGIC + DOWNLOAD
+           + UPLOAD + fx) (Array Event)
 decide _ _ = η []

@@ -11,7 +11,11 @@ import Util.Type.String.ToString (toString)
 receive :: Input -> ArticleM Ɩ
 receive input = do
   oldInput <- gets _.input
+  oldContext <- gets _.context
   
+  when (oldContext /= input.context) $ do
+    modify_ _ { context = input.context }
+
   when (oldInput /= input) $ do
     modify_ _ { input = input }
 

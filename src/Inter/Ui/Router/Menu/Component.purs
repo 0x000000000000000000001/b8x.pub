@@ -22,11 +22,12 @@ import Network.RemoteData (RemoteData(..))
 import Prim.Row (class Cons)
 import Inter.Ui.Router.Menu.Type.State.Newsletter as Newsletter
 import Inter.Ui.Router.Menu.Type.State.Magazine as Magazine
+import Inter.Ui.Router.Menu.Type.State.Search (PaginationState(..))
 import Halogen.Store.Connect (connect)
 import Halogen.Store.Select (selectEq)
 
 component :: Component Query Input Output UiM
-component = connect (selectEq _.me) $ mkComponent
+component = connect (selectEq \s -> { me: s.me, device: s.device }) $ mkComponent
   { initialState: withId
       \{ context, input: { open, activePanel, search } } ->
         let
@@ -45,6 +46,8 @@ component = connect (selectEq _.me) $ mkComponent
           , search:
               { controlled: controlledState
               , forkId: Nothing
+              , pagination: NotSearchedYet
+              , currentPageIndex: 0
               , results: NotAsked
               , authorFilter: Nothing
               }
@@ -60,7 +63,7 @@ component = connect (selectEq _.me) $ mkComponent
               }
           , isDocMouseMoveThrottled: false
           , hasMouseEntered: Nothing
-          , me: context
+          , context
           }
   , render
   , eval: mkEval defaultEval

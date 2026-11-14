@@ -1,0 +1,25 @@
+services:
+  ui:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_UI}"
+    volumes:
+      - ${ROOT_DIR}/bin:/var/www/b8x/bin
+      - ${ROOT_DIR}/src:/var/www/b8x/src
+      - ${ROOT_DIR}/test:/var/www/b8x/test
+      - ${ROOT_DIR}/public:/var/www/b8x/public
+      - ${ROOT_DIR}/run/bak:/var/www/b8x/run/bak
+      - ${ROOT_DIR}/spago.yaml:/var/www/b8x/spago.yaml
+      - ${ROOT_DIR}/spago.lock:/var/www/b8x/spago.lock
+      - ${ROOT_DIR}/.spago:/var/www/b8x/.spago
+    command: bash ./bin/ui
+    stdin_open: true
+    tty: true
+    working_dir: /var/www/b8x
+    environment:
+      TZ: ${TZ}
+      ENV: ${ENV}
+      NODE_ENV: ${ENV}
+      DNS_LEVEL_2_GTE: ${DNS_LEVEL_2_GTE}
+    security_opt:
+      - apparmor:unconfined
+    networks:
+      - compose-default

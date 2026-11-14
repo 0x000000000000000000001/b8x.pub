@@ -28,7 +28,7 @@ decide
   -> Run (UPLOAD + EXCEPT_LOGIC + fx) (Array Event)
 decide
   { authors: authorStates, book, editor }
-  { id, authors, editor: editorId, name, year, cover: coverUrl, legacyId } = checkEditor
+  { id, authors, editor: editorId, name, year, cover: coverUrl } = checkEditor
   where
   checkEditor =
     case editorId of
@@ -52,5 +52,4 @@ decide
       cover <- case coverUrl of
         Just url -> Just <$> Upload.uploadImage false true url
         Nothing -> η Nothing
-      η [ BookReferenced { id, name, authors, editor: editorId, year, cover, legacyId } ]
-
+      η [ BookReferenced { id, name, authors, editor: editorId, year, cover, legacyId: Nothing } ]

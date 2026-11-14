@@ -1,5 +1,5 @@
 module Inter.Ui.Router.Core.Style
-  (core
+  ( core
   , core_
   , staticClass
   , staticStyle
@@ -9,8 +9,8 @@ module Inter.Ui.Router.Core.Style
 import Proem hiding (top)
 
 import CSS as CSS
-import DOM.HTML.Indexed (HTMLmain)
 import Halogen.HTML (HTML, Node, main)
+import DOM.HTML.Indexed (HTMLmain)
 import Util.Style.Classname (class_, generateStaticClass)
 import Util.Style.Position (positionRelative)
 import Util.Style.Layout (displayFlex, flexGrow1)

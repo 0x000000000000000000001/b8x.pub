@@ -5,6 +5,8 @@ import Proem hiding (append)
 import Core.Event.Event (Event(..))
 import Core.Exception.Exception (throw)
 import Core.Exception.Index (EXCEPT_LOGIC)
+import Core.Message.Command.Handle.Download (DOWNLOAD)
+import Core.Message.Command.Handle.Download as Download
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Message.Command.Handle.Upload as Upload
 import Core.Feat.Review.Message.Command.WriteArticle.Payload (Payload)
@@ -31,7 +33,7 @@ decide
   :: ∀ fx
    . State
   -> Payload
-  -> Run (UPLOAD + EXCEPT_LOGIC + fx) (Array Event)
+  -> Run (DOWNLOAD + UPLOAD + EXCEPT_LOGIC + fx) (Array Event)
 decide
   { author, books, article }
   { id
@@ -45,9 +47,10 @@ decide
   , sources
   , content
   , illustrations: illustrationInputs
-  , profitable
   , slug
-  , magazineIssue
+  , frontPagePosition
+  -- , profitable
+  -- , magazineIssue
   } = checkAuthor
   where
   checkAuthor = case authorId, author of
@@ -79,11 +82,17 @@ decide
           Right generated -> η generated
           Left _ -> throw $ InvalidSlug (toString title)
 
-      updatedContentStr <- Upload.uploadHtmlImages true (toString content)
+      rawContent <- Download.downloadHtml content
+      updatedContentStr <- Upload.uploadHtmlImages true rawContent
       let updatedContent = Html.unsafeFromString updatedContentStr
-      
+
       updatedLead <- traverse (\h -> Html.unsafeFromString <$> Upload.uploadHtmlImages true (toString h)) lead
-      updatedNotes <- traverse (\h -> Html.unsafeFromString <$> Upload.uploadHtmlImages true (toString h)) notes
+      updatedNotes <- traverse
+        ( \url -> do
+            raw <- Download.downloadHtml url
+            Html.unsafeFromString <$> Upload.uploadHtmlImages true raw
+        )
+        notes
       updatedSources <- traverse (\h -> Html.unsafeFromString <$> Upload.uploadHtmlImages true (toString h)) sources
 
       η
@@ -99,8 +108,9 @@ decide
             , sources: updatedSources
             , content: updatedContent
             , illustrations
-            , profitable
             , slug: slug'
-            , magazineIssue
+            , profitable: false
+            , magazineIssue: Nothing
+            , frontPagePosition
             }
         ]

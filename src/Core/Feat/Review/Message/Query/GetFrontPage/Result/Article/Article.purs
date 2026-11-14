@@ -12,6 +12,7 @@ import Core.Mod.Article.Lead.Message.Query.Result (Lead)
 import Core.Mod.Article.Theme.Theme (Theme)
 import Core.Mod.Article.Title.Title (Title)
 import Core.Mod.Article.Slug.Slug (Slug)
+import Core.Mod.Time.Instant (Instant)
 import Core.Mod.Article.Notes.Notes (Notes)
 import Core.Mod.Author.Message.Query.Result (Author)
 import Data.Lens (Lens')
@@ -32,6 +33,7 @@ type Article_ =
   , books :: Return Books
   , author :: Return (Maybe Author)
   , illustrations :: Return Illustrations
+  , writtenAt :: Return Instant
   }
 
 _title :: Lens' Article_ (Return Title)

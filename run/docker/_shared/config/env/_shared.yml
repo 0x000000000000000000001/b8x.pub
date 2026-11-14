@@ -1,0 +1,15 @@
+services:
+  env:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_ENV}"
+    environment:
+      ENV: ${ENV}
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"
+      SWARM_MODE: "${SWARM_MODE}"
+      SUBDOMAINS: "v2 ${API_DNS_LEVEL_3} ${MQ_DNS_LEVEL_3} ${NEWS_DNS_LEVEL_3}"
+      EXTRA_DOMAINS: "books.fr www.books.fr"
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    working_dir: /var/www/b8x
+    

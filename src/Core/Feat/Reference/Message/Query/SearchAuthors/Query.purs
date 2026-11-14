@@ -1,5 +1,4 @@
 module Core.Feat.Reference.Message.Query.SearchAuthors.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -8,7 +7,7 @@ import Core.Feat.Reference.Message.Query.SearchAuthors.Payload (Fields, Payload)
 import Core.Feat.Reference.Message.Query.SearchAuthors.Result (Result)
 import Core.Feat.Reference.Message.Query.SearchAuthors.State (State)
 import Core.Mod.Projection.Finder.BoundedLimit.BoundedLimit (BoundedLimit(..))
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Core.Feat.Reference.Message.Query.SearchAuthors.Projection.Projection (Author, findAuthors)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
@@ -37,7 +36,7 @@ instance IsQuery SearchAuthors State Fields Payload Result where
   description = "Search authors"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Author Nothing
+    hash <- getReadModelHash @Author HashAll
     η $ defaultCached hash
 
   handle (SearchAuthors { filter, limit: BoundedLimit limit_, expectation, after, needs }) = do

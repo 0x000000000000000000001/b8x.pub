@@ -8,11 +8,14 @@ import Control.Monad.Except as Control.Monad.Except
 
 import Core.Event.ArticleAddedToNewsRelatedBlacklist.Payload as ArticleAddedToNewsRelatedBlacklist
 import Core.Event.ArticleAddedToNewsRelatedWhitelist.Payload as ArticleAddedToNewsRelatedWhitelist
+import Core.Event.ArticleContentCorrected.Payload as ArticleContentCorrected
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
 import Core.Event.ArticleRemovedFromNewsRelatedBlacklist.Payload as ArticleRemovedFromNewsRelatedBlacklist
 import Core.Event.ArticleRemovedFromNewsRelatedWhitelist.Payload as ArticleRemovedFromNewsRelatedWhitelist
+import Core.Event.ArticleTitleCorrected.Payload as ArticleTitleCorrected
 import Core.Event.ArticleWritten.Payload as ArticleWritten
 import Core.Event.AuthorReferenced.Payload as AuthorReferenced
+import Core.Event.BookCoverCorrected.Payload as BookCoverCorrected
 import Core.Event.BookReferenced.Payload as BookReferenced
 import Core.Event.EditorReferenced.Payload as EditorReferenced
 import Core.Event.Event (Event(..), LoadedEvent)
@@ -26,19 +29,18 @@ import Core.Mod.Article.Lead.Lead (Lead)
 import Core.Mod.Article.MagazineIssue.MagazineIssue as BaseMagazineIssue
 import Core.Mod.Article.Notes.Notes (Notes)
 import Core.Mod.Article.PageNumber.PageNumber (PageNumber)
-import Core.Mod.Article.Projection.Books.Books (Books, fromBooksDto, BooksDto)
+import Core.Mod.Article.Projection.Books.Books (Books)
 import Core.Mod.Article.Projection.Books.Books as Books
 import Core.Mod.Article.Projection.Exception.InvalidArticleFilter (InvalidArticleFilter(..), InvalidArticleFilterRow)
-import Core.Mod.Article.Projection.Illustrations (Illustrations, fromIllustrationsDto, IllustrationsDto)
+import Core.Mod.Article.Projection.Illustrations (Illustrations)
 import Core.Mod.Article.Projection.Illustrations as Illustrations
-import Core.Mod.Html.Html (NonEmptyHtml)
+
 import Core.Mod.Article.Projection.MagazineIssue as Projected
 import Core.Mod.Article.Projection.WrittenAt (WrittenAt)
 import Core.Mod.Article.Projection.WrittenAt as WrittenAt
 import Core.Mod.Article.Slug.Slug (Slug)
 import Core.Mod.Article.Sources.Sources (Sources)
 import Core.Mod.Article.Theme.Theme (Theme)
-import Data.Nullable (Nullable, toMaybe)
 import Core.Mod.Article.Title.Title (Title)
 import Core.Mod.Author.Biography.Biography (Biography)
 import Core.Mod.Author.Id.Id (AuthorId)
@@ -48,11 +50,12 @@ import Core.Mod.Book.Year.Year (Year)
 import Core.Mod.Editor.Id.Id (EditorId)
 import Core.Mod.Editor.Name.Name as EditorName
 import Core.Mod.Image.Image (Image)
-import Core.Mod.MagazineIssue.Id.Id (MagazineIssueId)
-import Core.Mod.MagazineIssue.Section.Section (SectionF(..))
+
 import Core.Mod.MagazineIssue.CustomSection.Id.Id as CustomSectionId
 import Core.Mod.MagazineIssue.CustomSection.Name.Name as CustomSectionName
 import Core.Event.MagazineCustomSectionAdded.Payload as MagazineCustomSectionAdded
+import Core.Mod.MagazineIssue.Id.Id (MagazineIssueId)
+import Core.Mod.MagazineIssue.Section.Section (SectionF(..))
 import Core.Mod.MagazineIssue.Slug.Slug as MagazineIssueSlug
 import Core.Mod.NewsTopic.Id.Id (NewsTopicId)
 import Core.Mod.NewsTopic.SearchInput.SearchInput as NewsTopicTitle
@@ -60,7 +63,7 @@ import Core.Mod.Projection.Finder.Filter (class IsFilter, EqualsUpToNormalizatio
 import Core.Mod.Projection.Finder.Filter as Base
 import Core.Mod.Projection.Finder.Finder (Find, findOneBy, findOneByKey)
 import Core.Mod.Projection.Finder.Sort (SortCriteria)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete, get, patch)
 import Core.Mod.Projection.SearchIndex (EveryTextIndexesWithWeightA, EveryTextIndexesWithWeightB, FullTextIndexOnlyB, FullTextIndexOnlyD, RawIndexOnly, EveryTextIndexesWithWeightC, everyTextIndexesWithWeightA, everyTextIndexesWithWeightB, everyTextIndexesWithWeightC, fullTextIndexOnlyWithWeightB, fullTextIndexOnlyWithWeightD, rawIndexOnly, InvertedIndexOnly, invertedIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -70,11 +73,14 @@ import Core.Util.Validation (class IsRefinedType)
 import Foreign (Foreign)
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
 import Foreign.Index (readProp)
+import Control.Alt ((<|>))
+
 import Data.Array as Array
 import Data.Either (Either(..))
+import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Show.Generic (genericShow)
 import Data.Traversable (traverse)
@@ -159,11 +165,14 @@ type GET_ARTICLE_PROJECTION_READ_FIND fx =
 ---- Article 
 
 instance IsPair ArticleKey Article ArticleRecord ArticleIndexNeeds ArticleSortRow "article" "articles" "articleGetArticleProjectionReadFind" GetArticleProjection where
-  toKey (Article { id, slug }) = ArticleKey { id: Just id, slug: Just slug }
+  toKey (Article { id, slug: _ }) = ArticleKey id
 
   single = false
 
 newtype Article = Article ArticleRecord
+
+instance ToAliases Article where
+  toAliases (Article { slug }) = [toString slug]
 
 type ArticleAuthor =
   { id :: AuthorId
@@ -255,22 +264,58 @@ derive instance Generic Article _
 derive instance Eq Article
 derive instance Ord Article
 
-derive newtype instance ReadForeign Article
 
-decodeArticleAuthorJson :: Foreign -> Foreign.F ArticleAuthor
-decodeArticleAuthorJson json = do
+
+readArticleAuthor :: Foreign -> Foreign.F ArticleAuthor
+readArticleAuthor json = do
   obj <- readImpl json
   id <- readProp "id" obj >>= readImpl
   name <- readProp "name" obj >>= readImpl
-  biography <- readProp "biography" obj >>= readImpl
-  portrait <- readProp "portrait" obj >>= readImpl
-  η { id, name, biography, portrait }
+  biography <- (readProp "biography" obj >>= readImpl) <|> pure Nothing
+  portrait <- (readProp "portrait" obj >>= readImpl) <|> pure Nothing
+  pure { id, name, biography, portrait }
+
+readMagazineIssue :: Foreign -> Foreign.F Projected.MagazineIssue
+readMagazineIssue json = do
+  obj <- readImpl json
+  issueJson <- readProp "issue" obj >>= readImpl
+  issueObj <- readImpl issueJson
+  id <- readProp "id" issueObj >>= readImpl
+  slug <- readProp "slug" issueObj >>= readImpl
+  section <- (readProp "section" obj >>= Projected.decodeSectionJson) <|> pure Nothing
+  pageNumber <- (readProp "pageNumber" obj >>= readImpl) <|> pure Nothing
+  onCover <- (readProp "onCover" obj >>= readImpl) <|> pure false
+  pure $ Projected.MagazineIssue { issue: { id, slug }, section, pageNumber, onCover }
+
+instance ReadForeign Article where
+  readImpl json = do
+    obj <- readImpl json
+    id <- readProp "id" obj >>= readImpl
+    legacyId <- (Just <$> (readProp "legacyId" obj >>= readImpl)) <|> pure Nothing
+    title <- readProp "title" obj >>= readImpl
+    lead <- (Just <$> (readProp "lead" obj >>= readImpl)) <|> pure Nothing
+    notes <- (Just <$> (readProp "notes" obj >>= readImpl)) <|> pure Nothing
+    sources <- (Just <$> (readProp "sources" obj >>= readImpl)) <|> pure Nothing
+    content <- readProp "content" obj >>= readImpl
+    themeStr <- (Just <$> (readProp "theme" obj >>= readImpl)) <|> pure Nothing
+    let theme = themeStr >>= fromString
+    books <- (readProp "books" obj >>= readImpl) <|> pure (Books.Books { books: [], ids: [], names: [], authors: { ids: [], names: [] }, hasAtLeastOneCover: false })
+    author <- (Just <$> (readProp "author" obj >>= readArticleAuthor)) <|> pure Nothing
+    illustrations <- (readProp "illustrations" obj >>= readImpl) <|> pure (Illustrations.Illustrations { illustrations: [], hasAtLeastOneLandscape: false, hasAtLeastOne: false })
+    profitable <- (readProp "profitable" obj >>= readImpl) <|> pure false
+    slug <- readProp "slug" obj >>= readImpl
+    writtenAt <- (readProp "writtenAt" obj >>= readImpl)
+    addedToNewsRelatedWhitelist <- (readProp "addedToNewsRelatedWhitelist" obj >>= readImpl) <|> pure false
+    addedToNewsRelatedBlacklist <- (readProp "addedToNewsRelatedBlacklist" obj >>= readImpl) <|> pure false
+    magazineIssue <- (Just <$> (readProp "magazineIssue" obj >>= readMagazineIssue)) <|> pure Nothing
+    seo <- readProp "seo" obj >>= readImpl
+    pure $ Article { id, legacyId, title, lead, notes, sources, content, theme, books, author, illustrations, profitable, slug, writtenAt, addedToNewsRelatedWhitelist, addedToNewsRelatedBlacklist, magazineIssue, seo }
 
 derive newtype instance WriteForeign Article
 
 instance Show Article where
   show = genericShow
-
+  
 type ArticleSortRow =
   ( id :: Ɩ
   , title :: Ɩ
@@ -324,11 +369,11 @@ instance Random Article where
       , seo: { updatedAt }
       }
 
-newtype ArticleKey = ArticleKey { id :: Maybe ArticleId, slug :: Maybe Slug }
+newtype ArticleKey = ArticleKey ArticleId
 
 derive instance Newtype ArticleKey _
-instance ToAliasedPrimary ArticleKey where
-  toAliasedPrimary (ArticleKey k) = { primary: maybe "" toString k.id, aliases: maybe [] (Array.singleton <<< toString) k.slug }
+instance ToPrimary ArticleKey where
+  toPrimary (ArticleKey id) = toString id
 
 derive instance Eq ArticleKey
 derive instance Ord ArticleKey
@@ -345,6 +390,9 @@ instance IsPair AuthorKey Author AuthorRecord AuthorIndexNeeds () "author" "auth
   single = false
 
 newtype Author = Author AuthorRecord
+
+instance ToAliases Author where
+  toAliases _ = []
 
 type AuthorRecord =
   { id :: AuthorId
@@ -383,8 +431,8 @@ derive instance Generic AuthorKey _
 instance Show AuthorKey where
   show = genericShow
 
-instance ToAliasedPrimary AuthorKey where
-  toAliasedPrimary (AuthorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary AuthorKey where
+  toPrimary (AuthorKey id) = toString id
 
 ---- Editor 
 
@@ -394,6 +442,9 @@ instance IsPair EditorKey Editor EditorRecord EditorIndexNeeds () "editor" "edit
   single = false
 
 newtype Editor = Editor EditorRecord
+
+instance ToAliases Editor where
+  toAliases _ = []
 
 type EditorRecord =
   { id :: EditorId
@@ -423,8 +474,8 @@ derive instance Generic EditorKey _
 instance Show EditorKey where
   show = genericShow
 
-instance ToAliasedPrimary EditorKey where
-  toAliasedPrimary (EditorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary EditorKey where
+  toPrimary (EditorKey id) = toString id
 
 ---- Book 
 
@@ -435,6 +486,9 @@ instance IsPair BookKey Book BookRecord BookIndexNeeds () "book" "books" "articl
 
 newtype Book = Book BookRecord
 
+instance ToAliases Book where
+  toAliases _ = []
+
 type BookRecord =
   { id :: BookId
   , name :: Name
@@ -442,6 +496,7 @@ type BookRecord =
   , cover :: Maybe Image
   , authors :: Array AuthorId
   , editor :: Maybe EditorId
+  , articles :: Array ArticleId
   }
 
 type BookIndexNeeds = {}
@@ -450,7 +505,28 @@ derive instance Newtype Book _
 derive instance Generic Book _
 derive instance Eq Book
 derive instance Ord Book
-derive newtype instance ReadForeign Book
+
+instance ReadForeign Book where
+  readImpl json = do
+    r <- readImpl json :: Foreign.F
+      { id :: BookId
+      , name :: Name
+      , year :: Maybe Year
+      , cover :: Maybe Image
+      , authors :: Array AuthorId
+      , editor :: Maybe EditorId
+      }
+    articles <- (readProp "articles" json >>= readImpl) <|> pure []
+    η $ Book
+      { id: r.id
+      , name: r.name
+      , year: r.year
+      , cover: r.cover
+      , authors: r.authors
+      , editor: r.editor
+      , articles
+      }
+
 derive newtype instance WriteForeign Book
 derive newtype instance Random Book
 
@@ -467,8 +543,8 @@ derive instance Generic BookKey _
 instance Show BookKey where
   show = genericShow
 
-instance ToAliasedPrimary BookKey where
-  toAliasedPrimary (BookKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary BookKey where
+  toPrimary (BookKey id) = toString id
 
 ---- NewsTopic 
 
@@ -478,6 +554,9 @@ instance IsPair NewsTopicKey NewsTopic NewsTopicRecord NewsTopicIndexNeeds () "n
   single = false
 
 newtype NewsTopic = NewsTopic NewsTopicRecord
+
+instance ToAliases NewsTopic where
+  toAliases _ = []
 
 type NewsTopicRecord =
   { id :: NewsTopicId
@@ -503,9 +582,8 @@ instance Show NewsTopic where
 newtype NewsTopicKey = NewsTopicKey NewsTopicId
 
 derive instance Newtype NewsTopicKey _
-instance ToAliasedPrimary NewsTopicKey where
-  toAliasedPrimary (NewsTopicKey id) = { primary: toString id, aliases: [] }
-
+instance ToPrimary NewsTopicKey where
+  toPrimary (NewsTopicKey id) = toString id
 derive newtype instance Eq NewsTopicKey
 derive newtype instance Ord NewsTopicKey
 derive instance Generic NewsTopicKey _
@@ -521,6 +599,9 @@ instance IsPair MagazineIssueKey MagazineIssue MagazineIssueRecord MagazineIssue
   single = false
 
 newtype MagazineIssue = MagazineIssue MagazineIssueRecord
+
+instance ToAliases MagazineIssue where
+  toAliases _ = []
 
 type MagazineIssueRecord =
   { id :: MagazineIssueId
@@ -550,8 +631,8 @@ derive instance Generic MagazineIssueKey _
 instance Show MagazineIssueKey where
   show = genericShow
 
-instance ToAliasedPrimary MagazineIssueKey where
-  toAliasedPrimary (MagazineIssueKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary MagazineIssueKey where
+  toPrimary (MagazineIssueKey id) = toString id
 
 ---- CustomSection
 
@@ -561,6 +642,9 @@ instance IsPair CustomSectionKey CustomSection CustomSectionRecord CustomSection
   single = false
 
 newtype CustomSection = CustomSection CustomSectionRecord
+
+instance ToAliases CustomSection where
+  toAliases _ = []
 
 type CustomSectionRecord =
   { id :: CustomSectionId.CustomSectionId
@@ -590,8 +674,8 @@ derive instance Generic CustomSectionKey _
 instance Show CustomSectionKey where
   show = genericShow
 
-instance ToAliasedPrimary CustomSectionKey where
-  toAliasedPrimary (CustomSectionKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary CustomSectionKey where
+  toPrimary (CustomSectionKey id) = toString id
 
 -- Filter
 
@@ -736,7 +820,7 @@ type GET_ARTICLE_ARTICLE_PROJECTION_READ fx =
     + fx
 
 findArticleById :: ∀ fx. ArticleId -> Run (GET_ARTICLE_ARTICLE_PROJECTION_READ + fx) (Maybe Article)
-findArticleById id = findOneByKey (ArticleKey { id: Just id, slug: Nothing })
+findArticleById id = findOneByKey (ArticleKey id)
 
 findArticleBySlug :: ∀ fx. Slug -> Run (GET_ARTICLE_ARTICLE_PROJECTION_READ + fx) (Maybe Article)
 findArticleBySlug slug = findOneBy @Article @"slug" StrictlyEquals slug
@@ -758,6 +842,11 @@ play { event, at } = case event of
   ArticleRemovedFromNewsRelatedBlacklist payload -> onArticleRemovedFromNewsRelatedBlacklist payload
   AuthorDereferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected payload -> onBookCoverCorrected payload
+  ArticleTitleCorrected payload -> onArticleTitleCorrected payload
+  ArticleContentCorrected payload -> onArticleContentCorrected payload
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced payload -> onMagazineIssueReferenced payload
   MagazineIssueDereferenced _ -> ηι
   EditorDereferenced _ -> ηι
@@ -774,7 +863,20 @@ play { event, at } = case event of
 ---- Listeners
 
 onArticleDiscarded :: ∀ fx. ArticleDiscarded.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
-onArticleDiscarded { article } = delete $ ArticleKey { id: Just article, slug: Nothing }
+onArticleDiscarded { article } = do
+  mArticle <- get (ArticleKey article)
+
+  case mArticle of
+    Just (Article a) -> for_ (unwrap a.books).ids \bookId -> unregisterArticleFromBook article bookId
+    Nothing -> ηι
+
+  delete $ ArticleKey article
+
+onArticleTitleCorrected :: ∀ fx. ArticleTitleCorrected.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleTitleCorrected { article, title } = patch (ArticleKey article) \(Article a) -> Article (a { title = title })
+
+onArticleContentCorrected :: ∀ fx. ArticleContentCorrected.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleContentCorrected { article, content } = patch (ArticleKey article) \(Article a) -> Article (a { content = content })
 
 onArticleWritten :: ∀ fx. Instant -> ArticleWritten.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleWritten
@@ -865,6 +967,8 @@ onArticleWritten
         }
     }
 
+  for_ bookIds \bookId -> registerArticleInBook id bookId
+
 onAuthorReferenced :: ∀ fx. AuthorReferenced.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onAuthorReferenced { id, name, biography, portrait } = add $ Author { id, name, biography, portrait }
 
@@ -872,7 +976,28 @@ onEditorReferenced :: ∀ fx. EditorReferenced.Payload -> Run (GET_ARTICLE_PROJE
 onEditorReferenced { id, name } = add $ Editor { id, name }
 
 onBookReferenced :: ∀ fx. BookReferenced.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
-onBookReferenced { id, name, year, cover, authors, editor } = add $ Book { id, name, year, cover, authors, editor }
+onBookReferenced { id, name, year, cover, authors, editor } = add $ Book { id, name, year, cover, authors, editor, articles: [] }
+
+registerArticleInBook :: ∀ fx. ArticleId -> BookId -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
+registerArticleInBook articleId bookId =
+  patch (BookKey bookId) \(Book b) -> Book (b { articles = Array.snoc (Array.filter (_ /= articleId) b.articles) articleId })
+
+unregisterArticleFromBook :: ∀ fx. ArticleId -> BookId -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
+unregisterArticleFromBook articleId bookId =
+  patch (BookKey bookId) \(Book b) -> Book (b { articles = Array.filter (_ /= articleId) b.articles })
+
+onBookCoverCorrected :: ∀ fx. BookCoverCorrected.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
+onBookCoverCorrected { book: bookId, cover } = do
+  mBook <- get (BookKey bookId)
+
+  case mBook of
+    Nothing -> ηι
+    Just (Book b) -> do
+      patch (BookKey bookId) \(Book b') -> Book (b' { cover = cover })
+
+      for_ (Array.nub b.articles) \articleId ->
+        patch (ArticleKey articleId) \(Article a) ->
+          Article (a { books = Books.updateBookCover bookId cover a.books })
 
 onNewsTopicAdded :: ∀ fx. NewsTopicAdded.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onNewsTopicAdded { id, searchInput } = add $ NewsTopic { id, searchInput }
@@ -882,11 +1007,11 @@ onNewsTopicRemoved { newsTopic } = delete $ NewsTopicKey newsTopic
 
 onArticleAddedToNewsRelatedWhitelist :: ∀ fx. ArticleAddedToNewsRelatedWhitelist.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleAddedToNewsRelatedWhitelist { article } =
-  patch (ArticleKey { id: Just article, slug: Nothing }) (unwrap ▷ (_ { addedToNewsRelatedWhitelist = true }) ▷ wrap)
+  patch (ArticleKey article) (unwrap ▷ (_ { addedToNewsRelatedWhitelist = true }) ▷ wrap)
 
 onArticleRemovedFromNewsRelatedWhitelist :: ∀ fx. ArticleRemovedFromNewsRelatedWhitelist.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleRemovedFromNewsRelatedWhitelist { article } =
-  patch (ArticleKey { id: Just article, slug: Nothing }) (unwrap ▷ (_ { addedToNewsRelatedWhitelist = false }) ▷ wrap)
+  patch (ArticleKey article) (unwrap ▷ (_ { addedToNewsRelatedWhitelist = false }) ▷ wrap)
 
 onMagazineIssueReferenced :: ∀ fx. MagazineIssueReferenced.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onMagazineIssueReferenced { id, slug } = add $ MagazineIssue { id, slug }
@@ -896,8 +1021,8 @@ onMagazineCustomSectionAdded { id, name } = add $ CustomSection { id, name }
 
 onArticleAddedToNewsRelatedBlacklist :: ∀ fx. ArticleAddedToNewsRelatedBlacklist.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleAddedToNewsRelatedBlacklist { article } =
-  patch (ArticleKey { id: Just article, slug: Nothing }) (unwrap ▷ (_ { addedToNewsRelatedBlacklist = true }) ▷ wrap)
+  patch (ArticleKey article) (unwrap ▷ (_ { addedToNewsRelatedBlacklist = true }) ▷ wrap)
 
 onArticleRemovedFromNewsRelatedBlacklist :: ∀ fx. ArticleRemovedFromNewsRelatedBlacklist.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleRemovedFromNewsRelatedBlacklist { article } =
-  patch (ArticleKey { id: Just article, slug: Nothing }) (unwrap ▷ (_ { addedToNewsRelatedBlacklist = false }) ▷ wrap)
+  patch (ArticleKey article) (unwrap ▷ (_ { addedToNewsRelatedBlacklist = false }) ▷ wrap)

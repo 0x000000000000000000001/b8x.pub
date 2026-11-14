@@ -6,7 +6,7 @@ import Core.Mod.Projection.Finder.Expectation.Expectation (Expectation(..))
 import Core.Mod.Projection.Finder.Filter (Filter, Limit(..), Op(..), fold)
 import Core.Mod.Projection.Finder.Finder (Find(..))
 import Core.Mod.Projection.Finder.Sort (SortDirection(..))
-import Core.Mod.Projection.Pair (class IsPair)
+import Core.Mod.Projection.Pair (class IsPair, getPrimary)
 import Core.Mod.Projection.Projection (class IsProjection)
 import Foreign (Foreign)
 import Yoga.JSON (readImpl, writeImpl)
@@ -92,10 +92,20 @@ onProjectionReadFind = Router.on @findEffSym (handle @v)
                 idx = length whereValues + 1
 
                 cursorSelects = sort # map unwrap # mapWithIndex \i s -> buildColPath fullTableName s.path <> " AS c" <> show i
-                cursorSelectsStr = if length cursorSelects > 0 then joinWith ", " cursorSelects <> ", " else ""
-                cte = "WITH cursor AS (SELECT " <> cursorSelectsStr <> "n FROM " <> fullTableName <> " WHERE key = ($" <> show idx <> "::text)) "
+                scoreSelectStr = case score of
+                  Just s -> "(" <> s.sql <> ") AS c_score, "
+                  Nothing -> ""
 
-                keys = (sort # map unwrap # mapWithIndex \i s -> { col: buildColPath "t" s.path, cursorCol: "cursor.c" <> show i, direction: s.direction }) <> [ { col: "t.n", cursorCol: "cursor.n", direction: Desc } ]
+                cteFroms = if length whereFroms > 0 then ", " <> joinWith ", " whereFroms else ""
+
+                cursorSelectsStr = if length cursorSelects > 0 then joinWith ", " cursorSelects <> ", " else ""
+                cte = "WITH cursor AS (SELECT " <> scoreSelectStr <> cursorSelectsStr <> "n FROM " <> fullTableName <> cteFroms <> " WHERE key = ($" <> show idx <> "::text)) "
+
+                scoreKey = case score of
+                  Just s -> [ { col: "(" <> s.sql <> ")", cursorCol: "cursor.c_score", direction: Desc } ]
+                  Nothing -> []
+
+                keys = scoreKey <> (sort # map unwrap # mapWithIndex \i s -> { col: buildColPath "t" s.path, cursorCol: "cursor.c" <> show i, direction: s.direction }) <> [ { col: "t.n", cursorCol: "cursor.n", direction: Desc } ]
 
                 buildLevel depth = case keys !! depth of
                   Nothing -> "false"
@@ -113,7 +123,7 @@ onProjectionReadFind = Router.on @findEffSym (handle @v)
                         "(" <> inequality <> " OR (" <> equality <> " AND " <> buildLevel (depth + 1) <> "))"
 
               in
-                cte /\ ("(" <> whereClause <> ") AND " <> buildLevel 0) /\ (whereValues <> [ writeImpl $ (unwrap key).primary ??⇒ "" ])
+                cte /\ ("(" <> whereClause <> ") AND " <> buildLevel 0) /\ (whereValues <> [ writeImpl $ getPrimary key ??⇒ "" ])
             Nothing ->
               "" /\ whereClause /\ whereValues
 
@@ -133,7 +143,8 @@ onProjectionReadFind = Router.on @findEffSym (handle @v)
         in
           { sql, params, limit }
 
-    rawResults <- parQueryWithRetry @p' singularType tableName (compiledQueries <#> \q -> { sql: q.sql, params: q.params })
+    rawResults <-
+      parQueryWithRetry @p' singularType tableName (compiledQueries <#> \q -> { sql: q.sql, params: q.params })
 
     let
       results = Array.zip compiledQueries rawResults <#> \(query /\ rawRows) ->
@@ -217,7 +228,7 @@ buildWhere schemaName filter_ = fold
   where
   onByKey key idx =
     { sql: "key = $" <> show idx
-    , values: [ writeImpl ((unwrap key).primary ??⇒ "") ]
+    , values: [ writeImpl (getPrimary key ??⇒ "") ]
     , score: Nothing
     , is: Leaf
     , froms: []

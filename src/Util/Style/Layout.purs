@@ -23,6 +23,9 @@ overflowScroll = overflow scroll
 overflowXHidden :: CSS.CSS
 overflowXHidden = raw "overflow-x" "hidden"
 
+overflowXClip :: CSS.CSS
+overflowXClip = raw "overflow-x" "clip"
+
 overflowYAuto :: CSS.CSS
 overflowYAuto = raw "overflow-y" "auto"
 

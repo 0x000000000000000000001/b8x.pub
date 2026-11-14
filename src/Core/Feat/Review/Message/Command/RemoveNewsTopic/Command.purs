@@ -1,6 +1,8 @@
 module Core.Feat.Review.Message.Command.RemoveNewsTopic.Command
-  (RemoveNewsTopic(..)
-  ) where
+  ( RemoveNewsTopic(..)
+  , RemoveNewsTopicAliasRow
+  )
+  where
 
 import Core.Message.Command.Command (class IsCommand, class IsProtectedAgainstConcurrency, defaultMaxConcurrencyRetries, ConcurrencyPriority(..), defaultCheckLoadedEvents, defaultHandle)
 import Core.Feat.Review.Message.Command.RemoveNewsTopic.Decide (decide)
@@ -44,4 +46,57 @@ instance
 
   handle = defaultHandle @RemoveNewsTopic (Just filter) defaultCheckLoadedEvents initialState play decide toResult
 
-  
+type RemoveNewsTopicAliasRow r =
+  ( "RemoveANewsTopic" :: RemoveNewsTopic
+  , "JeterSujetDActualite" :: RemoveNewsTopic
+  , "JeterSujetActualite" :: RemoveNewsTopic
+  , "JeterUnSujetDActualite" :: RemoveNewsTopic
+  , "JeterUnSujetActualite" :: RemoveNewsTopic
+  , "JetteSujetDActualite" :: RemoveNewsTopic
+  , "JetteSujetActualite" :: RemoveNewsTopic
+  , "JetteUnSujetDActualite" :: RemoveNewsTopic
+  , "JetteUnSujetActualite" :: RemoveNewsTopic
+  , "SupprimerSujetActualite" :: RemoveNewsTopic
+  , "SupprimerSujetDActualite" :: RemoveNewsTopic
+  , "SupprimerUnSujetActualite" :: RemoveNewsTopic
+  , "SupprimerUnSujetDActualite" :: RemoveNewsTopic
+  , "SuppressionSujetActualite" :: RemoveNewsTopic
+  , "SuppressionSujetDActualite" :: RemoveNewsTopic
+  , "SuppressionDeSujetActualite" :: RemoveNewsTopic
+  , "SuppressionDeSujetDActualite" :: RemoveNewsTopic
+  , "SuppressionDUnSujetActualite" :: RemoveNewsTopic
+  , "SuppressionDUnSujetDActualite" :: RemoveNewsTopic
+  , "SupprimeSujetActualite" :: RemoveNewsTopic
+  , "SupprimeSujetDActualite" :: RemoveNewsTopic
+  , "SupprimeUnSujetActualite" :: RemoveNewsTopic
+  , "SupprimeUnSujetDActualite" :: RemoveNewsTopic
+  , "RetirerSujetActualite" :: RemoveNewsTopic
+  , "RetirerSujetDActualite" :: RemoveNewsTopic
+  , "RetirerUnSujetActualite" :: RemoveNewsTopic
+  , "RetirerUnSujetDActualite" :: RemoveNewsTopic
+  , "RetireSujetActualite" :: RemoveNewsTopic
+  , "RetireSujetDActualite" :: RemoveNewsTopic
+  , "RetireUnSujetActualite" :: RemoveNewsTopic
+  , "RetireUnSujetDActualite" :: RemoveNewsTopic
+  , "RetraitSujetActualite" :: RemoveNewsTopic
+  , "RetraitSujetDActualite" :: RemoveNewsTopic
+  , "RetraitDeSujetActualite" :: RemoveNewsTopic
+  , "RetraitDeSujetDActualite" :: RemoveNewsTopic
+  , "RetraitDUnSujetActualite" :: RemoveNewsTopic
+  , "RetraitDUnSujetDActualite" :: RemoveNewsTopic
+  , "EffacerSujetActualite" :: RemoveNewsTopic
+  , "EffacerSujetDActualite" :: RemoveNewsTopic
+  , "EffacerUnSujetActualite" :: RemoveNewsTopic
+  , "EffacerUnSujetDActualite" :: RemoveNewsTopic
+  , "EffaceSujetActualite" :: RemoveNewsTopic
+  , "EffaceSujetDActualite" :: RemoveNewsTopic
+  , "EffaceUnSujetActualite" :: RemoveNewsTopic
+  , "EffaceUnSujetDActualite" :: RemoveNewsTopic
+  , "EffacementSujetActualite" :: RemoveNewsTopic
+  , "EffacementSujetDActualite" :: RemoveNewsTopic
+  , "EffacementDeSujetActualite" :: RemoveNewsTopic
+  , "EffacementDeSujetDActualite" :: RemoveNewsTopic
+  , "EffacementDUnSujetActualite" :: RemoveNewsTopic
+  , "EffacementDUnSujetDActualite" :: RemoveNewsTopic
+  | r
+  )

@@ -13,7 +13,7 @@ type LegacyId = Base.LegacyId
 newtype LegacyIdField = LegacyIdField LegacyId
 
 description :: String
-description = "Legacy article ID"
+description = "Legacy article"
 
 instance IsField LegacyIdField LegacyId () where
   name = "LegacyArticleId"

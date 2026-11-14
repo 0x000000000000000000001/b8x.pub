@@ -12,7 +12,7 @@ import Core.Mod.Book.Name.Name (Name)
 import Core.Mod.Editor.Id.Id (EditorId)
 import Core.Mod.Projection.Finder.Filter (Matches(..), noLimit)
 import Core.Mod.Projection.Finder.Finder (Find, findManyBy)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, delete, coerce, noAfter)
 import Core.Mod.Projection.SearchIndex (EveryTextIndexesWithWeightA, RawIndexOnly, everyTextIndexesWithWeightA, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -33,12 +33,12 @@ instance
     "verifyBookUniquenessProjectionWriteOps"
     (VERIFY_BOOK_UNIQUENESS_PROJECTION_WRITE_OPS ())
     "verifyBookUniquenessProjectionReadSyncProject"
-    { verifyBookUniqueness :: Book }
-    { verifyBookUniqueness :: BookIndexNeeds }
-    { verifyBookUniqueness :: Record () }
+    { book :: Book }
+    { book :: BookIndexNeeds }
+    { book :: Record () }
   where
   indexNeeds =
-    { verifyBookUniqueness:
+    { book:
         { id: rawIndexOnly
         , name: everyTextIndexesWithWeightA
         }
@@ -58,8 +58,8 @@ instance
     BookRecord
     BookIndexNeeds
     ()
-    "verifyBookUniqueness"
-    "verifyBookUniquenessBooks"
+    "book"
+    "books"
     "verifyBookUniquenessProjectionReadFind"
     VerifyBookUniquenessProjection
   where
@@ -67,6 +67,9 @@ instance
   single = false
 
 newtype Book = Book BookRecord
+
+instance ToAliases Book where
+  toAliases _ = []
 
 type BookRecord =
   { id :: BookId
@@ -91,8 +94,8 @@ derive newtype instance Show Book
 newtype BookKey = BookKey BookId
 
 derive instance Newtype BookKey _
-instance ToAliasedPrimary BookKey where
-  toAliasedPrimary (BookKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary BookKey where
+  toPrimary (BookKey id) = toString id
 derive newtype instance Eq BookKey
 derive newtype instance Ord BookKey
 
@@ -116,6 +119,11 @@ play :: ∀ fx. LoadedEvent -> Run (VERIFY_BOOK_UNIQUENESS_PROJECTION_WRITE_OPS 
 play { event } = case event of
   BookReferenced payload -> onBookReferenced payload
   BookDereferenced payload -> onBookDereferenced payload
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   AuthorReferenced _ -> ηι
   AuthorDereferenced _ -> ηι
   EditorReferenced _ -> ηι

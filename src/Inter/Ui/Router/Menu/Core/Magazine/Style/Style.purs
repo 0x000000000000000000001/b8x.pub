@@ -15,6 +15,7 @@ import Util.Style.Effect (cursorPointer)
 import Util.Style.Transition (transitions)
 import Util.Style.Transition as Transition
 import Util.Style.Selector ((.?), (.*), (:&))
+import Util.Style.MediaQuery (onTabletLte)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Router.Menu.Core.Magazine.Style.Style"
@@ -51,6 +52,8 @@ staticStyle = do
   mosaicClass .? do
     display grid
     gridTemplateColumns "repeat(3, minmax(0, 1fr))"
+    onTabletLte do
+      gridTemplateColumns "repeat(2, minmax(0, 1fr))"
     gapRem 1.0
     widthPct100
     flexGrow1

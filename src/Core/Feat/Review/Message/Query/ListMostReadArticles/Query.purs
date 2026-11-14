@@ -20,7 +20,7 @@ import Core.Mod.Author.Message.Query.Build (buildAuthor)
 import Core.Mod.Book.Message.Query.Build (buildBooks, buildBook)
 import Core.Mod.Projection.Finder.Expectation.Expectation (Expectation(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash, defaultFindOpt)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, defaultFindOpt, HashScope(..))
 import Core.Mod.Projection.Finder.Sort as Sort
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array as Array
@@ -45,7 +45,7 @@ instance IsQuery ListMostReadArticles State Fields Payload Result where
   description = "List most read articles"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Article Nothing
+    hash <- getReadModelHash @Article HashAll
     η $ defaultCached hash
 
   handle (ListMostReadArticles { theme, blacklist, needs }) = do
@@ -74,5 +74,6 @@ instance IsQuery ListMostReadArticles State Fields Payload Result where
           , author: buildAuthor config.objectStorage.urlBase needs.author a.author
           , illustrations: buildIllustrations needs.illustrations a.illustrations a.books (buildIllustration config.objectStorage.urlBase)
           , slug: build needs.slug a.slug
+          , writtenAt: build needs.writtenAt a.writtenAt
           }
       }

@@ -184,6 +184,7 @@ appendEvents traceContext events optimisticLockInfo = go 0
               <> (mStashedAt ?? (\at -> [ Foreign.unsafeToForeign at ]) ⇔ [])
 
           Postgres.withStoreLockNoTxConnectionHandle \txStoreLock -> do
+
             lockResOrErr <- registerIntentAndSieve txStoreLock intentId lockKey (Foreign.unsafeToForeign (JSON.writeJSON incomingEventsJsonArr)) jsonFilterStr
 
             case lockResOrErr of
@@ -194,31 +195,37 @@ appendEvents traceContext events optimisticLockInfo = go 0
                 _ <- Postgres.tryQuery txStoreLock "SELECT pg_advisory_unlock($1::bigint)" [ Foreign.unsafeToForeign lockKey ]
                 η (Right []) -- Empty array will trigger 'Nothing' and application-level retry
               Right true -> do
-                Postgres.withStoreTxConnectionHandle \txStore -> do
-                  -- 3. Atomic CTE (Enriched OCC Check & Append)
-                  resCte <- executeAppendCte txStore cteQueryStrEnriched jsonParamsEnriched
+                res <- Postgres.withStoreTxConnectionHandle \txStore ->
+                  executeAppendCte txStore cteQueryStrEnriched jsonParamsEnriched
 
-                  -- 4. Opportunistic GC
-                  gcActiveContexts txStoreLock intentId lockKey
-                  -- 5. Release session lock
-                  _ <- Postgres.tryQuery txStoreLock "SELECT pg_advisory_unlock($1::bigint)" [ Foreign.unsafeToForeign lockKey ]
+                -- Keep the intent and its session lock until COMMIT or ROLLBACK completes.
+                gcActiveContexts txStoreLock intentId lockKey
+                _ <- Postgres.tryQuery txStoreLock "SELECT pg_advisory_unlock($1::bigint)" [ Foreign.unsafeToForeign lockKey ]
 
-                  case resCte of
-                    Left err -> η (Left err)
-                    Right cteRows -> η (Right cteRows)
+                η res
 
       case resOrErr of
         Left err | (contains (Pattern "42P01") (message err) || contains (Pattern "does not exist") (message err)) && retried == 0 -> do
+
           ensureEventsTable
+
           go 1
         Left err | contains (Pattern "23505") (message err) || contains (Pattern "duplicate key") (message err) -> do
+
           η Nothing
-        Left err -> ʌ' $ throwError err
+        Left err -> do
+
+          ʌ' $ throwError err
         Right cteRows -> do
+
           if length cteRows == 0 then η Nothing
           else case parseAppendedEvents cteRows of
-            Left err -> ʌ' $ throwError err
-            Right appendedEvents -> η (Just appendedEvents)
+            Left err -> do
+
+              ʌ' $ throwError err
+            Right appendedEvents -> do
+
+              η (Just appendedEvents)
 
 loadEvents
   :: ∀ fx

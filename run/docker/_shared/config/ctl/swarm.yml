@@ -1,0 +1,51 @@
+services:
+  ctl:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_CTL_WRAP}"
+    env_file:
+      - ${ROOT_DIR}/env/_shared/ui.env
+      - ${ROOT_DIR}/env/_shared/api.env
+      - ${ROOT_DIR}/env/${ENV}/api.env
+      - ${ROOT_DIR}/env/_shared/git.env
+      - ${ROOT_DIR}/env/_shared/aws.env
+      - ${ROOT_DIR}/env/_shared/dns.env
+      - ${ROOT_DIR}/env/${ENV}/dns.env
+      - ${ROOT_DIR}/env/_shared/db.env
+      - ${ROOT_DIR}/env/${ENV}/db.env
+      - ${ROOT_DIR}/env/_shared/db2.env
+      - ${ROOT_DIR}/env/${ENV}/db2.env
+      - ${ROOT_DIR}/env/_shared/mail.env
+      - ${ROOT_DIR}/env/_shared/pay.env
+      - ${ROOT_DIR}/env/_shared/mq.env
+      - ${ROOT_DIR}/env/${ENV}/mq.env
+      - ${ROOT_DIR}/env/_shared/ses.env
+      - ${ROOT_DIR}/env/_shared/s3.env
+      - ${ROOT_DIR}/env/${ENV}/s3.env
+      - ${ROOT_DIR}/env/_shared/news.env
+    environment:
+      TZ: ${TZ} 
+      ENV: ${ENV}
+      SOURCE: ""
+      MAX_PULL_DURATION: ${CTL_MAX_PULL_DURATION}
+      REMOTE: ${GIT_REPO_URL_SSH}
+      TO: ${GIT_TO}
+    volumes:
+      - ${DOCKER_CONTEXT_SOCK}:/var/run/docker.sock
+      - ${ROOT_DIR}:/var/www/b8x
+      - ${ROOT_DIR}/run/docker/_shared/file/ctl/postpull.sh:/postpull.sh
+    command: /run.sh
+    stdin_open: true
+    tty: true
+    working_dir: /var/www/b8x
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+    healthcheck:
+      test: [ 'CMD', '/healthcheck.sh' ]
+      interval: ${CTL_DOCKER_HEALTHCHECK_INTERVAL}s
+      timeout: ${CTL_DOCKER_HEALTHCHECK_TIMEOUT}s
+      retries: ${CTL_DOCKER_HEALTHCHECK_RETRIES}
+      start_period: ${CTL_MAX_PULL_DURATION}s
+    networks:
+      - stack-default
+    

@@ -1,5 +1,5 @@
 module Util.Env
-  (Env(..)
+  ( Env(..)
   ) where
 
 import Proem

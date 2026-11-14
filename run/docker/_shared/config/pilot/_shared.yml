@@ -1,0 +1,9 @@
+services:
+  pilot:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_PILOT_WRAP}"
+    volumes:
+      - ${DOCKER_CONTEXT_SOCK}:/var/run/docker.sock
+
+  pilot-gateway:
+    volumes:
+      - ${DOCKER_CONTEXT_SOCK}:/var/run/docker.sock

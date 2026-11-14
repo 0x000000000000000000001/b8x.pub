@@ -18,9 +18,9 @@ defaultUntagWhitelist = Tags [ "em", "u", "strong", "b", "i", "mark", "code", "s
 
 cleanHtml_ :: UntagOpt -> String -> String
 cleanHtml_ opts str =
-  removeComments str
-    # untag opts false
-    # decodeHtmlEntities
+  decodeHtmlEntities str
+    # removeComments
+    # untag opts true
     # collapseSpaces false
     # trim
     # collapseSpacesWithAtLeastOneNewline false " "

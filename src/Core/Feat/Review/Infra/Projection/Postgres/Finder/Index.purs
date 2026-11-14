@@ -13,6 +13,7 @@ import Core.Feat.Review.Message.Query.VerifyArticleLegacyIdUniqueness.Projection
 import Core.Feat.Review.Message.Command.WriteArticle.Projection.Projection as WriteArticle
 import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Projection.Projection as VerifyArticleSlugUniqueness
 import Core.Feat.Review.Message.Query.SearchArticles.Projection.Projection as SearchArticles
+import Core.Feat.Review.Message.Query.SearchNewsTopics.Projection.Projection as SearchNewsTopics
 import Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.Projection.Projection as VerifyNewsRelatedArticleWhitelistLimit
 import Core.Mod.Projection.Index (PROJECTION_READ_SYNC_PROJECT)
 import Infra.Client.Postgres.Postgres (READER_POSTGRES_EDGE_CLIENT)
@@ -37,6 +38,7 @@ onProjectionReadFind = Base.onProjectionReadFind @GetArticle.Article
   ◁ Base.onProjectionReadFind @VerifyArticleLegacyIdUniqueness.Article
   ◁ Base.onProjectionReadFind @SearchArticles.Article
   ◁ Base.onProjectionReadFind @SearchArticles.NewsTopic
+  ◁ Base.onProjectionReadFind @SearchNewsTopics.NewsTopic
   ◁ Base.onProjectionReadFind @WriteArticle.Article
   ◁ Base.onProjectionReadFind @VerifyArticleSlugUniqueness.Article
   ◁ Base.onProjectionReadFind @VerifyNewsRelatedArticleWhitelistLimit.Article

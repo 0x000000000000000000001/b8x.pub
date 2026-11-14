@@ -4,7 +4,7 @@ import Data.Maybe (Maybe(..))
 
 import Proem
 
-import Core.Message.Field.Field (class IsField, Presence(..), Sanitized(..), defaultShouldSanitizeInner)
+import Core.Message.Field.Field (class IsField, Presence(..), Sanitized(..), defaultShouldSanitizeInner, enumChoices)
 import Core.Mod.Article.FrontPage.Position.Position as Base
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Newtype (class Newtype)
@@ -30,7 +30,7 @@ instance IsField PositionField Position () where
   cli =
     { description
     , multiline: false
-    , choices: Nothing
+    , choices: Just $ enumChoices @Base.Position
     }
 
 derive instance Newtype PositionField _

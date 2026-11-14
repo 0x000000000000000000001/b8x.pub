@@ -11,7 +11,7 @@ import Inter.Ui.Router.Menu.HandleAction.CloseMagazine (closeMagazine)
 import Inter.Ui.Router.Menu.HandleAction.CloseNewsletter (closeNewsletter)
 import Inter.Ui.Router.Menu.HandleAction.CloseSearch (closeSearch)
 import Inter.Ui.Router.Menu.HandleAction.DoNothing (doNothing)
-import Inter.Ui.Router.Menu.HandleAction.FetchResults (fetchResults)
+import Inter.Ui.Router.Menu.HandleAction.FetchSearchResults (fetchSearchResults, nextSearchPage, previousSearchPage)
 import Inter.Ui.Router.Menu.HandleAction.GoToMagazineCovers (goToMagazineCovers)
 import Inter.Ui.Router.Menu.HandleAction.GoToMagazineArticles (goToMagazineArticles)
 import Inter.Ui.Router.Menu.HandleAction.GoToNewsletterArticles (goToNewsletterArticles)
@@ -33,29 +33,33 @@ import Inter.Ui.Router.Menu.Type.MenuM (MenuM)
 import Inter.Ui.Type.IntentOrigin (IntentOrigin(..))
 
 handleAction :: Action -> MenuM Ɩ
-handleAction = case _ of
-  Open -> open Internal
-  Close -> close Internal
-  HandleSearchInputOutput output -> handleSearchInputOutput output
-  HandleLinkOutput output -> handleLinkOutput output
-  RemoveAuthorFilter -> handleActionRemoveAuthorFilter
-  FetchResults -> fetchResults
-  CloseSearch -> closeSearch Internal
-  OpenSearch -> openSearch Internal Nothing
-  OpenNewsletter -> openNewsletter Internal
-  CloseNewsletter -> closeNewsletter Internal
-  GoToNewsletterMonths year -> goToNewsletterMonths year
-  GoToNewsletterArticles year month mId fromShortcut -> goToNewsletterArticles year month mId fromShortcut
-  OpenMagazine -> openMagazine Internal
-  CloseMagazine -> closeMagazine Internal
-  GoToMagazineCovers year -> goToMagazineCovers year
-  GoToMagazineArticles year slug -> goToMagazineArticles Internal (Just year) slug
-  DoNothing -> doNothing
-  Receive input -> receive input
-  Initialize -> initialize
-  HandleDocMouseMove mouseEvent -> handleDocMouseMove mouseEvent
-  HandleDocClick mouseEvent -> handleDocClick mouseEvent
-  CloseActivePanel -> closeActivePanel Internal
+handleAction action = do
+  case action of
+    Open -> open Internal
+    Close -> do
+      close Internal
+    HandleSearchInputOutput output -> handleSearchInputOutput output
+    HandleLinkOutput output -> handleLinkOutput output
+    RemoveAuthorFilter -> handleActionRemoveAuthorFilter
+    FetchSearchResults -> fetchSearchResults
+    NextSearchPage -> nextSearchPage
+    PreviousSearchPage -> previousSearchPage
+    CloseSearch -> closeSearch Internal
+    OpenSearch -> openSearch Internal Nothing
+    OpenNewsletter -> openNewsletter Internal
+    CloseNewsletter -> closeNewsletter Internal
+    GoToNewsletterMonths year -> goToNewsletterMonths year
+    GoToNewsletterArticles year month mId fromShortcut -> goToNewsletterArticles year month mId fromShortcut
+    OpenMagazine -> openMagazine Internal
+    CloseMagazine -> closeMagazine Internal
+    GoToMagazineCovers year -> goToMagazineCovers year
+    GoToMagazineArticles year slug -> goToMagazineArticles Internal (Just year) slug
+    DoNothing -> doNothing
+    Receive input -> receive input
+    Initialize -> initialize
+    HandleDocMouseMove mouseEvent -> handleDocMouseMove mouseEvent
+    HandleDocClick mouseEvent -> handleDocClick mouseEvent
+    CloseActivePanel -> closeActivePanel Internal
 
-  Logout -> logout
-  OpenLoginModal -> openLoginModal
+    Logout -> logout
+    OpenLoginModal -> openLoginModal

@@ -15,3 +15,4 @@ handleAction = case _ of
   HandleArticleCardOutput _ -> η ι
   HandleNewsletterOutput _ -> η ι
   HandleQuoteLinkOutput _ -> η ι
+  HandleAdLinkOutput _ -> η ι

@@ -14,7 +14,7 @@ type Authors = Array AuthorId
 newtype AuthorsField = AuthorsField Authors
 
 description :: String
-description = "Author IDs"
+description = "Authors"
 
 instance IsField AuthorsField Authors () where
   name = "Authors"

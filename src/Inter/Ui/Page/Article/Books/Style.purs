@@ -1,5 +1,5 @@
 module Inter.Ui.Page.Article.Books.Style
-  (booksContainer_
+  ( booksContainer_
   , watermark_
   , sectionTitle_
   , booksList_
@@ -17,15 +17,16 @@ import Proem hiding (div, top)
 
 import CSS (absolute, alignItems, bold, color, column, em, flexDirection, flexStart, fontSize, fontWeight, left, letterSpacing, margin, marginBottom, marginTop, padding, position, relative, rgba, row, textTransform, top, zIndex)
 import CSS as CSS
-import CSS.Overflow (overflow, hidden)
 import CSS.Text.Transform (uppercase)
 import Halogen.HTML (HTML, div)
 import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Style.Base (raw)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass, refineClass')
-import Util.Style.Layout (alignItemsCenter, displayFlex, heightPct, heightRem, justifyContentCenter, widthPct)
+import Util.Style.Layout (alignItemsCenter, displayFlex, heightPct, heightRem, justifyContentCenter, overflowHidden, widthPct)
 import Util.Style.Selector ((.?))
-import Util.Style.Typography (fontSizePct)
+import Util.Style.Typography (fontSizePct, textAlignCenter)
+import Util.Style.MediaQuery (onTabletLte)
+import Util.Style.Position (positionRelative)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Page.Article.Books.Style"
@@ -81,7 +82,6 @@ staticStyle = do
     displayFlex
     flexDirection column
     alignItemsCenter
-    overflow hidden
 
   watermarkC .? do
     position absolute
@@ -89,6 +89,7 @@ staticStyle = do
     left (em 0.0)
     widthPct 100.0
     heightPct 100.0
+    overflowHidden
     displayFlex
     alignItems flexStart
     justifyContentCenter
@@ -116,11 +117,12 @@ staticStyle = do
     zIndex 1
 
   listC .? do
+    -- Stay above the watermark without trapping author tooltips in a stacking context.
+    positionRelative
     displayFlex
     flexDirection column
     alignItemsCenter
     widthPct 100.0
-    zIndex 1
 
   cardC .? do
     displayFlex
@@ -130,16 +132,27 @@ staticStyle = do
     marginTop (em 3.0)
     widthPct 100.0
 
+    onTabletLte do
+      flexDirection column
+
   coverC .? do
     margin (em 0.0) (em 4.0) (em 0.0) (em 0.0)
     CSS.select (CSS.element "img") $ do
       heightRem 16.0
       raw "width" "auto"
 
+    onTabletLte do
+      margin (em 0.0) (em 0.0) (em 2.0) (em 0.0)
+
   infoC .? do
     displayFlex
     flexDirection column
     CSS.maxWidth (em 20.0)
+
+    onTabletLte do
+      alignItemsCenter
+      textAlignCenter
+      CSS.maxWidth (em 30.0)
 
   titleC .? do
     fontSizePct 140.0

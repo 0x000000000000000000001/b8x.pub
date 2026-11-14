@@ -1,0 +1,8 @@
+services:
+  mq:
+    #    volumes:
+    #      - ${DOCKER_DIR}/${ENV}/volume/mq/mnesia:/var/lib/rabbitmq/mnesia
+    ports:
+      - 15672:15672
+    security_opt:
+      - apparmor:unconfined # remove some linux firewalls if set

@@ -10,6 +10,7 @@ import Inter.Ui.Router.Menu.Core.Items.Style.Index as Items
 import Inter.Ui.Router.Menu.Core.Style.Style as Core
 import Inter.Ui.Router.Menu.Core.Newsletter.Style.Style as Newsletter
 import Inter.Ui.Router.Menu.Core.Magazine.Style.Style as Magazine
+import Inter.Ui.Router.Menu.Core.CloseButton.Style as CloseButton
 
 staticStyle :: CSS.CSS
 staticStyle = do
@@ -20,3 +21,4 @@ staticStyle = do
   Items.staticStyle
   Newsletter.staticStyle
   Magazine.staticStyle
+  CloseButton.staticStyle

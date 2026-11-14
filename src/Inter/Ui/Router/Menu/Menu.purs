@@ -22,6 +22,9 @@ menu { route, isUrlLoaded } =
       Just (Theme _ { consumeMagicLoginToken: _, menu: { search: { openWith: ow } } }) -> ow
       Just (Article _ { consumeMagicLoginToken: _, menu: { search: { openWith: ow } } }) -> ow
       Just (Donate { consumeMagicLoginToken: _, menu: { search: { openWith: ow } } }) -> ow
+      Just (About { consumeMagicLoginToken: _, menu: { search: { openWith: ow } } }) -> ow
+      Just (Legal { consumeMagicLoginToken: _, menu: { search: { openWith: ow } } }) -> ow
+      Just (Newsletter { consumeMagicLoginToken: _, menu: { search: { openWith: ow } } }) -> ow
       Just NotFound -> Nothing
       Nothing -> Nothing
 
@@ -30,6 +33,9 @@ menu { route, isUrlLoaded } =
       Just (Theme _ { consumeMagicLoginToken: _, menu: { search: { withAuthorFilter: wf } } }) -> wf
       Just (Article _ { consumeMagicLoginToken: _, menu: { search: { withAuthorFilter: wf } } }) -> wf
       Just (Donate { consumeMagicLoginToken: _, menu: { search: { withAuthorFilter: wf } } }) -> wf
+      Just (About { consumeMagicLoginToken: _, menu: { search: { withAuthorFilter: wf } } }) -> wf
+      Just (Legal { consumeMagicLoginToken: _, menu: { search: { withAuthorFilter: wf } } }) -> wf
+      Just (Newsletter { consumeMagicLoginToken: _, menu: { search: { withAuthorFilter: wf } } }) -> wf
       Just NotFound -> Nothing
       Nothing -> Nothing
 
@@ -38,6 +44,9 @@ menu { route, isUrlLoaded } =
       Just (Theme _ { consumeMagicLoginToken: _, menu: { magazineIssueOpen: m } }) -> m
       Just (Article _ { consumeMagicLoginToken: _, menu: { magazineIssueOpen: m } }) -> m
       Just (Donate { consumeMagicLoginToken: _, menu: { magazineIssueOpen: m } }) -> m
+      Just (About { consumeMagicLoginToken: _, menu: { magazineIssueOpen: m } }) -> m
+      Just (Legal { consumeMagicLoginToken: _, menu: { magazineIssueOpen: m } }) -> m
+      Just (Newsletter { consumeMagicLoginToken: _, menu: { magazineIssueOpen: m } }) -> m
       Just NotFound -> Nothing
       Nothing -> Nothing
   in

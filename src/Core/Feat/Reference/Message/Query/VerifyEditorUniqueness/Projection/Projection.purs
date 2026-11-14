@@ -10,7 +10,7 @@ import Core.Mod.Editor.Id.Id (EditorId)
 import Core.Mod.Editor.Name.Name (Name)
 import Core.Mod.Projection.Finder.Filter (Matches(..), noLimit)
 import Core.Mod.Projection.Finder.Finder (Find, findManyBy)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, delete, noAfter, coerce)
 import Core.Mod.Projection.SearchIndex (EveryTextIndexesWithWeightA, RawIndexOnly, everyTextIndexesWithWeightA, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -30,12 +30,12 @@ instance
     "verifyEditorUniquenessProjectionWriteOps"
     (VERIFY_EDITOR_UNIQUENESS_PROJECTION_WRITE_OPS ())
     "verifyEditorUniquenessProjectionReadSyncProject"
-    { verifyEditorUniqueness :: Editor }
-    { verifyEditorUniqueness :: EditorIndexNeeds }
-    { verifyEditorUniqueness :: Record () }
+    { editor :: Editor }
+    { editor :: EditorIndexNeeds }
+    { editor :: Record () }
   where
   indexNeeds =
-    { verifyEditorUniqueness:
+    { editor:
         { id: rawIndexOnly
         , name: everyTextIndexesWithWeightA
         }
@@ -55,8 +55,8 @@ instance
     EditorRecord
     EditorIndexNeeds
     ()
-    "verifyEditorUniqueness"
-    "verifyEditorUniquenessEditors"
+    "editor"
+    "editors"
     "verifyEditorUniquenessProjectionReadFind"
     VerifyEditorUniquenessProjection
   where
@@ -64,6 +64,9 @@ instance
   single = false
 
 newtype Editor = Editor EditorRecord
+
+instance ToAliases Editor where
+  toAliases _ = []
 
 type EditorRecord =
   { id :: EditorId
@@ -86,8 +89,8 @@ derive newtype instance Show Editor
 newtype EditorKey = EditorKey EditorId
 
 derive instance Newtype EditorKey _
-instance ToAliasedPrimary EditorKey where
-  toAliasedPrimary (EditorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary EditorKey where
+  toPrimary (EditorKey id) = toString id
 derive newtype instance Eq EditorKey
 derive newtype instance Ord EditorKey
 
@@ -115,6 +118,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   UserEmailChanged _ -> ηι

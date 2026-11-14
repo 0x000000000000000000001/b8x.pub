@@ -10,4 +10,3 @@ type SitemapQueryRow r =
   , listMagazineIssues :: ListMagazineIssues
   | r
   )
-

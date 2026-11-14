@@ -1,0 +1,76 @@
+services:
+  db: # you can enter container as user 'postgres' instead of default 'root' in case of permission problems (ex: "The server must be started under an unprivileged user ID to prevent possible system security compromise", when doing a mere 'postgres --help')
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB_WRAP}"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_STORE}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    # see https://www.2ndquadrant.com/en/blog/basics-of-tuning-checkpoints/
+    # 
+    # [Optimal Connections Formula & PgBouncer Sizing]
+    # 1. Hardware Cap: (MAX(Cores, 8) * 2) + Spindles
+    #    Active backend connections for max TPS. A minimum floor of 8 cores is applied 
+    #    because modern OS/SSDs handle context switching very efficiently, and strict 
+    #    formulas artificially throttle small (1-2 core) VMs.
+    # 2. PgBouncer Multiplier: ~7x to 10x
+    #    Because JS/PHP clients have network/parsing latency, 85% of connection time is idle.
+    #    Total_Pool_Size = Hardware_Cap * Multiplier.
+    # 3. PostgreSQL max_connections
+    #    Must be >= (Sum of PgBouncer DEFAULT_POOL_SIZEs) + (Direct Connections) + Headroom.
+    # 
+    # [Current Global Allocation]
+    # - PgBouncer Edge (Read): 100
+    # - PgBouncer Store (Write): 50
+    # - PgBouncer Lock (Session): 50
+    # - Direct Connections (Projections / tryAdvisoryLock): 100
+    # - Admin Headroom: 100
+    # Total max_connections = 400.
+    # 
+    # With this architecture, API replicas can scale indefinitely (PgBouncer multiplexes them),
+    # while Projections scale linearly up to the direct connections limit (~100).
+    stdin_open: true
+    tty: true
+    sysctls:
+      net.ipv4.tcp_keepalive_time: 600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5
+
+  db-multiplex-store:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB_MULTIPLEX}"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB_STORE}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: "65000"
+      DEFAULT_POOL_SIZE: "50"
+      MIN_POOL_SIZE: "1"
+      SERVER_RESET_QUERY: DISCARD ALL
+      AUTH_TYPE: scram-sha-256
+    command: >
+      sh -c "exec /wait db:5432 -t ${WAIT_DELAY} -- pgbouncer /etc/pgbouncer/pgbouncer.ini"
+
+  db-multiplex-store-lock:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB_MULTIPLEX}"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB_STORE}
+      POOL_MODE: session
+      MAX_CLIENT_CONN: "65000"
+      DEFAULT_POOL_SIZE: "50"
+      MIN_POOL_SIZE: "1"
+      SERVER_RESET_QUERY: DISCARD ALL
+      AUTH_TYPE: scram-sha-256
+    command: >
+      sh -c "exec /wait db:5432 -t ${WAIT_DELAY} -- pgbouncer /etc/pgbouncer/pgbouncer.ini"
+
+  db-multiplex-edge:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DB_MULTIPLEX}"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB_EDGE}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: "65000"
+      DEFAULT_POOL_SIZE: "100"
+      MIN_POOL_SIZE: "1"
+      SERVER_RESET_QUERY: DISCARD ALL
+      AUTH_TYPE: scram-sha-256
+    command: >
+      sh -c "exec /wait db:5432 -t ${WAIT_DELAY} -- pgbouncer /etc/pgbouncer/pgbouncer.ini"

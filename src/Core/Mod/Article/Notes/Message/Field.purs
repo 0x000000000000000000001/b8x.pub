@@ -15,7 +15,7 @@ type Notes = Base.Notes
 newtype NotesField = NotesField Notes
 
 description :: String
-description = "Article notes"
+description = "Article notes (HTML)"
 
 instance IsField NotesField Notes () where
   name = "Notes"

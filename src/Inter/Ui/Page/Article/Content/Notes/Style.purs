@@ -21,6 +21,7 @@ import Util.Style.Base (raw)
 import Util.Style.Classname (classes, class_, generateStaticClass, inferInstanceClass, refineClass')
 import Util.Style.Effect (borderRadiusRem1)
 import Util.Style.Layout (margin0, marginTop, padding4, maxWidthRem, widthPct)
+import Util.Style.MediaQuery (onMobileLte)
 import Util.Style.Position (positionRelative)
 import Util.Style.Selector ((.?))
 import Util.Style.Typography (fontSizeRem, fontWeightBold, letterSpacingRem)
@@ -52,18 +53,31 @@ staticStyle = do
     color $ rgba 100 100 100 1.0
     positionRelative
 
+    onMobileLte do
+      raw "margin-left" "-1rem"
+      raw "margin-right" "-1rem"
+      raw "width" "calc(100% + 2rem)"
+      padding4 2.5 1.5 1.5 1.5
+
+
   titleClass .? do
     margin0
     centerToTopCenter
     backgroundColor $ rgba 180 180 180 1.0
     color CSS.white
-    fontSizeRem 0.85
+    fontSizeRem 1.4
     fontWeightBold
     textTransform uppercase
     letterSpacingRem 0.1
-    padding4 0.3 1.5 0.3 1.5
+    padding4 0.4 2.0 0.4 2.0
     borderRadiusRem1 2.0
-    raw "box-shadow" "0 2px 8px rgba(0, 0, 0, 0.1)"
+    raw "box-shadow" "0 4px 14px rgba(180, 180, 180, 0.4)"
+    raw "white-space" "nowrap"
+    raw "z-index" "20"
+
+    onMobileLte do
+      fontSizeRem 0.95
+      padding4 0.3 1.5 0.3 1.5
 
 notes :: ∀ w i. InstanceId -> Node HTMLdiv w i
 notes id props = div ([ classes [ staticClass, class' id ] ] <> props)

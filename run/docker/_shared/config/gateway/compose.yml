@@ -1,0 +1,9 @@
+services:
+  gateway:
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ${DOCKER_DIR}/${ENV}/volume/gateway/tls:/etc/traefik/mnt
+    networks:
+      - compose-default

@@ -36,14 +36,15 @@ module Infra.Client.Postgres.Postgres
   , query_
   , query
   , tryQuery
+  , askEdgeNoTxConnectionHandle
+  , askStoreNoTxConnectionHandle
+  , askStoreLockNoTxConnectionHandle
   , readerPostgresStoreClient'
   , readerPostgresEdgeClient'
   , readerPostgresStoreLockClient'
   , runPostgresStoreClientReader
   , runPostgresEdgeClientReader
   , runPostgresStoreLockClientReader
-  , askStoreNoTxConnectionHandle
-  , askStoreLockNoTxConnectionHandle
   , withStoreTxConnectionHandle
   , withStoreLockNoTxConnectionHandle
   , release
@@ -57,16 +58,16 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (attempt)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Exception (Error)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
-import Promise as Promise
-import Promise.Aff (toAffE)
 import Run (Run, AFF, EFFECT)
 import Run.Reader (Reader, askAt, runReaderAt)
 import Type.Row (type (+))
 import Unsafe.Coerce (unsafeCoerce)
+import Yoga.JSON (unsafeStringify)
 
 data Connection
 data ConnectionPool
@@ -118,10 +119,10 @@ foreign import _createConnectionPoolHandle :: String -> Int -> String -> String 
 createConnectionPoolHandle :: ∀ m. MonadAff m => DbSubConfig -> m ConnectionPoolHandle
 createConnectionPoolHandle { host, port, database, user, password, idleTimeoutMs } = ʌ $ _createConnectionPoolHandle host port database user password idleTimeoutMs
 
-foreign import _closeHandle :: ∀ s t. Handle s t -> Effect Ɩ
+foreign import _closeHandle :: ∀ s t. Handle s t -> EffectFnAff Ɩ
 
 closeHandle :: ∀ m s t. MonadAff m => Handle s t -> m Ɩ
-closeHandle handle = ʌ' $ toAffE $ Promise.resolve <$> _closeHandle handle
+closeHandle handle = ʌ' $ fromEffectFnAff $ _closeHandle handle
 
 closeClient :: ∀ m. MonadAff m => Client -> m Ɩ
 closeClient { handleRef } = do
@@ -130,16 +131,16 @@ closeClient { handleRef } = do
     Just handle -> closeHandle handle
     Nothing -> η ι
 
-foreign import _query :: ∀ s t. Handle s t -> String -> Array Foreign -> Effect (Array Foreign)
+foreign import _query :: ∀ s t. (Foreign -> String) -> Handle s t -> String -> Array Foreign -> EffectFnAff (Array Foreign)
 
 query_ :: ∀ m s t. MonadAff m => Handle s t -> String -> Array Foreign -> m (Array Foreign)
-query_ postgresClient q p = ʌ' $ toAffE $ Promise.resolve <$> _query postgresClient q p
+query_ postgresClient q p = ʌ' $ fromEffectFnAff $ _query unsafeStringify postgresClient q p
 
 query :: ∀ t fx. Handle Connection t -> String -> Array Foreign -> Run (AFF + EFFECT + fx) (Array Foreign)
-query tx q p = ʌ' $ toAffE $ Promise.resolve <$> _query tx q p
+query tx q p = ʌ' $ fromEffectFnAff $ _query unsafeStringify tx q p
 
 tryQuery :: ∀ t fx. Handle Connection t -> String -> Array Foreign -> Run (AFF + EFFECT + fx) (Either Error (Array Foreign))
-tryQuery tx q p = ʌ' $ attempt $ toAffE $ Promise.resolve <$> _query tx q p
+tryQuery tx q p = ʌ' $ attempt $ fromEffectFnAff $ _query unsafeStringify tx q p
 
 queryStore :: ∀ fx. String -> Array Foreign -> Run (AFF + EFFECT + READER_POSTGRES_STORE_CLIENT + fx) (Array Foreign)
 queryStore q p = do
@@ -171,10 +172,10 @@ tryQueryStoreLock q p = do
   handle <- askStoreLockConnectionPoolHandle
   ʌ' $ attempt $ query_ handle q p
 
-foreign import _queryCount :: ∀ s t. Handle s t -> String -> Array Foreign -> Effect Int
+foreign import _queryCount :: ∀ s t. (Foreign -> String) -> Handle s t -> String -> Array Foreign -> EffectFnAff Int
 
 queryCount_ :: ∀ m s t. MonadAff m => Handle s t -> String -> Array Foreign -> m Int
-queryCount_ postgresClient q p = ʌ' $ toAffE $ Promise.resolve <$> _queryCount postgresClient q p
+queryCount_ postgresClient q p = ʌ' $ fromEffectFnAff $ _queryCount unsafeStringify postgresClient q p
 
 queryCountStore :: ∀ fx. String -> Array Foreign -> Run (AFF + EFFECT + READER_POSTGRES_STORE_CLIENT + fx) Int
 queryCountStore q p = do
@@ -253,21 +254,26 @@ foreign import _escapeIdentifier :: String -> String
 escapeIdentifier :: String -> String
 escapeIdentifier = _escapeIdentifier
 
-foreign import _dedicate :: ConnectionPoolHandle -> Effect NoTxConnectionHandle
-foreign import _release :: NoTxConnectionHandle -> Effect Ɩ
+foreign import _dedicate :: ConnectionPoolHandle -> EffectFnAff NoTxConnectionHandle
+foreign import _release :: NoTxConnectionHandle -> EffectFnAff Ɩ
 
 release :: ∀ fx. NoTxConnectionHandle -> Run (AFF + EFFECT + fx) Ɩ
-release tx = ʌ' $ toAffE $ Promise.resolve <$> _release tx
+release tx = ʌ' $ fromEffectFnAff $ _release tx
+
+askEdgeNoTxConnectionHandle :: ∀ fx. Run (AFF + EFFECT + READER_POSTGRES_EDGE_CLIENT + fx) NoTxConnectionHandle
+askEdgeNoTxConnectionHandle = do
+  handle <- askEdgeConnectionPoolHandle
+  ʌ' $ fromEffectFnAff $ _dedicate handle
 
 askStoreNoTxConnectionHandle :: ∀ fx. Run (AFF + EFFECT + READER_POSTGRES_STORE_CLIENT + fx) NoTxConnectionHandle
 askStoreNoTxConnectionHandle = do
   handle <- askStoreConnectionPoolHandle
-  ʌ' $ toAffE $ Promise.resolve <$> _dedicate handle
+  ʌ' $ fromEffectFnAff $ _dedicate handle
 
 askStoreLockNoTxConnectionHandle :: ∀ fx. Run (AFF + EFFECT + READER_POSTGRES_STORE_LOCK_CLIENT + fx) NoTxConnectionHandle
 askStoreLockNoTxConnectionHandle = do
   handle <- askStoreLockConnectionPoolHandle
-  ʌ' $ toAffE $ Promise.resolve <$> _dedicate handle
+  ʌ' $ fromEffectFnAff $ _dedicate handle
 
 withStoreTxConnectionHandle :: ∀ a fx. (TxConnectionHandle -> Run (AFF + EFFECT + READER_POSTGRES_STORE_CLIENT + fx) (Either Error a)) -> Run (AFF + EFFECT + READER_POSTGRES_STORE_CLIENT + fx) (Either Error a)
 withStoreTxConnectionHandle action = do
@@ -303,4 +309,3 @@ withStoreLockNoTxConnectionHandle action = do
   release handle
 
   η res
-

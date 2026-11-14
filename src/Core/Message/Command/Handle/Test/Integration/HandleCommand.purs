@@ -13,6 +13,7 @@ import Core.Feat.Membership.Message.Command.ChangeUserEmail.State (State, initia
 import Core.Feat.Membership.Message.Command.RegisterUser.Command (RegisterUser(..))
 import Core.Message.Command.Command (class IsCommand, class IsProtectedAgainstConcurrency, ConcurrencyPriority(..), defaultCheckLoadedEvents, defaultHandle, description)
 import Core.Message.Command.Handle.Handle (handleCommand', handleCommand_)
+import Core.Message.Command.Handle.Test.Integration.LoadBarrier (newLoadBarrier, withLoadBarrier)
 import Core.Message.Command.Handle.Test.Integration.TestM (TestM, runTestM)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array (length, mapMaybe, replicate)
@@ -39,9 +40,11 @@ spec = describe fullModuleName do
   it "should execute a single command" do
     cmd <- random @RegisterUser
     let id = case cmd of RegisterUser payload -> payload.id
+
     handleCommand_ false cmd
 
     email <- random
+
     res <- handleCommand' false $ ChangeUserEmail' { user: id, email }
 
     res.tries =? 1
@@ -55,13 +58,15 @@ spec = describe fullModuleName do
 
     let numCommands = 5
 
+    barrier <- ʌ' $ newLoadBarrier [ numCommands ]
+
     postgresStoreClient <- askAt readerPostgresStoreClient'
     postgresEdgeClient <- askAt readerPostgresEdgeClient'
     postgresStoreLockClient <- askAt readerPostgresStoreLockClient'
     rabbitMqClient <- askAt readerRabbitMqClient'
 
     results <- ʌ' $ parTraverse
-      ( κ $ try $ runTestM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabbitMqClient } do
+      ( κ $ try $ runTestM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabbitMqClient } $ withLoadBarrier barrier do
           email <- random
           handleCommand' false $ ChangeUserEmail' { user: id, email }
       )
@@ -85,13 +90,15 @@ spec = describe fullModuleName do
 
     let numCommands = 5
 
+    barrier <- ʌ' $ newLoadBarrier [ numCommands, numCommands - 1 ]
+
     postgresStoreClient <- askAt readerPostgresStoreClient'
     postgresEdgeClient <- askAt readerPostgresEdgeClient'
     postgresStoreLockClient <- askAt readerPostgresStoreLockClient'
     rabbitMqClient <- askAt readerRabbitMqClient'
 
     results <- ʌ' $ parTraverse
-      ( κ $ try $ runTestM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabbitMqClient } do
+      ( κ $ try $ runTestM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabbitMqClient } $ withLoadBarrier barrier do
           email <- random
           handleCommand' false $ ChangeUserEmail'' { user: id, email }
       )

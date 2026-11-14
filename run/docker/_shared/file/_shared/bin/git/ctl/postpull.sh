@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# You may use:
+# $FORCE
+# $HEAD_COMMIT
+# $OUTPUT_FILE
+# $PREV_HEAD_COMMIT
+# $LAST_PULL_COMMIT
+# $SOURCE
+# $SALT
+#

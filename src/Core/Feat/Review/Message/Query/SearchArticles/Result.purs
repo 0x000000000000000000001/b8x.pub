@@ -39,4 +39,5 @@ type Article
     , magazineSection :: Return (Maybe (SectionF CustomSectionName.Name))
     , magazineIssuePageNumber :: Return (Maybe Int)
     , seoUpdatedAt :: Return Instant
+    , writtenAt :: Return Instant
     }

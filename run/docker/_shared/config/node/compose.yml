@@ -1,0 +1,26 @@
+# Action: it authorizes CTRL+F, then transforming it into a container kill (see https://github.com/moby/moby/issues/2838#issuecomment-394131408)
+# Reason: docker run annihilates CTRL+C because it would then mean a container kill
+x-ctrl-c-compatibility: &ctrl-c-compatibility
+  init: true
+
+services:
+  node:
+    <<: *ctrl-c-compatibility
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_NODE}"
+    volumes:
+      - ${ROOT_DIR}/bin/:/var/www/b8x/bin
+      - ${ROOT_DIR}/env/:/var/www/b8x/env
+      - ${ROOT_DIR}/run/:/var/www/b8x/run
+    # - ${ROOT_DIR}/docker/_shared/volume/node/entrypoint.sh:/docker-entrypoint.sh
+    # entrypoint: [ 'sh', '/docker-entrypoint.sh' ]
+    environment:
+      TZ: ${TZ}
+      ENV: ${ENV}
+      ROOT_DIR: /var/www/b8x
+    stdin_open: true
+    tty: true
+    working_dir: /var/www/b8x
+    security_opt:
+      - apparmor:unconfined # remove some linux firewalls if set
+    networks:
+      - compose-default

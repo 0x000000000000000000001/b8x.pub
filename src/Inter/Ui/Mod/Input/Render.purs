@@ -24,7 +24,7 @@ render :: State -> ComponentHTML Action Slots UiM
 render s =
   let
     styleAttr = case s.input.style.widthRem of
-      Just w -> [ HP.attr (H.AttrName "style") ("width: " <> show w <> "rem; margin: 0 auto;") ]
+      Just w -> [ HP.attr (H.AttrName "style") ("width: 100%; max-width: " <> show w <> "rem; box-sizing: border-box; margin: 0 auto;") ]
       Nothing -> []
   in
     div styleAttr
@@ -36,6 +36,6 @@ render s =
           ]
        ]
         <> case s.input.helper of
-             Just helperStr -> [ div [ HP.attr (H.AttrName "style") "font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem; text-align: left; padding-left: 0; color: white;" ] [ text helperStr ] ]
+             Just helperStr -> [ div [ HP.attr (H.AttrName "style") "font-size: 0.95rem; margin-top: 0.5rem; text-align: left; padding-left: 0; color: white;" ] [ text helperStr ] ]
              Nothing -> []
       )

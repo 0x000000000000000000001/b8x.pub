@@ -17,8 +17,8 @@ import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass, r
 import Util.Style.Layout (displayFlex, gapRem, maxWidthRem)
 import Inter.Ui.Page.Article.Hero.Type (IllustrationLayout(..))
 import Inter.Ui.Type.InstanceId (InstanceId)
+import Util.Style.Typography (textAlignCenter, primaryFont)
 import Util.Style.Selector ((.?))
-import Util.Style.Typography (textAlignCenter)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Page.Article.Hero.Header.Style.Style"
@@ -59,6 +59,12 @@ staticStyle = do
     alignItems center
     textAlignCenter
     maxWidthRem 50.0
+
+  CSS.select (CSS.fromString ".articleDate") $ do
+    primaryFont
+    CSS.color $ CSS.rgb 100 100 100
+    CSS.marginTop (CSS.rem (-1.0))
+    CSS.marginBottom (CSS.rem (-0.5))
 
 header :: ∀ w i. InstanceId -> IllustrationLayout -> Node HTMLdiv w i
 header id layout props = div

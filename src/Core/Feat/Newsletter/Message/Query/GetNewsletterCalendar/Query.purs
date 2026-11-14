@@ -7,7 +7,7 @@ import Core.Feat.Newsletter.Message.Query.GetNewsletterCalendar.Payload (Payload
 import Core.Feat.Newsletter.Message.Query.GetNewsletterCalendar.Result (Result(..))
 import Core.Feat.Newsletter.Message.Query.GetNewsletterCalendar.State (State)
 import Core.Feat.Newsletter.Message.Query.GetNewsletterCalendar.Projection.Projection (Calendar, findCalendar)
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
 import Data.Map as Map
@@ -31,7 +31,7 @@ instance IsQuery GetNewsletterCalendar State () Payload Result where
   description = "Get newsletter calendar"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Calendar Nothing
+    hash <- getReadModelHash @Calendar HashAll
     η $ defaultCached hash
 
   handle (GetNewsletterCalendar _) = do

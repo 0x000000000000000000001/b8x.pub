@@ -12,6 +12,7 @@ import Core.Feat.Review.Message.Query.VerifyNewsTopicLimit.Infra.Projection.Copy
 import Core.Feat.Review.Message.Query.VerifyArticleLegacyIdUniqueness.Infra.Projection.CopyOnWrite (VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_WRITE_COPY_PERSIST, VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_WRITE_COPY_STATE, verifyArticleLegacyIdUniquenessProjectionWriteCopyState')
 import Core.Feat.Review.Message.Command.WriteArticle.Infra.Projection.CopyOnWrite as WriteArticle
 import Core.Feat.Review.Message.Query.SearchArticles.Infra.Projection.CopyOnWrite (SEARCH_ARTICLES_PROJECTION_WRITE_COPY_PERSIST, SEARCH_ARTICLES_PROJECTION_WRITE_COPY_STATE, searchArticlesProjectionWriteCopyState')
+import Core.Feat.Review.Message.Query.SearchNewsTopics.Infra.Projection.CopyOnWrite (SEARCH_NEWS_TOPICS_PROJECTION_WRITE_COPY_PERSIST, SEARCH_NEWS_TOPICS_PROJECTION_WRITE_COPY_STATE, searchNewsTopicsProjectionWriteCopyState')
 import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Infra.Projection.CopyOnWrite (VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_WRITE_COPY_PERSIST, VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_WRITE_COPY_STATE, verifyArticleSlugUniquenessProjectionWriteCopyState')
 import Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.Infra.Projection.CopyOnWrite (VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_COPY_PERSIST, VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_COPY_STATE, verifyNewsRelatedArticleWhitelistLimitProjectionWriteCopyState')
 import Data.Map as Map
@@ -33,6 +34,7 @@ evalProjectionWriteCopyState =
     ▷ evalStateAt verifyNewsTopicLimitProjectionWriteCopyState' Map.empty
     ▷ evalStateAt verifyArticleLegacyIdUniquenessProjectionWriteCopyState' Map.empty
     ▷ evalStateAt searchArticlesProjectionWriteCopyState' Map.empty
+    ▷ evalStateAt searchNewsTopicsProjectionWriteCopyState' Map.empty
     ▷ evalStateAt WriteArticle.writeArticleProjectionWriteCopyState' Map.empty
     ▷ evalStateAt verifyArticleSlugUniquenessProjectionWriteCopyState' Map.empty
     ▷ evalStateAt verifyNewsRelatedArticleWhitelistLimitProjectionWriteCopyState' Map.empty
@@ -47,6 +49,7 @@ type REVIEW_PROJECTION_WRITE_COPY_STATE fx =
     + VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_WRITE_COPY_STATE
     + VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_WRITE_COPY_STATE
     + SEARCH_ARTICLES_PROJECTION_WRITE_COPY_STATE
+    + SEARCH_NEWS_TOPICS_PROJECTION_WRITE_COPY_STATE
     + WriteArticle.WRITE_ARTICLE_PROJECTION_WRITE_COPY_STATE
     + VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_WRITE_COPY_STATE
     + VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_COPY_STATE
@@ -62,6 +65,7 @@ type REVIEW_PROJECTION_WRITE_COPY_PERSIST fx =
     + VERIFY_NEWS_TOPIC_MAX_LIMIT_PROJECTION_WRITE_COPY_PERSIST
     + VERIFY_ARTICLE_LEGACY_ID_UNIQUENESS_PROJECTION_WRITE_COPY_PERSIST
     + SEARCH_ARTICLES_PROJECTION_WRITE_COPY_PERSIST
+    + SEARCH_NEWS_TOPICS_PROJECTION_WRITE_COPY_PERSIST
     + WriteArticle.WRITE_ARTICLE_PROJECTION_WRITE_COPY_PERSIST
     + VERIFY_ARTICLE_SLUG_UNIQUENESS_PROJECTION_WRITE_COPY_PERSIST
     + VERIFY_NEWS_RELATED_ARTICLE_WHITELIST_LIMIT_PROJECTION_WRITE_COPY_PERSIST

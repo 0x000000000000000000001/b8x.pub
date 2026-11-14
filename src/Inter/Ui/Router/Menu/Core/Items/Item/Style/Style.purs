@@ -2,7 +2,7 @@ module Inter.Ui.Router.Menu.Core.Items.Item.Style.Style where
 
 import Proem hiding (div)
 
-import CSS (black, color, flexShrink, hover, rgba)
+import CSS (black, color, flexShrink, hover)
 import CSS as CSS
 import CSS.Size (rem)
 import CSS.Transform (transforms, translateX, scale)
@@ -13,7 +13,9 @@ import Util.Style.Classname (classes, generateStaticClass)
 import Util.Style.Position (positionRelative)
 import Util.Style.Layout (alignItemsCenter, justifyContentCenter, padding2, widthPct100)
 import Util.Style.Typography (fontSizePct, userSelectNone)
+import Util.Style.Color (colorRed)
 import Util.Style.Effect (cursorPointer)
+import Util.Style.MediaQuery (onTabletLte, onDesktopGte)
 import Util.Style.Selector ((.?), (.*), (:&))
 import Util.Style.Transition (transitions)
 import Util.Style.Transition as Transition
@@ -45,12 +47,16 @@ staticStyle = do
       , Transition.color defaultTransitionTime ease (sec 0.0)
       ]
 
-    hover :& do
-      color $ rgba 40 5 5 1.0
-      transforms [ translateX $ rem 0.8, scale 1.02 1.02 ]
+    onTabletLte do
+      fontSizePct 125.0
 
-      Label.staticClass .* do
-        widthPct100
+    onDesktopGte do
+      hover :& do
+        colorRed
+        transforms [ translateX $ rem 0.8, scale 1.02 1.02 ]
+
+        Label.staticClass .* do
+          widthPct100
 
 item :: ∀ w i. Node HTMLdiv w i
 item props = div ([ classes [ staticClass ] ] <> props)

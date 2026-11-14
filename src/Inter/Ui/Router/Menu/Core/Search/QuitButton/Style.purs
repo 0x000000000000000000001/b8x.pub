@@ -3,7 +3,9 @@ module Inter.Ui.Router.Menu.Core.Search.QuitButton.Style where
 import Proem hiding (top, div)
 
 import CSS (CSS)
+import CSS as CSS
 import CSS.Time (sec)
+import Util.Style.MediaQuery (onTabletLte)
 import CSS.Transition (ease)
 import DOM.HTML.Indexed (HTMLdiv)
 import Halogen.HTML (HTML, div)
@@ -40,6 +42,9 @@ staticStyle = do
       , Transition.marginBottom defaultTransitionTime ease (sec 0.0)
       , Transition.visibility (sec 0.0) ease (sec 0.0)
       ]
+
+    onTabletLte do
+      CSS.key (CSS.fromString "width") "calc(100% - 3.5rem)"
 
 quitButton :: ∀ w i. State -> Array (IProp HTMLdiv i) -> Array (HTML w i) -> HTML w i
 quitButton { id } props = div ([ classes [ staticClass, class' id ] ] <> props)

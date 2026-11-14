@@ -1,0 +1,9 @@
+services:
+  db2:
+    volumes:
+      - ${DOCKER_DIR}/${ENV}/volume/db2/data:/var/lib/mysql
+    ports:
+      - published: 3306 
+        target: 3306
+        mode: host 
+

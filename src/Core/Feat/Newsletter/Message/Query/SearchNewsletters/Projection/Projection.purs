@@ -14,7 +14,7 @@ import Core.Mod.Projection.Finder.Finder (Find, FindOpt, Page, findMany_)
 import Core.Mod.Projection.Finder.Filter (class IsFilter, StrictlyEquals(..), GreaterThan(..), LessThan(..), by, compile)
 import Core.Mod.Projection.Finder.Filter as Base
 import Core.Mod.Projection.Finder.Sort (SortCriteria)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -42,12 +42,12 @@ instance
     "searchNewslettersProjectionWriteOps"
     (SEARCH_NEWSLETTERS_PROJECTION_WRITE_OPS ())
     "searchNewslettersProjectionReadSyncProject"
-    { searchNewsletters :: Newsletter }
-    { searchNewsletters :: NewsletterIndexNeeds }
-    { searchNewsletters :: Record () }
+    { newsletter :: Newsletter }
+    { newsletter :: NewsletterIndexNeeds }
+    { newsletter :: Record () }
   where
   indexNeeds =
-    { searchNewsletters:
+    { newsletter:
         { id: rawIndexOnly
         , scheduledFor: rawIndexOnly
         }
@@ -73,8 +73,8 @@ instance
     NewsletterRecord
     NewsletterIndexNeeds
     NewsletterSortRow
-    "searchNewsletters"
-    "searchNewslettersNewsletters"
+    "newsletter"
+    "newsletters"
     "searchNewslettersProjectionReadFind"
     SearchNewslettersProjection
   where
@@ -82,6 +82,9 @@ instance
   single = false
 
 newtype Newsletter = Newsletter NewsletterRecord
+
+instance ToAliases Newsletter where
+  toAliases _ = []
 
 type NewsletterRecord =
   { id :: NewsletterId
@@ -105,8 +108,9 @@ derive newtype instance Random Newsletter
 newtype NewsletterKey = NewsletterKey NewsletterId
 
 derive instance Newtype NewsletterKey _
-instance ToAliasedPrimary NewsletterKey where
-  toAliasedPrimary (NewsletterKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary NewsletterKey where
+  toPrimary (NewsletterKey id) = toString id
+
 derive newtype instance Eq NewsletterKey
 derive newtype instance Ord NewsletterKey
 
@@ -193,6 +197,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι
@@ -216,5 +225,3 @@ play { event } = case event of
 
 onNewsletterScheduled :: ∀ fx. NewsletterScheduled.Payload -> Run (SEARCH_NEWSLETTERS_PROJECTION_WRITE_OPS fx) Ɩ
 onNewsletterScheduled { id, scheduledFor, articles } = add $ Newsletter { id, scheduledFor, articles }
-
-

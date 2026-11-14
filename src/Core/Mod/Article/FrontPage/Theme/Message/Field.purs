@@ -4,8 +4,9 @@ import Data.Maybe (Maybe(..))
 
 import Proem
 
-import Core.Message.Field.Field (class IsField, Sanitized(..), defaultMaybePresence, defaultSanitize, defaultShouldSanitizeInner)
+import Core.Message.Field.Field (class IsField, Sanitized(..), defaultMaybePresence, defaultSanitize, defaultShouldSanitizeInner, enumChoices)
 import Core.Mod.Article.FrontPage.Theme.Theme as Base
+import Core.Mod.Article.Theme.Theme as BaseTheme
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Newtype (class Newtype)
 
@@ -30,7 +31,7 @@ instance IsField ThemeField Theme () where
   cli =
     { description
     , multiline: false
-    , choices: Nothing
+    , choices: Just $ enumChoices @BaseTheme.Theme
     }
 
 derive instance Newtype ThemeField _

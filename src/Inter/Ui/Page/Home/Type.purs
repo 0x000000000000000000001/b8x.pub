@@ -12,6 +12,7 @@ import Inter.Ui.Type.Output (NoOutput)
 import Inter.Ui.Type.Query (NoQuery)
 import Inter.Ui.Type.Model (UiSearchArticle, UiFrontPageResult)
 import Inter.Ui.Mod.ArticleCard.Type as ArticleCard
+import Inter.Ui.Mod.AdPlaceholder.Type as AdPlaceholder
 import Inter.Ui.Type.Remote (Remote)
 import Inter.Ui.Type.State (WithId)
 import Inter.Ui.Mod.Newsletter.Type as Newsletter
@@ -19,11 +20,13 @@ import Inter.Ui.UiM (UiM)
 import Effect.Ref (Ref)
 import Halogen.Query (ForkId)
 import Core.Mod.Article.Id.Id (ArticleId)
+import Inter.Ui.Type.Device (Device)
 
 import Core.Feat.Review.Message.Query.GetArticleQuote.Result as GetArticleQuote
 import Inter.Ui.Mod.Link.Type as Link
 
-type Input = { theme :: Maybe ArticleTheme.Theme }
+type Input = { theme :: Maybe ArticleTheme.Theme, context :: Device }
+
 
 type Output = NoOutput
 
@@ -31,6 +34,8 @@ type Slots =
   (articleCard :: Slot ArticleCard.Query ArticleCard.Output String
   , newsletter :: Slot Newsletter.Query Newsletter.Output Unit
   , linkQuote :: Slot Link.Query Link.Output Unit
+  , linkAd :: Slot Link.Query Link.Output String
+  , adPlaceholder :: Slot AdPlaceholder.Query AdPlaceholder.Output String
   )
 
 type FrontPage = Remote UiFrontPageResult
@@ -44,6 +49,7 @@ type State = WithId
   , input :: Input
   , bandsForkId :: Maybe (Ref (Maybe ForkId))
   , lastTriggeredFrontPageIds :: Maybe (Ref (Maybe (Array ArticleId)))
+  , context :: Device
   )
 
 frontPage' = π :: Π "frontPage"
@@ -65,7 +71,9 @@ bandsForkId' = π :: Π "bandsForkId"
 _bandsForkId = prop bandsForkId' :: Lens' State (Maybe (Ref (Maybe ForkId)))
 
 lastTriggeredFrontPageIds' = π :: Π "lastTriggeredFrontPageIds"
-_lastTriggeredFrontPageIds = prop lastTriggeredFrontPageIds' :: Lens' State (Maybe (Ref (Maybe (Array ArticleId))))
+
+_lastTriggeredFrontPageIds :: ∀ a r. Lens' { lastTriggeredFrontPageIds :: a | r } a
+_lastTriggeredFrontPageIds = prop lastTriggeredFrontPageIds'
 
 data Action
   = Load
@@ -73,6 +81,7 @@ data Action
   | HandleArticleCardOutput ArticleCard.Output
   | HandleNewsletterOutput Newsletter.Output
   | HandleQuoteLinkOutput Link.Output
+  | HandleAdLinkOutput Link.Output
 
 type Query :: ∀ k. k -> Type
 type Query = NoQuery

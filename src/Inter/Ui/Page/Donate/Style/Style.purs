@@ -11,6 +11,7 @@ import Halogen.HTML (HTML, div)
 import Util.Style.Base (raw)
 import Util.Style.Classname (class_, generateStaticClass)
 import Util.Style.Layout (margin0, padding1)
+import Util.Style.MediaQuery (onMobileLte)
 import Util.Style.Selector ((.?), (¨?), (:&))
 import Util.Style.Typography (textAlignCenter)
 
@@ -30,6 +31,9 @@ staticStyle = do
     justifyContent center
     padding1 2.0
 
+    onMobileLte do
+      padding1 1.0
+
     ".donate-container" ¨? do
       width (fromString "100%")
       raw "max-width" "800px"
@@ -45,9 +49,20 @@ staticStyle = do
       marginBottom (rem 0.5)
       textAlignCenter
 
+      onMobileLte do
+        fontSize (rem 2.5)
+
     ".donate-subtitle" ¨? do
+      fontSize (rem 2.0)
+      color (Color.rgba 210 84 49 1.0)
+      textAlignCenter
+      margin0
+
+      onMobileLte do
+        fontSize (rem 1.5)
+
+    ".donate-text" ¨? do
       fontSize (rem 1.2)
-      color (Color.rgba 100 100 100 1.0)
       marginBottom (rem 4.0)
       textAlignCenter
       raw "max-width" "600px"
@@ -72,6 +87,12 @@ staticStyle = do
         raw "transform" "translateY(-5px)"
         raw "box-shadow" "0 15px 35px rgba(0,0,0,0.1)"
 
+      onMobileLte do
+        raw "flex-direction" "column"
+        raw "align-items" "center"
+        textAlignCenter
+        padding (rem 1.5) (rem 1.5) (rem 1.5) (rem 1.5)
+
     ".step-number" ¨? do
       display flex
       alignItems center
@@ -86,6 +107,10 @@ staticStyle = do
       raw "font-weight" "bold"
       marginRight (rem 1.5)
 
+      onMobileLte do
+        marginRight (rem 0.0)
+        marginBottom (rem 1.0)
+
     ".step-content" ¨? do
       display flex
       flexDirection column
@@ -97,6 +122,9 @@ staticStyle = do
       color (Color.rgba 20 20 20 1.0)
       marginBottom (rem 0.5)
       marginTop (px 0.0)
+
+      onMobileLte do
+        fontSize (rem 1.2)
 
     ".step-desc" ¨? do
       fontSize (rem 1.1)
@@ -119,6 +147,9 @@ staticStyle = do
       raw "transition" "background-color 0.2s ease"
       fontSize (rem 1.0)
       raw "align-self" "flex-start"
+
+      onMobileLte do
+        raw "align-self" "center"
 
       hover :& do
         backgroundColor (Color.rgba 180 0 0 1.0)

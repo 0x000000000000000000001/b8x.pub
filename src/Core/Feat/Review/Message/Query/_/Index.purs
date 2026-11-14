@@ -3,6 +3,7 @@ module Core.Feat.Review.Message.Query.Index where
 import Core.Feat.Review.Message.Query.GetFrontPage.Query (GetFrontPage)
 import Core.Feat.Review.Message.Query.GetArticle.Query (GetArticle)
 import Core.Feat.Review.Message.Query.SearchArticles.Query (SearchArticles)
+import Core.Feat.Review.Message.Query.SearchNewsTopics.Query (SearchNewsTopics)
 import Core.Feat.Review.Message.Query.ListNewsRelatedArticles.Query (ListNewsRelatedArticles)
 import Core.Feat.Review.Message.Query.ListMostReadArticles.Query (ListMostReadArticles)
 import Core.Feat.Review.Message.Query.ListNewsletterArticles.Query (ListNewsletterArticles)
@@ -14,6 +15,7 @@ type ReviewQueryRow r =
   ( getFrontPage :: GetFrontPage
   , getArticle :: GetArticle
   , searchArticles :: SearchArticles
+  , searchNewsTopics :: SearchNewsTopics
   , listNewsRelatedArticles :: ListNewsRelatedArticles
   , listMostReadArticles :: ListMostReadArticles
   , listNewsletterArticles :: ListNewsletterArticles

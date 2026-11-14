@@ -1,5 +1,3 @@
-export const _onSignal = (signal) => (callback) => () => {
-    process.on(signal, () => {
-        callback();
-    });
+export const onSignalImpl = (signal, callback) => {
+    process.on(signal, callback);
 };

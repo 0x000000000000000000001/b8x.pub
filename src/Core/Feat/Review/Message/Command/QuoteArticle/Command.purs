@@ -1,6 +1,8 @@
 module Core.Feat.Review.Message.Command.QuoteArticle.Command
-  (QuoteArticle(..)
-  ) where
+  ( QuoteArticle(..)
+  , QuoteArticleAliasRow
+  )
+  where
 
 import Core.Message.Command.Command (class IsCommand, class IsProtectedAgainstConcurrency, defaultMaxConcurrencyRetries, ConcurrencyPriority(..), defaultCheckLoadedEvents, defaultHandle)
 import Core.Feat.Review.Message.Command.QuoteArticle.Decide (decide)
@@ -44,4 +46,14 @@ instance
 
   handle = defaultHandle @QuoteArticle (Just filter) defaultCheckLoadedEvents initialState play decide toResult
 
-  
+type QuoteArticleAliasRow r =
+  ( "QuoteAnArticle" :: QuoteArticle
+  , "CiteArticle" :: QuoteArticle
+  , "CiteUnArticle" :: QuoteArticle
+  , "CiterArticle" :: QuoteArticle
+  , "CiterUnArticle" :: QuoteArticle
+  , "CitationArticle" :: QuoteArticle
+  , "CitationDArticle" :: QuoteArticle
+  , "CitationDUnArticle" :: QuoteArticle
+  | r
+  )

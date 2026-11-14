@@ -5,16 +5,21 @@ import Proem
 import Control.Monad.Except as Control.Monad.Except
 import Core.Event.ArticleAddedToNewsRelatedBlacklist.Payload as ArticleAddedToNewsRelatedBlacklist
 import Core.Event.ArticleAddedToNewsRelatedWhitelist.Payload as ArticleAddedToNewsRelatedWhitelist
+import Core.Event.ArticleContentCorrected.Payload as ArticleContentCorrected
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
 import Core.Event.ArticleFeaturedOnFrontPage.Payload as ArticleFeaturedOnFrontPage
 import Core.Event.ArticleQuoted.Payload as ArticleQuoted
 import Core.Event.ArticleRead.Payload as ArticleRead
 import Core.Event.ArticleRemovedFromNewsRelatedBlacklist.Payload as ArticleRemovedFromNewsRelatedBlacklist
 import Core.Event.ArticleRemovedFromNewsRelatedWhitelist.Payload as ArticleRemovedFromNewsRelatedWhitelist
+import Core.Event.ArticleTitleCorrected.Payload as ArticleTitleCorrected
 import Core.Event.ArticleWritten.Payload as ArticleWritten
+import Core.Event.AuthorBiographyCorrected.Payload as AuthorBiographyCorrected
 import Core.Event.AuthorDereferenced.Payload as AuthorDereferenced
 import Core.Event.AuthorReferenced.Payload as AuthorReferenced
+import Core.Event.BookCoverCorrected.Payload as BookCoverCorrected
 import Core.Event.BookDereferenced.Payload as BookDereferenced
+import Core.Event.BookEditorCorrected.Payload as BookEditorCorrected
 import Core.Event.BookReferenced.Payload as BookReferenced
 import Core.Event.EditorDereferenced.Payload as EditorDereferenced
 import Core.Event.EditorReferenced.Payload as EditorReferenced
@@ -52,8 +57,11 @@ import Yoga.JSON.Generics.TaggedSumRep as Tagged
 data Event
   = AuthorReferenced AuthorReferenced.Payload
   | AuthorDereferenced AuthorDereferenced.Payload
+  | AuthorBiographyCorrected AuthorBiographyCorrected.Payload
   | BookReferenced BookReferenced.Payload
   | BookDereferenced BookDereferenced.Payload
+  | BookEditorCorrected BookEditorCorrected.Payload
+  | BookCoverCorrected BookCoverCorrected.Payload
   | MagazineIssueReferenced MagazineIssueReferenced.Payload
   | MagazineIssueDereferenced MagazineIssueDereferenced.Payload
   | EditorReferenced EditorReferenced.Payload
@@ -66,6 +74,8 @@ data Event
   | ArticleFeaturedOnFrontPage ArticleFeaturedOnFrontPage.Payload
   | ArticleWritten ArticleWritten.Payload
   | ArticleQuoted ArticleQuoted.Payload
+  | ArticleTitleCorrected ArticleTitleCorrected.Payload
+  | ArticleContentCorrected ArticleContentCorrected.Payload
   | NewsTopicAdded NewsTopicAdded.Payload
   | NewsTopicRemoved NewsTopicRemoved.Payload
   | ArticleAddedToNewsRelatedWhitelist ArticleAddedToNewsRelatedWhitelist.Payload
@@ -93,7 +103,7 @@ type WeakHeadEventRow =
 
 eventToWeakHead :: Event -> WeakHeadEvent
 eventToWeakHead event = case Control.Monad.Except.runExcept (readImpl $ writeImpl event) of
-  Left _ -> unsafeCrashWith "Unreachable: Event to WeakHeadEvent encoding failed"
+  Left err -> unsafeCrashWith $ "Unreachable: Event to WeakHeadEvent encoding failed: " <> show err <> " \nPayload: " <> JSON.writeJSON (writeImpl event)
   Right weakHead -> weakHead
 
 weakHeadToEvent :: WeakHeadEvent -> Either (NonEmptyList ForeignError) Event

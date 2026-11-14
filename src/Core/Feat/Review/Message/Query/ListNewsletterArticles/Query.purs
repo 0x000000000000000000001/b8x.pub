@@ -20,7 +20,7 @@ import Core.Mod.Author.Message.Query.Build (buildAuthor)
 import Core.Mod.Book.Message.Query.Build (buildBooks, buildBook)
 import Core.Feat.Review.Message.Query.ListNewsletterArticles.Projection.Projection (Article(..), findArticles)
 import Core.Feat.Review.Message.Query.ListNewsletterArticles.Projection.Projection as ArticleFilter
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.Sort as Sort
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
@@ -46,7 +46,7 @@ instance IsQuery ListNewsletterArticles State Fields Payload Result where
   description = "List recent newsletter articles"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Article Nothing
+    hash <- getReadModelHash @Article HashAll
     η $ defaultCached [ hash, "0" ]
 
   handle (ListNewsletterArticles { newsletter, blacklist, needs, illustrationRequired }) = do
@@ -95,5 +95,6 @@ instance IsQuery ListNewsletterArticles State Fields Payload Result where
                 in
                   n.newsletters <#> \p -> { id: p.id, index: p.index, scheduledFor: { instant: p.scheduledFor.instant, month: p.scheduledFor.month, year: p.scheduledFor.year } }
               )
+          , writtenAt: build needs.writtenAt a.writtenAt
           }
       }

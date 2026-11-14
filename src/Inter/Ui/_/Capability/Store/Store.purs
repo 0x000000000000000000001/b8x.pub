@@ -4,6 +4,7 @@ import Proem
 import Yoga.JSON as Yoga.JSON
 
 import Effect.Ref (Ref)
+import Data.Maybe (Maybe(..))
 import Effect.Ref as Ref
 import Effect (Effect)
 import Halogen.Subscription as HS
@@ -46,6 +47,9 @@ interpretStore broadcast ref listener emitter = Run.interpret (Run.on store' han
       let newStore = GlobalStore.reduce store action
       ʌ $ Ref.write newStore ref
       ʌ $ HS.notify listener newStore
-      ʌ $ broadcast (Yoga.JSON.writeJSON (newStore.me))
+      ʌ $ broadcast (case newStore.me of
+          Just me -> Yoga.JSON.writeJSON me
+          Nothing -> "null"
+        )
       η next
     GetEmitter next -> η (next emitter)

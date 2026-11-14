@@ -6,6 +6,7 @@ import Config.InternalConfig (internalConfig)
 import Config.PublicConfig (publicConfig, READER_PUBLIC_CONFIG, runPublicConfigReader)
 import Core.Event.EventStore (EVENT_STORE)
 import Core.Exception.Index (EXCEPT_LOGIC, LogicException, runLogicExcept)
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Feat.Effect.Generate (GENERATE, interpretGenerate)
 import Core.Feat.Effect.Sleep (SLEEP, interpretSleep)
@@ -24,6 +25,7 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Infra.Client.Aws.S3.S3 (READER_S3_CLIENT, interpretUpload, runS3ClientReader)
 import Infra.Client.Aws.S3.S3 as S3
+import Infra.Client.Http.Download (interpretDownload)
 import Infra.Client.Aws.Ses.Ses (READER_SES_CLIENT, runSesClientReader)
 import Infra.Client.Aws.Ses.Ses as Ses
 import Infra.Client.Sendy (READER_SENDY_CONFIG, runSendyConfigReader)
@@ -48,6 +50,7 @@ type API =
     + QUEUE
     + GENERATE
     + SLEEP
+    + DOWNLOAD
     + UPLOAD
     + NEWSLETTER
     + MAIL
@@ -93,6 +96,7 @@ runApiM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabb
       )
     ▷ interpretProjectionWriteCopyPersist
     ▷ interpretProjectionWriteOps
+    ▷ interpretDownload
     ▷ interpretUpload
     ▷
       ( case publicConfig.env of

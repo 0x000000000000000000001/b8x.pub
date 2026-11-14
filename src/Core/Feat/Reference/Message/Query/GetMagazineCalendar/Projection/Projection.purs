@@ -14,7 +14,7 @@ import Core.Mod.Image.Image (Image)
 import Core.Mod.MagazineIssue.ReleasedAt.ReleasedAt (ReleasedAt(..))
 import Core.Mod.Time.Year (Year)
 import Core.Mod.Projection.Finder.Finder (Find, findOneByKey)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, get, put)
 import Core.Mod.Projection.SyncProject (SyncProject)
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl, writeImpl)
@@ -61,7 +61,7 @@ instance
     CalendarIndexNeeds
     ()
     "calendar"
-    "calendar"
+    "calendars"
     "getMagazineCalendarCalendarProjectionReadFind"
     GetMagazineCalendarProjection
   where
@@ -70,6 +70,9 @@ instance
   single = true
 
 newtype Calendar = Calendar CalendarRecord
+
+instance ToAliases Calendar where
+  toAliases _ = []
 
 type Item =
   { id :: MagazineIssueId
@@ -93,8 +96,8 @@ derive instance Ord Calendar
 
 instance ReadForeign Calendar where
   readImpl f = do
-    arr <- readImpl f :: Control.Monad.Except.ExceptT _ _ (Array (Tuple Year (Array { cover :: Maybe Image, id :: MagazineIssueId, name :: String, number :: Int, releasedAt :: Maybe ReleasedAt, slug :: Slug })))
-    pure (Calendar { calendar: Map.fromFoldable arr })
+    obj <- readImpl f :: Control.Monad.Except.ExceptT _ _ { calendar :: Array (Tuple Year (Array { cover :: Maybe Image, id :: MagazineIssueId, name :: String, number :: Int, releasedAt :: Maybe ReleasedAt, slug :: Slug })) }
+    pure (Calendar { calendar: Map.fromFoldable obj.calendar })
 
 encodeCalendar :: CalendarRecord -> Array (Tuple Year (Array { cover :: Maybe Image, id :: MagazineIssueId, name :: String, number :: Int, releasedAt :: Maybe ReleasedAt, slug :: Slug }))
 encodeCalendar r = Map.toUnfoldable r.calendar
@@ -111,8 +114,8 @@ derive instance Generic CalendarKey _
 derive instance Eq CalendarKey
 derive instance Ord CalendarKey
 
-instance ToAliasedPrimary CalendarKey where
-  toAliasedPrimary _ = { primary: "calendar", aliases: [] }
+instance ToPrimary CalendarKey where
+  toPrimary _ = "calendar"
 
 -- Find
 
@@ -135,6 +138,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   EditorReferenced _ -> ηι
   EditorDereferenced _ -> ηι
   UserEmailChanged _ -> ηι

@@ -1,0 +1,17 @@
+services:
+  gateway:
+    ports:
+      - published: 80
+        target: 80
+        mode: host
+      - published: 443
+        target: 443
+        mode: host
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [ node.role == manager ]
+    networks:
+      - stack-default

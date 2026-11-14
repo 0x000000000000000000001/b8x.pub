@@ -13,6 +13,7 @@ import Core.Mod.Article.Slug.Slug (Slug)
 import Core.Mod.Book.Id.Id (BookId)
 import Core.Mod.Article.LegacyId.LegacyId (LegacyId)
 import Core.Mod.Article.MagazineIssue.MagazineIssue (MagazineIssue)
+import Core.Mod.Article.FrontPage.Position.Position (Position)
 import Data.Maybe (Maybe)
 
 type Payload =
@@ -30,4 +31,5 @@ type Payload =
   , profitable :: Boolean
   , slug :: Slug
   , magazineIssue :: Maybe MagazineIssue
+  , frontPagePosition :: Maybe Position
   }

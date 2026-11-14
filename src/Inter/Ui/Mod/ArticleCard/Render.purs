@@ -63,7 +63,7 @@ render state =
                             [ Style.illustration false false [ src ill.src, alt (unwrap input.article.title) ] ]
                     _ ->
                       text ""
-                , if input.loading then
+                , {- if input.loading then
                     Style.author_ true [ text "Loading author" ]
                   else
                     let
@@ -76,7 +76,7 @@ render state =
                       if Array.length authorsToDisplay > 0 then
                         Style.author_ false (Array.intercalate [text ", "] (map (\a -> CleanRender.renderArray a) authorsToDisplay))
                       else
-                        text ""
+                        text "" -} text ""
                 , if input.loading then
                     Style.title_ true
                       [ text "Loading title"

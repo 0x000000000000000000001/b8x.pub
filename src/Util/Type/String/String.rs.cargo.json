@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "dependencies": {
+    "unicode-normalization": {
+      "version": "=0.1.24"
+    },
+    "unicode-case-mapping": {
+      "version": "=1.0.0"
+    }
+  }
+}

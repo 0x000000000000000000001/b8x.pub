@@ -1,0 +1,4 @@
+networks:
+  compose-default:
+    driver: bridge
+    attachable: true

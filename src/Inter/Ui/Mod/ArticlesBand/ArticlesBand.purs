@@ -8,6 +8,7 @@ import Proem hiding (div)
 import Halogen.HTML (HTML, text)
 import Inter.Ui.Mod.ArticlesBand.Style as Style
 
+
 type Input =
   { title :: String
   }

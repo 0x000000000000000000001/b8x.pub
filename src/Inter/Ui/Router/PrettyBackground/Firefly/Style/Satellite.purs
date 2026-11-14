@@ -11,6 +11,7 @@ import Util.Style.Base (raw)
 import Util.Style.Classname (generateStaticClass)
 import Util.Power (isPowerful)
 import Util.Style.Selector ((.?))
+import Util.Style.MediaQuery (onTabletLte)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Router.PrettyBackground.Firefly.Style.Satellite"
@@ -32,7 +33,7 @@ shadowValue =
     amp = 0.04
     blurRem = if isPowerful then 0.7 else 0.3
   in
-    (fromString
+    ( fromString
         $
           """
           calc((var(${satelliteVarXName}, 50vw) - var(${varXName}, 50vw)) * ${amp})
@@ -52,3 +53,6 @@ staticStyle = do
   staticClass .? do
     raw "transition" "none"
     key (fromString "box-shadow" :: Key Value) shadowValue
+
+    onTabletLte do
+      raw "box-shadow" "none"

@@ -1,5 +1,5 @@
 module Util.Html.Dom.Dom
-  (dataAttr
+  ( dataAttr
   , dataAttrPrefixed
   , dataAttrQuerySelector
   , getHalfScreenHeight
@@ -17,6 +17,8 @@ module Util.Html.Dom.Dom
   , setMetaRobotsDefault
   , setMetaRobotsNoIndex
   , setWindowLocationHref
+  , setBodyOverflowHidden
+  , setBodyOverflowVisible
   ) where
 
 import Proem
@@ -155,3 +157,13 @@ foreign import _setWindowLocationHref :: String -> Effect Ɩ
 
 setWindowLocationHref :: ∀ m. MonadEffect m => String -> m Ɩ
 setWindowLocationHref href = ʌ $ _setWindowLocationHref href
+
+foreign import _setBodyOverflowHidden :: String -> Effect Ɩ
+
+setBodyOverflowHidden :: ∀ m. MonadEffect m => String -> m Ɩ
+setBodyOverflowHidden id = ʌ $ _setBodyOverflowHidden id
+
+foreign import _setBodyOverflowVisible :: String -> Effect Ɩ
+
+setBodyOverflowVisible :: ∀ m. MonadEffect m => String -> m Ɩ
+setBodyOverflowVisible id = ʌ $ _setBodyOverflowVisible id

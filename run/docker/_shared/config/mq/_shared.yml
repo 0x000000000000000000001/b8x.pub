@@ -1,0 +1,17 @@
+services:
+  mq:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_MQ}"
+    environment:
+      TZ: ${TZ}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+    # Keepalive (alternative to heartbeats, when we deal with single-thread languages such as PHP)
+    # See https://www.rabbitmq.com/networking.html#tcp-keepalives
+    # Value of "tcp_keepalive_time" needs to be higher than the maximum of ALL consumers ttls (e.g. one of them is the "app-consumer" Docker service)
+    # Here: 600s + 5 * 60s = 10m + 5 * 1m = 15m before considering that the peer is dead
+    sysctls:
+      net.ipv4.tcp_keepalive_time: 600
+      net.ipv4.tcp_keepalive_intvl: 60
+      net.ipv4.tcp_keepalive_probes: 5

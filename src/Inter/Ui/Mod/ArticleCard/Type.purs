@@ -19,6 +19,7 @@ import Inter.Ui.Mod.Link.Type as Link
 import Inter.Ui.Type.State (WithId)
 import Core.Mod.Article.Slug.Slug (Slug)
 import Util.Html.Clean.Render.Render (SanitizedHtmlString)
+import Core.Mod.Time.Instant (Instant)
 
 type Illustration =
   { src :: String
@@ -43,6 +44,7 @@ type Article =
   , bookAuthors :: Array SanitizedHtmlString
   , author :: Maybe { id :: String, name :: SanitizedHtmlString }
   , illustration :: Maybe Illustration
+  , writtenAt :: Instant
   }
 
 type Input =

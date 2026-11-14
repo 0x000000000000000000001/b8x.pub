@@ -9,7 +9,7 @@ import Core.Feat.Review.Message.Query.VerifyArticleLegacyIdUniqueness.Result (Re
 import Core.Feat.Review.Message.Query.VerifyArticleLegacyIdUniqueness.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Mod.Article.LegacyId.Exception.LegacyIdAlreadyTaken (LegacyIdAlreadyTaken(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
@@ -32,7 +32,7 @@ instance IsQuery VerifyArticleLegacyIdUniqueness State Fields Payload Result whe
   description = "Verify that an article legacy ID is unique"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Article Nothing
+    hash <- getReadModelHash @Article HashAll
     η $ defaultCached hash
 
   handle (VerifyArticleLegacyIdUniqueness payload) = case payload.legacyId of

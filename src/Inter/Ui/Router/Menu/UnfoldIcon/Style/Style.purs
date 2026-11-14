@@ -18,6 +18,7 @@ import Util.Style.Position (positionAbsolute)
 import Util.Power (isPowerful)
 import Util.Style.Selector ((.?))
 import Util.Style.Typography (userSelectNone)
+import Util.Style.MediaQuery (onTabletLte)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Router.Menu.UnfoldIcon.Style.Style"
@@ -51,6 +52,9 @@ staticStyle = do
     justifyContentCenter
     userSelectNone
 
+    onTabletLte do
+      widthRem 3.5
+
 style :: State -> CSS.CSS
 style { id, open } = do
   class' id .? do
@@ -66,6 +70,10 @@ style { id, open } = do
 
     top $ rem $ isOpen ? 0.0 ↔ 2.8
     left $ rem $ isOpen ? 0.0 ↔ 2.8
+
+    onTabletLte do
+      top $ rem $ isOpen ? 0.0 ↔ 1.0
+      left $ rem $ isOpen ? 0.0 ↔ 1.0
 
 unfoldIcon :: ∀ w i. State -> Node HTMLdiv w i
 unfoldIcon { id } props children = div ([ classes [ staticClass, class' id ] ] <> props) children

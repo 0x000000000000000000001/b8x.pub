@@ -7,20 +7,24 @@ import CSS.Time (sec)
 import CSS.Transform (translateX)
 import CSS.Transition (ease)
 import DOM.HTML.Indexed (HTMLnav)
-import Halogen.HTML (HTML, IProp, nav)
+import Halogen.HTML (HTML, IProp)
+import Halogen.HTML.Elements (keyed)
+import Halogen.HTML.Core (ElemName(..))
+import Data.Tuple (Tuple)
 import Inter.Ui.Router.Menu.Core.Search.QuitButton.Style as QuitButton
-import Inter.Ui.Type.ControlledState (ControlledState(..))
-import Inter.Ui.Router.Menu.Type.State.State (State)
-import Inter.Ui.Router.Menu.Type.State.Newsletter as Inter.Ui.Router.Menu.Type.State.Newsletter
-import Inter.Ui.Router.Menu.Type.State.Magazine as Inter.Ui.Router.Menu.Type.State.Magazine
-import Inter.Ui.Router.Style.Style (defaultTransitionTime)
 import Inter.Ui.Router.Menu.Type.State.ActivePanel (ActivePanel(..))
+import Inter.Ui.Router.Menu.Type.State.Magazine as Inter.Ui.Router.Menu.Type.State.Magazine
+import Inter.Ui.Router.Menu.Type.State.Newsletter as Inter.Ui.Router.Menu.Type.State.Newsletter
+import Inter.Ui.Router.Menu.Type.State.State (State)
+import Inter.Ui.Router.Style.Style (defaultTransitionTime)
+import Inter.Ui.Type.ControlledState (ControlledState(..))
 import Inter.Ui.Type.InstanceId (InstanceId)
 import Util.Power (isPowerful)
-import Util.Style.Anchor (topLeftToTopLeft)
+import Util.Style.Position (positionFixed, left0, top0)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass, refineClass')
 import Util.Style.Effect (backdropFilter, borderRightWidth, borderStyle, boxShadow)
-import Util.Style.Layout (displayFlex, heightAuto, heightPct100, marginBottom, overflowAuto, padding1, visibilityHidden, visibilityVisible, widthRem)
+import Util.Style.Layout (boxSizingBorderBox, displayFlex, heightAuto, heightPct100, marginBottom, maxWidthPct100, overflowAuto, padding1, visibilityHidden, visibilityVisible, widthPct100, widthRem)
+import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Selector ((.?), (.*))
 import Util.Style.Transition (transitions)
 import Util.Style.Transition as Transition
@@ -62,6 +66,7 @@ staticStyle = do
     displayFlex
     flexDirection column
     alignItems flexStart
+    boxSizingBorderBox
     if isPowerful then do
       background $ hGradient (rgba 255 255 255 0.70) (rgba 255 255 255 0.10)
       backdropFilter "blur(4rem)"
@@ -74,6 +79,7 @@ staticStyle = do
     overflowAuto
     widthRem 34.0
     padding1 2.4
+    maxWidthPct100
 
     transitions
       [ Transition.opacity defaultTransitionTime ease (sec 0.0)
@@ -81,10 +87,16 @@ staticStyle = do
       , Transition.transform defaultTransitionTime ease (sec 0.0)
       ]
 
-    topLeftToTopLeft
+    positionFixed
+    left0
+    top0
     transform $ translateX (pct (-100.0))
     opacity 0.0
     visibilityHidden
+
+    onTabletLte do
+      widthPct100
+      maxWidthPct100
 
   staticClassWhenUnfolded .? do
     transitions
@@ -99,6 +111,10 @@ staticStyle = do
 
   staticClassWhenSearchIsOpen .? do
     widthRem 70.0
+    onTabletLte do
+      widthPct100
+      maxWidthPct100
+
     QuitButton.staticClass .* do
       heightAuto
       visibilityVisible
@@ -106,6 +122,10 @@ staticStyle = do
 
   staticClassWhenNewsletterIsOpen .? do
     widthRem 34.0
+    onTabletLte do
+      widthPct100
+      maxWidthPct100
+
     QuitButton.staticClass .* do
       heightAuto
       visibilityVisible
@@ -113,9 +133,15 @@ staticStyle = do
 
   staticClassWhenNewsletterArticlesIsOpen .? do
     widthRem 60.0
+    onTabletLte do
+      widthPct100
+      maxWidthPct100
 
   staticClassWhenMagazineIsOpen .? do
     widthRem 34.0
+    onTabletLte do
+      widthPct100
+      maxWidthPct100
     QuitButton.staticClass .* do
       heightAuto
       visibilityVisible
@@ -123,11 +149,17 @@ staticStyle = do
 
   staticClassWhenMagazineCoversIsOpen .? do
     widthRem 60.0
+    onTabletLte do
+      widthPct100
+      maxWidthPct100
 
   staticClassWhenMagazineArticlesIsOpen .? do
     widthRem 60.0
+    onTabletLte do
+      widthPct100
+      maxWidthPct100
 
-core :: ∀ w i. State -> Array (IProp HTMLnav i) -> Array (HTML w i) -> HTML w i
+core :: ∀ w i. State -> Array (IProp HTMLnav i) -> Array (Tuple String (HTML w i)) -> HTML w i
 core state@{ id, activePanel, open: menuOpen' } props =
   let
     menuOpen =
@@ -140,7 +172,7 @@ core state@{ id, activePanel, open: menuOpen' } props =
         Uncontrolled a -> a
     searchOpen = activePanel' == Search
   in
-    nav
+    keyed (ElemName "nav")
       ( [ classes
             $
               [ staticClass
@@ -167,6 +199,3 @@ core state@{ id, activePanel, open: menuOpen' } props =
   isMagazineArticles = case state.magazine.page of
     Inter.Ui.Router.Menu.Type.State.Magazine.Articles _ -> true
     _ -> false
-
-core_ :: ∀ w i. State -> Array (HTML w i) -> HTML w i
-core_ state = core state []

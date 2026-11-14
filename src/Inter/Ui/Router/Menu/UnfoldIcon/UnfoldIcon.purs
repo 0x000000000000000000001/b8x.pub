@@ -18,5 +18,5 @@ unfoldIcon state =
   Style.unfoldIcon state
     [ onMouseOver $ κ Open ]
     ( [ Image.image state ]
-        <> (if isJust state.me then [ Dot.dot_ [] ] else [])
+        <> (if isJust state.context.me then [ Dot.dot_ [] ] else [])
     )

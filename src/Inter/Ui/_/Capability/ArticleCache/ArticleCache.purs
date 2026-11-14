@@ -13,20 +13,21 @@ import Run as Run
 import Type.Row (type (+))
 import Core.Mod.Article.Slug.Slug (Slug)
 import Util.Html.Clean.Render.Render (SanitizedHtmlString)
+import Core.Mod.Time.Instant (Instant)
 import Partial.Unsafe (unsafeCrashWith)
 import Core.Message.Query.Result (Return(..))
 
-extractRequiredCacheValue :: ∀ a. Return a -> a
-extractRequiredCacheValue = case _ of
+extractRequiredCacheValue :: ∀ a. String -> Return a -> a
+extractRequiredCacheValue fieldName = case _ of
   Given x -> x
-  NotGivenBecauseNotNeeded -> unsafeCrashWith "ArticleCache: Mandatory field was NotGivenBecauseNotNeeded! Add it to the Needs payload."
-  NotGivenBecauseNotFound -> unsafeCrashWith "ArticleCache: Mandatory field was NotGivenBecauseNotFound!"
-  NotGivenBecauseNotAuthorized -> unsafeCrashWith "ArticleCache: Mandatory field was NotGivenBecauseNotAuthorized!"
+  NotGivenBecauseNotNeeded -> unsafeCrashWith ("ArticleCache: Mandatory field '" <> fieldName <> "' was NotGivenBecauseNotNeeded! Add it to the Needs payload.")
+  NotGivenBecauseNotFound -> unsafeCrashWith ("ArticleCache: Mandatory field '" <> fieldName <> "' was NotGivenBecauseNotFound!")
+  NotGivenBecauseNotAuthorized -> unsafeCrashWith ("ArticleCache: Mandatory field '" <> fieldName <> "' was NotGivenBecauseNotAuthorized!")
 
-extractOptionalCacheValue :: ∀ a. Return (Maybe a) -> Maybe a
-extractOptionalCacheValue = case _ of
+extractOptionalCacheValue :: ∀ a. String -> Return (Maybe a) -> Maybe a
+extractOptionalCacheValue fieldName = case _ of
   Given opt -> opt
-  NotGivenBecauseNotNeeded -> unsafeCrashWith "ArticleCache: Optional field was NotGivenBecauseNotNeeded! Add it to the Needs payload."
+  NotGivenBecauseNotNeeded -> unsafeCrashWith ("ArticleCache: Optional field '" <> fieldName <> "' was NotGivenBecauseNotNeeded! Add it to the Needs payload.")
   NotGivenBecauseNotFound -> Nothing
   NotGivenBecauseNotAuthorized -> Nothing
 
@@ -49,6 +50,7 @@ type AlreadyKnown =
   , author :: Maybe { id :: String, name :: SanitizedHtmlString }
   , lead :: CacheLead
   , illustration :: Maybe CacheImage
+  , writtenAt :: Instant
   }
 
 type CacheState =

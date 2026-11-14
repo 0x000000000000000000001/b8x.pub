@@ -13,7 +13,7 @@ type MagazineIssue = Maybe Base.MagazineIssue
 newtype MagazineIssueField = MagazineIssueField MagazineIssue
 
 description :: String
-description = "Magazine Issue"
+description = "Magazine issue"
 
 instance IsField MagazineIssueField MagazineIssue () where
   name = "MagazineIssue"

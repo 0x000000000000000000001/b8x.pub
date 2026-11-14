@@ -1,5 +1,6 @@
 module Core.Feat.Reference.Message.Command.DereferenceAuthor.Command
-  (DereferenceAuthor(..)
+  ( DereferenceAuthor(..)
+  , DereferenceAuthorAliasRow
   ) where
 
 import Core.Message.Command.Command (class IsCommand, class IsProtectedAgainstConcurrency, defaultMaxConcurrencyRetries, ConcurrencyPriority(..), defaultCheckLoadedEvents, defaultHandle)
@@ -44,4 +45,39 @@ instance
 
   handle = defaultHandle @DereferenceAuthor (Just filter) defaultCheckLoadedEvents initialState play decide toResult
 
-  
+type DereferenceAuthorAliasRow r =
+  ( "DereferenceAnAuthor" :: DereferenceAuthor
+  , "DereferenceAuteur" :: DereferenceAuthor
+  , "DereferenceUnAuteur" :: DereferenceAuthor
+  , "DereferencerAuteur" :: DereferenceAuthor
+  , "DereferencerUnAuteur" :: DereferenceAuthor
+  , "DereferencementAuteur" :: DereferenceAuthor
+  , "DereferencementDAuteur" :: DereferenceAuthor
+  , "DereferencementDUnAuteur" :: DereferenceAuthor
+  , "SupprimeAuteur" :: DereferenceAuthor
+  , "SupprimeUnAuteur" :: DereferenceAuthor
+  , "SupprimerAuteur" :: DereferenceAuthor
+  , "SupprimerUnAuteur" :: DereferenceAuthor
+  , "SuppressionAuteur" :: DereferenceAuthor
+  , "SuppressionDAuteur" :: DereferenceAuthor
+  , "SuppressionDUnAuteur" :: DereferenceAuthor
+  , "EffaceAuteur" :: DereferenceAuthor
+  , "EffaceUnAuteur" :: DereferenceAuthor
+  , "EffacerAuteur" :: DereferenceAuthor
+  , "EffacerUnAuteur" :: DereferenceAuthor
+  , "EffacecementAuteur" :: DereferenceAuthor
+  , "EffacecementDAuteur" :: DereferenceAuthor
+  , "EffacecementDUnAuteur" :: DereferenceAuthor
+  , "RetireAuteur" :: DereferenceAuthor
+  , "RetireUnAuteur" :: DereferenceAuthor
+  , "RetirerAuteur" :: DereferenceAuthor
+  , "RetirerUnAuteur" :: DereferenceAuthor
+  , "RetraitAuteur" :: DereferenceAuthor
+  , "RetraitDAuteur" :: DereferenceAuthor
+  , "RetraitDUnAuteur" :: DereferenceAuthor
+  , "JetteAuteur" :: DereferenceAuthor
+  , "JetteUnAuteur" :: DereferenceAuthor
+  , "JeterAuteur" :: DereferenceAuthor
+  , "JeterUnAuteur" :: DereferenceAuthor
+  | r
+  )

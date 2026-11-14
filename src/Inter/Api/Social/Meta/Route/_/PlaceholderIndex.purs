@@ -14,4 +14,7 @@ placeholderMeta = case _ of
   UiRoute.Theme theme _ -> Home.placeholderMeta $ Just theme
   UiRoute.Article _ _ -> Article.placeholderMeta
   UiRoute.Donate _ -> { title: Nothing, description: Nothing, image: Nothing }
+  UiRoute.About _ -> { title: Nothing, description: Nothing, image: Nothing }
+  UiRoute.Legal _ -> { title: Nothing, description: Nothing, image: Nothing }
+  UiRoute.Newsletter _ -> { title: Nothing, description: Nothing, image: Nothing }
   UiRoute.NotFound -> { title: Nothing, description: Nothing, image: Nothing }

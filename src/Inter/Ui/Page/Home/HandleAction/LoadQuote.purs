@@ -73,7 +73,8 @@ loadQuote = do
                 , biography: NotNeeded
                 , portrait: Needed ι { src: Needed { absolute: true } ι, dimensions: NotNeeded }
                 }
-            , slug: NotNeeded
+            , slug: Needed ι ι
+            , writtenAt: Needed ι ι
             }
         }
     )
@@ -81,33 +82,34 @@ loadQuote = do
   handleResult (Success (Just { article, slug })) = do
     putArticleCache (toString slug)
       { slug: slug
-      , title: cleanNonEmpty (extractRequiredCacheValue article.title)
-      , bookAuthors: case extractRequiredCacheValue article.books of
-          QueryResult.Unfolded bks -> bks >>= \b -> extractRequiredCacheValue b.authors <#> \a -> cleanNonEmptyStripTags a.name
+      , title: cleanNonEmpty (extractRequiredCacheValue "article.title" article.title)
+      , bookAuthors: case extractRequiredCacheValue "article.books" article.books of
+          QueryResult.Unfolded bks -> bks >>= \b -> extractRequiredCacheValue "b.authors" b.authors <#> \a -> cleanNonEmptyStripTags a.name
           _ -> []
-      , author: extractOptionalCacheValue article.author <#> \a ->
-          { id: toString (extractRequiredCacheValue a.id)
-          , name: cleanNonEmptyStripTags (extractRequiredCacheValue a.name)
+      , author: extractOptionalCacheValue "article.author" article.author <#> \a ->
+          { id: toString (extractRequiredCacheValue "a.id" a.id)
+          , name: cleanNonEmptyStripTags (extractRequiredCacheValue "a.name" a.name)
           }
       , lead:
           let
-            l = extractRequiredCacheValue article.lead
+            l = extractRequiredCacheValue "article.lead" article.lead
           in
-            { lead: extractOptionalCacheValue l.lead <#> cleanNonEmpty
-            , isFallback: extractRequiredCacheValue l.isFallback
+            { lead: extractOptionalCacheValue "l.lead" l.lead <#> cleanNonEmpty
+            , isFallback: extractRequiredCacheValue "l.isFallback" l.isFallback
             }
-      , illustration: case Array.head (extractRequiredCacheValue article.illustrations) of
+      , illustration: case Array.head (extractRequiredCacheValue "article.illustrations" article.illustrations) of
           Nothing -> Nothing
           Just ill ->
             let
-              image = extractRequiredCacheValue ill.image
-              dims = extractRequiredCacheValue image.dimensions
-              w = extractRequiredCacheValue dims.width
-              h = extractRequiredCacheValue dims.height
-              src = extractRequiredCacheValue image.src
-              isFallback = extractRequiredCacheValue ill.isFallback
-              caption = extractOptionalCacheValue ill.caption <#> cleanNonEmpty
+              image = extractRequiredCacheValue "ill.image" ill.image
+              dims = extractRequiredCacheValue "image.dimensions" image.dimensions
+              w = extractRequiredCacheValue "dims.width" dims.width
+              h = extractRequiredCacheValue "dims.height" dims.height
+              src = extractRequiredCacheValue "image.src" image.src
+              isFallback = extractRequiredCacheValue "ill.isFallback" ill.isFallback
+              caption = extractOptionalCacheValue "ill.caption" ill.caption <#> cleanNonEmpty
             in
               Just { src: src, dimensions: { width: w, height: h }, caption: caption, isFallback: isFallback }
+      , writtenAt: extractRequiredCacheValue "article.writtenAt" article.writtenAt
       }
   handleResult _ = pure unit

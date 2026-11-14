@@ -1,5 +1,5 @@
 module Inter.Ui.Page.Home.FrontPage.Style.Style
-  (frontPage
+  ( frontPage
   , frontPage_
   , staticClass
   , staticStyle
@@ -8,13 +8,14 @@ module Inter.Ui.Page.Home.FrontPage.Style.Style
 
 import Proem hiding (div, top)
 
-import CSS (alignItems, display, flexStart, grid)
+import CSS (alignItems, display, flexStart, grid, flexDirection, column)
 import CSS as CSS
 import DOM.HTML.Indexed (HTMLdiv)
 import Halogen.HTML (HTML, Node, div)
 import Util.Style.Classname (class_, generateStaticClass)
-import Util.Style.Layout (gapRem, gridTemplateColumns, maxWidthRem, widthPct100)
+import Util.Style.Layout (gapRem, gridTemplateColumns, maxWidthRem, widthPct100, displayFlex)
 import Util.Style.Selector ((.?))
+import Util.Style.MediaQuery (onMobileLte)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Page.Home.FrontPage.Style.Style"
@@ -34,6 +35,10 @@ staticStyle = do
     gapRem 2.0
     widthPct100
     alignItems flexStart
+
+    onMobileLte do
+      displayFlex
+      flexDirection column
 
 frontPage :: ∀ w i. Node HTMLdiv w i
 frontPage props = div ([ class_ staticClass ] <> props)

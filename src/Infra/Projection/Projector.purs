@@ -5,7 +5,7 @@ import Proem
 import Control.Monad.Except as Control.Monad.Except
 import Control.Monad.Rec.Class (Step(..), tailRecM)
 import Core.Event.Event (LoadedEvent)
-import Core.Mod.Projection.Pair (Key)
+import Core.Mod.Projection.Pair (Key, getPrimary, getAliases)
 import Core.Mod.Projection.Projection (class IsProjection, play)
 import Data.Array as Array
 import Data.Either (Either(..))
@@ -15,8 +15,8 @@ import Data.Newtype (unwrap)
 import Data.String (Pattern(..), Replacement(..), replaceAll)
 import Data.Symbol (class IsSymbol)
 import Data.Traversable (traverse_)
-import Effect (Effect)
 import Effect.Aff (delay, Milliseconds(..), attempt)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Foreign as Foreign
 import Infra.Cache.Fs.Cache (cacheDir)
 import Infra.Client.Postgres.Postgres (READER_POSTGRES_EDGE_CLIENT, READER_POSTGRES_STORE_CLIENT, askEdgeConfig)
@@ -27,17 +27,16 @@ import Node.Encoding (Encoding(UTF8))
 import Node.FS.Aff as FS
 import Prim.Row as Row
 import Prim.Symbol (class Append)
-import Promise.Aff (Promise, toAffE)
 import Run (AFF, EFFECT, Run)
 import Run.State as Run
 import Type.Row (type (+))
 import Util.Aff (ʌ')
-import Util.Json.TaggedSum (genericReadImplWithDefaultOpt, genericWriteImplWithDefaultOpt)
+import Util.Json.String (readStringImpl, writeStringImpl)
 import Util.Log.Info (info)
 import Util.Signal (READER_SIGNAL_REF, considerSignal)
 import Util.Type.Limit (Limit(..))
 import Util.Type.String.String (caseToSnake)
-import Util.Type.String.ToString (class ToString)
+import Util.Type.String.ToString (class ToString, class FromString)
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl, writeImpl, readJSON, writeJSON)
 
 projectionSchemaName :: ∀ @name. IsSymbol name => String
@@ -263,39 +262,39 @@ setProjectionState name state = do
 
   ø $ Postgres.queryEdge sql [ writeImpl state ]
 
-foreign import _tryAdvisoryLock :: String -> Int -> String -> String -> String -> String -> Effect (Promise Boolean)
+foreign import _tryAdvisoryLock :: String -> Int -> String -> String -> String -> String -> EffectFnAff Boolean
 
--- | Attempts to acquire an exclusive session-level advisory lock using a DEDICATED connection.
--- | 
--- | WHY A DEDICATED FFI CLIENT INSTEAD OF `Postgres.queryEdge`?
--- | `Postgres.queryEdge` borrows a connection from `pg-pool`, executes the query, and instantly 
--- | returns the connection to the pool. The lock is tied to the TCP session, not the Node.js process. 
--- | If `pg-pool` drops the connection later (e.g. `idleTimeoutMillis` or a syntax error), 
--- | Postgres silently drops the lock. The Projector loop (`goLoop`) would remain completely unaware, 
--- | leading to multiple Projectors concurrently acting as leader and processing events twice.
--- | Bypassing the pool and using a dedicated `pg.Client` forces the OS process to safely crash
--- | (via socket listeners) if the lock's TCP link ever dies, guaranteeing fail-fast orchestration.
+-- | Attempts to acquire a session-level advisory lock on a dedicated connection.
+-- | The connection must remain open for the projector's lifetime: returning it to
+-- | a pool could release the lock while projection work is still running.
+-- | PHP and JavaScript terminate the process if the lock connection closes.
 tryAdvisoryLock :: ∀ fx. String -> Run (READER_POSTGRES_EDGE_CLIENT + EFFECT + AFF + fx) Boolean
 tryAdvisoryLock name = do
   dbConfig <- askEdgeConfig
   let
     { directHost, port, database, user, password } = dbConfig
     host = directHost
-  ʌ' $ toAffE $ _tryAdvisoryLock host port database user password name
+  ʌ' $ fromEffectFnAff $ _tryAdvisoryLock host port database user password name
 
 data State = Running | Idle
 
 derive instance Generic State _
+derive instance Eq State
 
 instance ToString State where
   toString Running = "running"
   toString Idle = "idle"
 
+instance FromString State where
+  fromString "running" = Just Running
+  fromString "idle" = Just Idle
+  fromString _ = Nothing
+
 instance WriteForeign State where
-  writeImpl = genericWriteImplWithDefaultOpt
+  writeImpl = writeStringImpl
 
 instance ReadForeign State where
-  readImpl = genericReadImplWithDefaultOpt
+  readImpl = readStringImpl
 
 ensureProjectionsTable :: ∀ fx. String -> Run (READER_POSTGRES_EDGE_CLIENT + EFFECT + AFF + fx) Ɩ
 ensureProjectionsTable name = do
@@ -315,7 +314,7 @@ ensureProjectionsTable name = do
       """
     sql = replaceAll (Pattern "${schema}") (Replacement schema) sqlTemplate
 
-  ø $ Postgres.queryEdge sql []
+  ø $ Postgres.queryCountEdge sql []
 
 getReadModelHash_ :: ∀ fx. String -> Maybe Key -> Run (READER_POSTGRES_EDGE_CLIENT + EFFECT + AFF + fx) String
 getReadModelHash_ name mKey = do
@@ -351,7 +350,7 @@ readModelHashCacheMirror schema mKey = do
     Just key -> do
       let
         innerKey = unwrap key
-        searchKeys = (Array.catMaybes [ innerKey.primary ]) <> innerKey.aliases
+        searchKeys = (Array.catMaybes [ getPrimary key ]) <> getAliases key
         plural = caseToSnake innerKey.pluralType
 
       let
@@ -390,7 +389,7 @@ writeModelHashCacheMirror schema mKey hash = do
     Just key -> do
       let
         innerKey = unwrap key
-        searchKeys = (Array.catMaybes [ innerKey.primary ]) <> innerKey.aliases
+        searchKeys = (Array.catMaybes [ getPrimary key ]) <> getAliases key
         plural = caseToSnake innerKey.pluralType
 
       searchKeys # traverse_ \k -> do

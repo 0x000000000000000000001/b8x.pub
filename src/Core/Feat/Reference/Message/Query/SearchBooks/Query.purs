@@ -1,5 +1,4 @@
 module Core.Feat.Reference.Message.Query.SearchBooks.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 import Core.Message.Query.Query (class IsQuery, defaultCached)
@@ -8,7 +7,7 @@ import Core.Feat.Reference.Message.Query.SearchBooks.Payload (Fields, Payload)
 import Core.Feat.Reference.Message.Query.SearchBooks.Result (Result)
 import Core.Feat.Reference.Message.Query.SearchBooks.State (State)
 import Core.Feat.Reference.Message.Query.SearchBooks.Projection.Projection (Book, findBooks)
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.BoundedLimit.BoundedLimit (BoundedLimit(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Core.Mod.Projection.Finder.Sort (noSort)
@@ -35,7 +34,7 @@ instance IsQuery SearchBooks State Fields Payload Result where
   description = "Search books"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Book Nothing
+    hash <- getReadModelHash @Book HashAll
     η $ defaultCached hash
 
   handle (SearchBooks { filter, limit: BoundedLimit limit_, expectation, after, needs }) = do

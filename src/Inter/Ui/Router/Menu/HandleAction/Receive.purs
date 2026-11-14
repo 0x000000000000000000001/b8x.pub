@@ -9,7 +9,7 @@ import Inter.Ui.Router.Menu.HandleAction.Close (close)
 import Inter.Ui.Router.Menu.HandleAction.CloseActivePanel (closeActivePanel)
 import Inter.Ui.Router.Menu.HandleAction.Open (open)
 import Inter.Ui.Router.Menu.HandleAction.OpenSearch (openSearch)
-import Inter.Ui.Router.Menu.Type.Input (InnerInput)
+import Inter.Ui.Router.Menu.Type.Input (ConnectedInput)
 import Inter.Ui.Router.Menu.Type.MenuM (MenuM)
 import Inter.Ui.Type.IntentOrigin (IntentOrigin(..))
 import Inter.Ui.Router.Menu.Type.State.Search (_controlled, _authorFilter, _results)
@@ -24,9 +24,9 @@ import Inter.Ui.Router.Menu.HandleAction.OpenNewsletter (openNewsletter)
 import Inter.Ui.Router.Menu.HandleAction.GoToMagazineArticles (goToMagazineArticles)
 import Inter.Ui.Router.Menu.Type.State.Magazine as Magazine
 
-receive :: InnerInput -> MenuM Ɩ
+receive :: ConnectedInput -> MenuM Ɩ
 receive input = do
-  modify_ \st -> st { me = input.context }
+  modify_ \st -> st { context = input.context }
   let { open: open', activePanel: activePanel', search: search', magazineIssueOpen: magazineIssueOpen' } = input.input
 
   { open: open_
@@ -49,8 +49,10 @@ receive input = do
             η o
 
       case newOpen of
-        true -> open External
-        false -> close External
+        true -> do
+          open External
+        false -> do
+          close External
 
     _ -> ηι
 
@@ -68,7 +70,8 @@ receive input = do
             ControlledProp.Controlled c -> η $ Just c.query
             ControlledProp.Uncontrolled c -> η $ Just c.query
           openSearch External newSearchQuery
-        Newsletters -> openNewsletter External
+        Newsletters -> do
+          openNewsletter External
         Magazines -> do
           case magazineIssueOpen' of
             ControlledProp.Controlled (Just slug) -> do
@@ -81,9 +84,12 @@ receive input = do
                 _ -> goToMagazineArticles External Nothing slug
             _ -> do
               case page_ of
-                Magazine.Years -> ηι
-                _ -> openMagazine External
-        None -> closeActivePanel External
+                Magazine.Years -> do
+                  ηι
+                _ -> do
+                  openMagazine External
+        None -> do
+          closeActivePanel External
 
     _ -> ηι
 

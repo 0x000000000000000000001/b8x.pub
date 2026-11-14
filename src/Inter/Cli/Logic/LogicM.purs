@@ -6,6 +6,7 @@ import Config.InternalConfig (internalConfig)
 import Config.PublicConfig (publicConfig, READER_PUBLIC_CONFIG, runPublicConfigReader)
 import Core.Event.EventStore (EVENT_STORE)
 import Core.Exception.Index (EXCEPT_LOGIC, LogicException, runLogicExcept)
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Feat.Effect.Generate (GENERATE, interpretGenerate)
 import Core.Feat.Effect.Sleep (SLEEP, interpretSleep)
@@ -13,6 +14,7 @@ import Core.Message.Queue (QUEUE)
 import Core.Feat.Effect.Newsletter (NEWSLETTER)
 import Core.Feat.Effect.RateLimit (RATE_LIMIT)
 import Infra.RateLimit.Postgres.RateLimit (interpretRateLimit)
+import Inter.Cli.Util.Prefix (READER_CLI_PREFIX, runCliPrefixReader)
 import Core.Mod.Trace.Trace (READER_TRACE, Trace, runTraceReader)
 import Core.Feat.Effect.Cache (CACHE)
 import Core.Feat.Effect.Mail (MAIL)
@@ -20,12 +22,12 @@ import Core.Mod.Infra.Projection.CopyOnWrite.Index (evalProjectionWriteCopyState
 import Core.Mod.Infra.Projection.Index (PROJECTION)
 import Core.Mod.Infra.Projection.Postgres.Finder.Index (interpretProjectionReadFind)
 import Core.Mod.Infra.Projection.Postgres.Index (interpretProjectionReadSyncProject, interpretProjectionReadSyncProjectWithNoop, interpretProjectionWriteCopyPersist, interpretProjectionWriteOps)
-import Core.Mod.Id.Id as Id
 import Data.Either (Either)
 import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Infra.Client.Aws.S3.S3 (READER_S3_CLIENT, interpretUpload, runS3ClientReader)
 import Infra.Client.Aws.S3.S3 as S3
+import Infra.Client.Http.Download (interpretDownload)
 import Infra.Client.Aws.Ses.Ses (READER_SES_CLIENT, runSesClientReader)
 import Infra.Client.Aws.Ses.Ses as Ses
 import Infra.Client.Sendy (READER_SENDY_CONFIG, runSendyConfigReader)
@@ -49,6 +51,7 @@ type LOGIC =
     + QUEUE
     + GENERATE
     + SLEEP
+    + DOWNLOAD
     + UPLOAD
     + NEWSLETTER
     + CACHE
@@ -64,18 +67,7 @@ type LOGIC =
     + READER_SENDY_CONFIG
     + READER_MAILCHIMP_CONFIG
     + READER_PUBLIC_CONFIG
-    + READER_TRACE
-    + EXCEPT_LOGIC
-    
-    + AFF
-    + EFFECT
-    + ()
-
-type ASYNC_LOGIC =
-  QUEUE
-    + GENERATE
-    + SLEEP
-    + READER_RABBIT_MQ_CLIENT
+    + READER_CLI_PREFIX
     + READER_TRACE
     + EXCEPT_LOGIC
     + AFF
@@ -83,7 +75,6 @@ type ASYNC_LOGIC =
     + ()
 
 type LogicM = Run LOGIC
-type AsyncLogicM = Run ASYNC_LOGIC
 
 type Context =
   { postgresStoreClient :: Postgres.Client
@@ -94,16 +85,13 @@ type Context =
   , sesClient :: Ses.Client
   }
 
-type AsyncContext =
-  { rabbitMqClient :: RabbitMq.Client
-  }
-
 runLogicM :: ∀ a. Context -> Trace -> LogicM a -> Aff (Either LogicException a)
 runLogicM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabbitMqClient, s3Client, sesClient } traceContext ma =
   ma
     # interpretEventStore
     ▷ interpretQueue
 
+    ▷ interpretDownload
     ▷ interpretUpload
     ▷ interpretProjectionReadFind
     ▷
@@ -133,23 +121,13 @@ runLogicM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, ra
     ▷ runPublicConfigReader publicConfig
     ▷ interpretGenerate
     ▷ interpretSleep
+    ▷ runCliPrefixReader ""
     ▷ runTraceReader traceContext
     ▷ runLogicExcept
     ▷ runBaseAff'
 
-runAsyncLogicM :: ∀ a. AsyncContext -> AsyncLogicM a -> Aff (Either LogicException a)
-runAsyncLogicM { rabbitMqClient } ma =
-  ma
-    # interpretQueue
-    # runRabbitMqClientReader rabbitMqClient
-    # interpretGenerate
-    # interpretSleep
-    # runTraceReader { run: Id.unsafeGenerate ι, append: Nothing, cause: Nothing, overriddenAt: Nothing }
-    # runLogicExcept
-    # runBaseAff'
-
-acquireSync :: Aff Context
-acquireSync = do
+acquire :: Aff Context
+acquire = do
   postgresStoreClient <- Postgres.createClient internalConfig.db.store
   postgresEdgeClient <- Postgres.createClient internalConfig.db.edge
   postgresStoreLockClient <- Postgres.createClient internalConfig.db.storeLock
@@ -159,18 +137,9 @@ acquireSync = do
 
   η { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabbitMqClient, s3Client, sesClient }
 
-completeSync :: Context -> Aff Ɩ
-completeSync { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabbitMqClient } = do
+complete :: Context -> Aff Ɩ
+complete { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rabbitMqClient } = do
   Postgres.closeClient postgresStoreClient
   Postgres.closeClient postgresEdgeClient
   Postgres.closeClient postgresStoreLockClient
   RabbitMq.closeClient rabbitMqClient
-
-acquireAsync :: Aff AsyncContext
-acquireAsync = do
-  rabbitMqClient <- RabbitMq.createClient internalConfig.mq
-
-  η { rabbitMqClient }
-
-completeAsync :: AsyncContext -> Aff Ɩ
-completeAsync { rabbitMqClient } = RabbitMq.closeClient rabbitMqClient

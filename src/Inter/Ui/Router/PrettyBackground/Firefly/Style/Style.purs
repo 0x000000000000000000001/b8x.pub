@@ -8,12 +8,13 @@ import DOM.HTML.Indexed (HTMLdiv)
 import Halogen.HTML (HTML, Node, div)
 import Util.Style.Classname (classes, generateStaticClass)
 import Util.Style.Effect (borderRadiusPct50, filter, mixBlendModeScreen, pointerEventsNone)
-import Util.Style.Layout (heightRem, widthRem)
+import Util.Style.Layout (heightRem, widthRem, displayNone)
 import Util.Style.Position (left0, positionFixed, top0)
 import Util.Power (isPowerful)
 import Util.Style.Selector ((.?))
 import Util.Style.Transition (transitionNone)
 import Util.Style.Typography (userSelectNone)
+import Util.Style.MediaQuery (onTabletLte)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Router.PrettyBackground.Firefly.Style.Style"
@@ -47,6 +48,9 @@ staticStyle = do
     zIndex (-1)
     transitionNone
     mixBlendModeScreen
+
+    onTabletLte do
+      displayNone
 
 firefly :: ∀ w i. Node HTMLdiv w i
 firefly props = div ([ classes $ [ staticClass ] ] <> props)

@@ -6,7 +6,6 @@ import Core.Mod.Book.Id.Message.Field.AutoId (Id, IdField)
 import Core.Mod.Book.Name.Message.Field (Name, NameField)
 import Core.Mod.Book.Year.Message.Field.MaybeYear (Year, YearField)
 import Core.Mod.Editor.Id.Message.Field.MaybeEditor (Editor, EditorField)
-import Core.Mod.Book.LegacyId.Message.Field (LegacyId, LegacyIdField)
 
 type Payload =
   { id :: Id
@@ -15,15 +14,15 @@ type Payload =
   , name :: Name
   , year :: Year
   , cover :: Cover
-  , legacyId :: LegacyId
+  -- , legacyId :: LegacyId
   }
 
 type Fields =
-  (id :: IdField
+  ( id :: IdField
   , authors :: AuthorsField
   , editor :: EditorField
   , name :: NameField
   , year :: YearField
   , cover :: CoverField
-  , legacyId :: LegacyIdField
+  -- , legacyId :: LegacyIdField
   )

@@ -77,6 +77,9 @@ type MailConfig =
           , newsletter :: String
           }
       }
+  , to ::
+      { bug :: String
+      }
   , ses :: SesConfig
   , sendy :: SendyConfig
   }
@@ -185,6 +188,9 @@ internalConfig =
               , bug: _config.mail.from.email.bug
               , newsletter: _config.mail.from.email.newsletter
               }
+          }
+      , to:
+          { bug: _config.mail.to.bug
           }
       , ses: _config.aws.ses
       , sendy: _config.sendy

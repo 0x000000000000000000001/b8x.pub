@@ -9,6 +9,7 @@ import Data.Maybe (Maybe(..))
 
 import Core.Event.EventStore (EVENT_STORE)
 import Core.Exception.Index (EXCEPT_LOGIC, runLogicExcept)
+import Core.Message.Command.Handle.Download (DOWNLOAD, interpretDownloadWithMock)
 import Core.Message.Command.Handle.Upload (UPLOAD, interpretUploadWithMock)
 import Core.Message.Queue (QUEUE, interpretQueueWithNoop)
 import Core.Feat.Effect.Newsletter (NEWSLETTER, interpretNewsletterWithMock)
@@ -42,6 +43,7 @@ type TEST =
   EVENT_STORE
     + QUEUE
     + PROJECTION
+    + DOWNLOAD
     + UPLOAD
     + NEWSLETTER
     + RATE_LIMIT
@@ -79,6 +81,7 @@ runTestM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rab
     # interpretProjectionWriteCopyPersist
     # interpretProjectionWriteOps
     # evalProjectionWriteCopyState
+    # interpretDownloadWithMock
     # interpretUploadWithMock
     # interpretNewsletterWithMock
     # interpretRateLimit

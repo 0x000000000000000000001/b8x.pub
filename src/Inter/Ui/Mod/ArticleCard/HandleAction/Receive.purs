@@ -22,4 +22,5 @@ receive input = do
         ill <- input.article.illustration
         dims <- ill.dimensions
         pure { src: ill.src, dimensions: dims, caption: ill.caption, isFallback: ill.isFallback }
+    , writtenAt: input.article.writtenAt
     }

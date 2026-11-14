@@ -45,7 +45,7 @@ render state =
                           }
                       , debounceMs = 0.0
                       , theme = LightOutlined
-                      , helper = Just "Utilisez le même email que pour vos dons."
+                      , helper = Just "⚠️ Utilisez le même email que pour vos dons."
                       }
                   )
                   HandleEmailInput

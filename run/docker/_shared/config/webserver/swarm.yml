@@ -1,0 +1,25 @@
+services:
+  webserver:
+    deploy:
+      replicas: 2
+      # Start the new container and wait for its healthcheck to pass 
+      # before stopping the old one, ensuring zero downtime.
+      update_config:
+        parallelism: 1
+        delay: 5s
+        order: start-first
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [node.role == manager]
+      labels:
+        x.traefik.gateway: 'gateway'
+
+        traefik.enable: 'true'
+
+        traefik.http.services.webserver.loadbalancer.server.port: '80'
+
+        traefik.http.services.swebserver.loadbalancer.server.scheme: 'https'
+        traefik.http.services.swebserver.loadbalancer.server.port: '443'
+    networks:
+      - stack-default

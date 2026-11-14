@@ -13,7 +13,7 @@ import Halogen.HTML (HTML, Node, div)
 import Util.Style.Classname (classes, generateStaticClass)
 import Util.Style.Color (backgroundColorWhite)
 import Util.Style.Position (positionRelative)
-import Util.Style.Layout (margin2, padding1, widthRem)
+import Util.Style.Layout (padding1, widthRem, maxWidthPct100, boxSizingBorderBox)
 import Util.Style.Effect (borderRadiusRem1)
 import Util.Style.Selector ((.?))
 
@@ -34,9 +34,10 @@ staticStyle = do
     positionRelative
     backgroundColorWhite
     widthRem 60.0
+    maxWidthPct100
+    boxSizingBorderBox
     padding1 2.0
     borderRadiusRem1 0.5
-    margin2 8.0 2.0
 
 core :: ∀ w i. Maybe String -> Maybe Number -> Node HTMLdiv w i
 core bgOpt widthRemOpt props =
@@ -45,7 +46,7 @@ core bgOpt widthRemOpt props =
       Just bg -> "background-color: " <> bg <> ";"
       Nothing -> ""
     widthStr = case widthRemOpt of
-      Just w -> "width: " <> show w <> "rem;"
+      Just w -> "width: 100%; max-width: " <> show w <> "rem;"
       Nothing -> ""
     styleStr = bgStr <> widthStr
     styleAttr = HP.attr (AttrName "style") styleStr

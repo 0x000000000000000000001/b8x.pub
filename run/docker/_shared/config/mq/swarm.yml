@@ -1,0 +1,10 @@
+services:
+  mq:
+    deploy:
+      resources:
+        limits:
+          memory: 1500M # Very important. We do not want to saturate machine RAMs, because of Erland and its memory leaks... See https://github.com/heroku/erlang-in-anger/blob/master/107-memory-leaks.tex
+      restart_policy:
+        condition: any
+    networks:
+      - stack-default

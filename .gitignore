@@ -7,6 +7,8 @@
 /node_modules/
 output/
 output.bak/
+# Retained compiler output archives are local build artifacts.
+/run/bak/go/**/output-retained-*.tar.gz
 /.psa*
 /.psc-package/
 /.psc*

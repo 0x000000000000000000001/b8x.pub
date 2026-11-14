@@ -2,12 +2,13 @@ module Inter.Cli.Logic.Main where
 
 import Proem
 
-import Inter.Cli.Logic.LogicM (acquireAsync, acquireSync, completeAsync, completeSync, runAsyncLogicM, runLogicM)
+import Inter.Cli.Logic.LogicM (acquire, complete, runLogicM)
 import Core.Mod.Id.Id as Id
-import Inter.Cli.Logic.Registry (Actions, registry)
+import Inter.Cli.Logic.Registry (Actions, registry, RegistryEntry)
 import Core.Mod.Trace.Cause (CauseNode(..))
 import Core.Mod.Trace.Subject (Subject(..))
 import Yoga.JSON (unsafeStringify)
+import Data.Foldable (foldMap)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -15,7 +16,7 @@ import Effect (Effect)
 import Effect.Aff (bracket)
 import Foreign.Object (Object)
 import Foreign.Object as Object
-import Options.Applicative (Parser, ParserInfo, command, help, hsubparser, long, short, switch)
+import Options.Applicative (Parser, command, help, hsubparser, long, short, switch)
 import Inter.Cli.Util.Aff (runCliAff)
 import Util.Log.Error (error)
 import Util.Log.Except (except)
@@ -31,26 +32,28 @@ type Input =
   , command :: Actions
   }
 
-parser :: Object (ParserInfo Actions) -> Parser Input
+parser :: Object RegistryEntry -> Parser Input
 parser registry = ado
   async <- switch (long "async" <> short 'a' <> help "Dispatch command asynchronously")
-  command' <- hsubparser (Object.foldMap command registry)
+  command' <- hsubparser (Object.foldMap (\k v -> command k v.info <> foldMap (\a -> command a.name a.info) v.aliases) registry)
   in { async, command: command' }
 
 main :: Effect Ɩ
 main = runCliAff do
   input <- ʌ $ execParser "Execute a command" $ parser registry
 
-  if input.async then bracket acquireAsync completeAsync \ctx -> do
+  if input.async then bracket acquire complete \ctx -> do
     case input.command.askQueue of
       Nothing -> error "Async not supported."
       Just askQueue -> do
-        result <- runAsyncLogicM ctx askQueue
+        runId <- ʌ Id.generate
+        let cause = { run: runId, append: Nothing, cause: Nothing, overriddenAt: Nothing }
+        result <- runLogicM ctx cause askQueue
 
         case result of
           Left e -> except $ "[" <> (upperCaseFirst $ reflectVariantKeyName $ unwrap e) <> "] " <> (translate En e)
           Right _ -> success "Command dispatched asynchronously."
-  else bracket acquireSync completeSync \ctx -> do
+  else bracket acquire complete \ctx -> do
     runId <- ʌ Id.generate
     let
       causeNode =
@@ -62,5 +65,6 @@ main = runCliAff do
     case result of
       Left e -> except $ "[" <> (upperCaseFirst $ reflectVariantKeyName $ unwrap e) <> "] " <> (translate En e)
       Right res -> do
+        log ""
         success $ "Done. Result:"
         log $ if unsafeStringify res == "{}" || unsafeStringify res == "null" then "{}" else unsafeStringify res

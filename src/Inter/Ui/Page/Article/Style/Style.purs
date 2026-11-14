@@ -1,5 +1,5 @@
 module Inter.Ui.Page.Article.Style.Style
-  (class'
+  ( class'
   , articleContainer
   , articleContainer_
   , staticClass
@@ -8,14 +8,15 @@ module Inter.Ui.Page.Article.Style.Style
 
 import Proem
 
-import CSS (color, column, flexDirection, minHeight, rgba, vh)
+import CSS (color, column, flexDirection, minHeight, rgba, vh, boxSizing, borderBox)
 import CSS as CSS
 import DOM.HTML.Indexed (HTMLarticle)
 import Halogen.HTML (HTML, Node, article)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass)
-import Util.Style.Layout (displayFlex, widthPct)
+import Util.Style.Layout (displayFlex, widthPct, padding4)
 import Util.Style.Selector ((.?))
 import Inter.Ui.Type.InstanceId (InstanceId)
+import Util.Style.MediaQuery (onMobileLte)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Page.Article.Style.Style"
@@ -34,6 +35,11 @@ staticStyle = do
     widthPct 100.0
     color $ rgba 51 51 51 1.0
     minHeight (vh 100.0)
+    boxSizing borderBox
+    padding4 2.1 2.0 1.0 2.0
+
+    onMobileLte do
+      padding4 1.0 1.0 1.0 1.0
 
 articleContainer :: ∀ w i. InstanceId -> Node HTMLarticle w i
 articleContainer id props = article ([ classes [ staticClass, class' id ] ] <> props)

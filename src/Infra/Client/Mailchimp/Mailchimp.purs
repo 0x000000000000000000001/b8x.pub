@@ -137,7 +137,6 @@ prefillCampaign _newsletterId campaignName prefillArticles = do
           , Tuple ("[Auteur(s) du livre " <> si <> "]") (joinWith ", " a.bookAuthors)
           , Tuple ("[Nom de l'éditeur du livre " <> si <> "]") (joinWith ", " a.bookEditors)
           , Tuple ("[Année de parution du livre " <> si <> "]") (joinWith ", " a.bookYears)
-          , Tuple ("[MOT-CLÉ " <> si <> "]") (joinWith ", " a.keywords)
           , Tuple ("[Préfixe pour auteur(s) du livre " <> si <> "]") a.bookPrefix
           , Tuple ("[Lien " <> si <> "]") a.link
           , Tuple ("https://lien" <> si) a.link
@@ -205,7 +204,6 @@ getPrefilledMasterTemplateHtml prefillArticles = do
           , Tuple ("[Auteur(s) du livre " <> si <> "]") (joinWith ", " a.bookAuthors)
           , Tuple ("[Nom de l'éditeur du livre " <> si <> "]") (joinWith ", " a.bookEditors)
           , Tuple ("[Année de parution du livre " <> si <> "]") (joinWith ", " a.bookYears)
-          , Tuple ("[MOT-CLÉ " <> si <> "]") (joinWith ", " a.keywords)
           , Tuple ("[Préfixe pour auteur(s) du livre " <> si <> "]") a.bookPrefix
           , Tuple ("[Lien " <> si <> "]") a.link
           , Tuple ("https://lien" <> si) a.link

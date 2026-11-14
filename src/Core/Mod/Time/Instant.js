@@ -29,3 +29,22 @@ export const _toSendyScheduleDate = function (ms) {
   const get = (type) => parts.find(p => p.type === type).value;
   return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")}`;
 };
+
+export const _parseParisTime = (just) => (nothing) => (year) => (month) => (day) => (hour) => (minute) => {
+  const dStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`;
+  const baseDate = new Date(`${dStr}Z`);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Paris',
+    timeZoneName: 'shortOffset'
+  }).formatToParts(baseDate);
+  const tzPart = parts.find(p => p.type === 'timeZoneName').value;
+  
+  let offsetStr = "+01:00";
+  if (tzPart === "GMT+2") offsetStr = "+02:00";
+  
+  const finalStr = `${dStr}${offsetStr}`;
+  const ms = Date.parse(finalStr);
+  if (isNaN(ms)) return nothing;
+  
+  return just(new Date(ms).toISOString());
+};

@@ -1,5 +1,6 @@
 module Core.Mod.Url.Url
   (Url
+  , isDocxUrl
   , make
   , make_
   , unsafeFromString
@@ -15,14 +16,14 @@ import Core.Util.Validation (class IsRefinedType)
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
 import Data.Either (Either(..))
 import Data.Newtype (class Newtype)
-import Data.String (trim)
-import Data.String.Regex (regex, test)
+import Data.String (toLower, trim)
+import Data.String.Regex (Regex, regex, test)
 import Data.String.Regex.Flags (noFlags)
 import Data.Variant (Variant)
 import Run (Run)
 import Run.Except (Except)
 import Util.Type.Random (class Random)
-import Util.Type.String.ToString (class ToString)
+import Util.Type.String.ToString (class ToString, toString)
 
 newtype Url = Url String
 
@@ -51,6 +52,14 @@ make str = case make_ str of
 
 unsafeFromString :: String -> Url
 unsafeFromString = Url
+
+docxPattern :: Either String Regex
+docxPattern = regex "\\.docx($|[?#])" noFlags
+
+isDocxUrl :: Url -> Boolean
+isDocxUrl url = case docxPattern of
+  Right pattern -> test pattern (toLower (toString url))
+  Left _ -> false
 
 instance IsRefinedType Url (UrlExceptionRow ()) where
   makeFromJson _ json = case Control.Monad.Except.runExcept (readImpl json) of

@@ -1,0 +1,37 @@
+services:
+  db:
+    shm_size: 2g # default: 64m
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [node.role == manager] # ssh access compatible with "mode: host" routing
+    networks:
+      - stack-default
+
+  db-multiplex-store:
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - stack-default
+
+  db-multiplex-store-lock:
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - stack-default
+
+  db-multiplex-edge:
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - stack-default

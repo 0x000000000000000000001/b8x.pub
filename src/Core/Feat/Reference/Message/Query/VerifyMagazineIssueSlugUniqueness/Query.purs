@@ -9,7 +9,7 @@ import Core.Feat.Reference.Message.Query.VerifyMagazineIssueSlugUniqueness.Resul
 import Core.Feat.Reference.Message.Query.VerifyMagazineIssueSlugUniqueness.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Feat.Reference.Message.Query.VerifyMagazineIssueSlugUniqueness.Exception.MagazineIssueSlugAlreadyTaken (MagazineIssueSlugAlreadyTaken(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
@@ -32,7 +32,7 @@ instance IsQuery VerifyMagazineIssueSlugUniqueness State Fields Payload Result w
   description = "Verify magazine issue slug uniqueness"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @MagazineIssue Nothing
+    hash <- getReadModelHash @MagazineIssue HashAll
     η $ defaultCached hash
 
   handle (VerifyMagazineIssueSlugUniqueness { slug: newSlug }) = do

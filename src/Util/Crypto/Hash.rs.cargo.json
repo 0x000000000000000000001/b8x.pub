@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "dependencies": {
+    "xxhash-rust": {
+      "version": "=0.8.15",
+      "default-features": false,
+      "features": ["xxh64"]
+    }
+  }
+}

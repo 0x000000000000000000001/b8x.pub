@@ -46,7 +46,7 @@ cache' = π :: Π "cache"
 
 -- | Change it to reset all caches.
 innerSalt :: String
-innerSalt = "1"
+innerSalt = "2"
 
 cacheKey
   :: ∀ v p

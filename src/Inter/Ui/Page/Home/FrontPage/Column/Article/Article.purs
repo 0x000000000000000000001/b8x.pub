@@ -1,6 +1,7 @@
 module Inter.Ui.Page.Home.FrontPage.Column.Article.Article where
 
 import Proem hiding (div)
+import Prelude as Prelude
 import Core.Message.Query.Result (Fold(..), Return(..))
 import Data.Maybe (Maybe(..))
 import Halogen (ComponentHTML)
@@ -57,6 +58,7 @@ skeleton central visibleIllustration colIndex index =
         , bookAuthors: []
         , author: Nothing
         , illustration: Nothing
+        , writtenAt: Prelude.bottom
         }
     , popOnHover: false
     , baseShadow: true

@@ -9,7 +9,7 @@ import Core.Feat.Reference.Message.Query.GetMagazineCalendar.Projection.Projecti
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Message.Query.Payload (Need(..))
 import Core.Mod.Image.Message.Query.Build (buildImage)
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
 import Data.Map as Map
@@ -33,7 +33,7 @@ instance IsQuery GetMagazineCalendar State () Payload Result where
   description = "Get magazine calendar"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Calendar Nothing
+    hash <- getReadModelHash @Calendar HashAll
     η $ defaultCached hash
 
   handle (GetMagazineCalendar _) = do

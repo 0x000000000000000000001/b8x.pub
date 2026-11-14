@@ -1,0 +1,18 @@
+# Static configuration
+
+log:
+  level: INFO
+
+api:
+  insecure: true
+  dashboard: true
+
+providers:
+  docker:
+    network: core_compose-default
+    constraints: "Label(`x.traefik.gateway`, `pilot-gateway`)"
+    exposedByDefault: false
+
+entryPoints:
+  spilot:
+    address: ':9443'

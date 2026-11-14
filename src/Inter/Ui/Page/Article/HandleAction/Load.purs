@@ -27,7 +27,8 @@ import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), snd)
 import Effect.Random (randomInt)
-import Halogen (fork, gets, modify_, raise)
+import Effect.Aff as Aff
+import Halogen (fork, gets, liftAff, liftEffect, modify_, raise)
 import Inter.Api.Social.Meta.Route.Article.Shared (buildMeta, makeQuery)
 import Inter.Ui.Capability.ArticleCache.Trans (putArticleCache)
 import Inter.Ui.Page.Article.Type (ArticleM, Output(..), _article, _relatedArticles, _issueArticles)
@@ -43,6 +44,11 @@ import Core.Feat.Review.Message.Query.GetArticle.Result (Article) as GetArticle
 import Core.Feat.Review.Message.Query.SearchArticles.Result (Article) as Search
 import Inter.Ui.Type.Model (UiArticle, UiSearchArticle)
 import Inter.Ui.Capability.ArticleCache.ArticleCache (extractRequiredCacheValue, extractOptionalCacheValue)
+import Util.Html.Dom.Ad (ensureAds)
+import Web.HTML as Web.HTML
+import Web.HTML.Window as Web.HTML.Window
+import Web.DOM.ParentNode as Web.DOM.ParentNode
+import Web.HTML.HTMLDocument as Web.HTML.HTMLDocument
 
 cleanNonEmpty :: NonEmptyHtml -> SanitizedHtmlString
 cleanNonEmpty c = sanitizeHtml (unwrap c)
@@ -76,6 +82,7 @@ toUiArticle art =
       QueryResult.Folded f -> QueryResult.Folded f
   , illustrations: art.illustrations <#> map (\ill -> { image: ill.image, caption: ill.caption <#> map cleanNonEmpty, isFallback: ill.isFallback })
   , magazineIssue: art.magazineIssue
+  , writtenAt: art.writtenAt
   }
 
 toUiSearchArticle :: Search.Article -> UiSearchArticle
@@ -101,6 +108,7 @@ toUiSearchArticle art =
       QueryResult.Folded f -> QueryResult.Folded f
   , illustrations: art.illustrations <#> map (\ill -> { image: ill.image, caption: ill.caption <#> map cleanNonEmpty, isFallback: ill.isFallback })
   , slug: art.slug
+  , writtenAt: art.writtenAt
   }
 
 load :: ArticleM Ɩ
@@ -134,7 +142,7 @@ load = do
                 { isFallback: Needed ι ι
                 }
 
-          , content = Needed defaultContentOpt ι
+          , content = Needed defaultContentOpt { untagHtml = { whitelist: All, blacklistInWhitelist: Tags [] } } ι
           , notes = Needed ι ι
           , sources = Needed ι ι
           , author = Needed ι
@@ -166,6 +174,7 @@ load = do
               , isFallback: Needed ι ι
               }
           , magazineIssue = Needed ι ι
+          , writtenAt = Needed ι ι
           }
       }
 
@@ -175,26 +184,40 @@ load = do
     case cleanedRes of
       Success (Just art) -> do
         let
+          waitForDom = do
+            mbEl <- liftEffect do
+              win <- Web.HTML.window
+              doc <- Web.HTML.Window.document win
+              Web.DOM.ParentNode.querySelector (Web.DOM.ParentNode.QuerySelector "[data-loaded]") (Web.HTML.HTMLDocument.toParentNode doc)
+            case mbEl of
+              Just _ -> do 
+                liftAff $ Aff.delay (Aff.Milliseconds 100.0)
+                ʌ ensureAds
+              Nothing -> do
+                liftAff $ Aff.delay (Aff.Milliseconds 150.0)
+                waitForDom
+        ø $ fork waitForDom
+        let
           slugStr = toString slug
 
-          titleVal = extractRequiredCacheValue art.title
+          titleVal = extractRequiredCacheValue "art.title" art.title
 
           titleStr = unwrap titleVal
 
-          articleAuthorTxt = extractOptionalCacheValue art.author <#> \a ->
-            { id: toString (extractRequiredCacheValue a.id), name: extractRequiredCacheValue a.name }
+          articleAuthorTxt = extractOptionalCacheValue "art.author" art.author <#> \a ->
+            { id: toString (extractRequiredCacheValue "a.id" a.id), name: extractRequiredCacheValue "a.name" a.name }
 
-          bookAuthors = case extractRequiredCacheValue art.books of
-            QueryResult.Unfolded bks -> bks >>= \b -> extractRequiredCacheValue b.authors <#> \a -> a.name
+          bookAuthors = case extractRequiredCacheValue "art.books" art.books of
+            QueryResult.Unfolded bks -> bks >>= \b -> extractRequiredCacheValue "b.authors" b.authors <#> \a -> a.name
             _ -> []
 
           leadVal =
             let
-              l = extractRequiredCacheValue art.lead
+              l = extractRequiredCacheValue "art.lead" art.lead
             in
-              { lead: extractOptionalCacheValue l.lead, isFallback: extractRequiredCacheValue l.isFallback }
+              { lead: extractOptionalCacheValue "l.lead" l.lead, isFallback: extractRequiredCacheValue "l.isFallback" l.isFallback }
 
-          illustrations = extractRequiredCacheValue art.illustrations
+          illustrations = extractRequiredCacheValue "art.illustrations" art.illustrations
 
           firstIll = Array.head illustrations
 
@@ -202,13 +225,13 @@ load = do
             Nothing -> Nothing
             Just ill ->
               let
-                image = extractRequiredCacheValue ill.image
-                dims = extractRequiredCacheValue image.dimensions
-                w = extractRequiredCacheValue dims.width
-                h = extractRequiredCacheValue dims.height
-                src = extractRequiredCacheValue image.src
-                isFallback = extractRequiredCacheValue ill.isFallback
-                caption = extractOptionalCacheValue ill.caption
+                image = extractRequiredCacheValue "ill.image" ill.image
+                dims = extractRequiredCacheValue "image.dimensions" image.dimensions
+                w = extractRequiredCacheValue "dims.width" dims.width
+                h = extractRequiredCacheValue "dims.height" dims.height
+                src = extractRequiredCacheValue "image.src" image.src
+                isFallback = extractRequiredCacheValue "ill.isFallback" ill.isFallback
+                caption = extractOptionalCacheValue "ill.caption" ill.caption
               in
                 Just { src, dimensions: { width: w, height: h }, caption, isFallback }
 
@@ -219,6 +242,7 @@ load = do
           , author: articleAuthorTxt
           , lead: leadVal
           , illustration: imageVal
+          , writtenAt: extractRequiredCacheValue "art.writtenAt" art.writtenAt
           }
 
         let
@@ -277,6 +301,7 @@ load = do
                     , isFallback: Needed ι ι
                     }
                 , slug = Needed ι ι
+                , writtenAt = Needed ι ι
                 }
 
             ø $ fork $ do

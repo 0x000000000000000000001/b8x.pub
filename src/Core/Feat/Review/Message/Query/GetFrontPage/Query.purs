@@ -29,7 +29,7 @@ import Core.Mod.Author.Message.Query.Build (buildAuthor)
 import Core.Mod.Book.Message.Query.Build (buildBooks, buildBook)
 import Core.Mod.Projection.Finder.Expectation.Expectation (Expectation(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash, defaultFindOpt)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, defaultFindOpt, HashScope(..))
 import Core.Mod.Projection.Finder.Sort (SortDirection(..))
 import Core.Mod.Projection.Finder.Sort as Sort
 import Yoga.JSON (class ReadForeign, class WriteForeign)
@@ -62,7 +62,7 @@ instance IsQuery GetFrontPage State Fields Payload Result where
   description = "Get the front page"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Article Nothing
+    hash <- getReadModelHash @Article HashAll
     η $ defaultCached hash
 
   handle (GetFrontPage { theme, needs }) = do
@@ -199,6 +199,7 @@ instance IsQuery GetFrontPage State Fields Payload Result where
           , illustrations: buildIllustrations innerNeeds_.illustrations a.illustrations a.books (buildIllustration urlBase)
           , lead: buildLead innerNeeds_.lead a.lead a.content
           , notes: buildNotes innerNeeds_.notes a.notes
+          , writtenAt: build innerNeeds_.writtenAt a.writtenAt
           }
       Needed _ _ -> case mId of
         Nothing -> NotGivenBecauseNotFound

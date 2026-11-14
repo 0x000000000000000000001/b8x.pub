@@ -9,7 +9,7 @@ module Inter.Ui.Mod.Newsletter.Style.Style
 import Proem hiding (div)
 
 import CSS (CSS, key, rgba, weight, width) as CSS
-import CSS (backgroundColor, border, borderRadius, button, color, flexDirection, fontSize, fontWeight, form, fromString, h3, img, input, marginTop, p, px, rem, row, solid)
+import CSS (backgroundColor, border, borderRadius, button, color, flexDirection, fontSize, fontWeight, form, fromString, h3, img, input, marginTop, marginLeft, p, px, rem, row, solid)
 import CSS.Color (white, black)
 import DOM.HTML.Indexed (HTMLdiv)
 import Halogen.HTML (HTML, Node)
@@ -17,6 +17,7 @@ import Halogen.HTML as HH
 import Util.Style.Classname (class_, generateStaticClass)
 import Util.Style.Color (red, transparent, limegreen)
 import Util.Style.Layout (displayFlex, justifyContentCenter, alignItemsCenter, widthPct100, padding2, margin2)
+import Util.Style.MediaQuery (onMobileLte)
 import Util.Style.Selector (disabled, div, (:<), (:&), (.&), (.?))
 
 fullModuleName :: String
@@ -43,7 +44,7 @@ staticStyle = staticClass .? do
     CSS.key (fromString "position") "absolute"
     CSS.key (fromString "left") "-6rem"
     CSS.key (fromString "top") "50%"
-    CSS.key (fromString "transform") "translateY(-50%)"
+    CSS.key (fromString "transform") "translateY(-75%)"
     CSS.key (fromString "z-index") "-1"
     CSS.key (fromString "opacity") "1"
 
@@ -54,6 +55,7 @@ staticStyle = staticClass .? do
     CSS.key (fromString "flex-basis") "800px"
     CSS.key (fromString "flex-grow") "0"
     CSS.key (fromString "z-index") "1"
+    marginLeft (rem 4.0)
 
     h3 :< do
       fontSize (rem 3.0)
@@ -61,12 +63,20 @@ staticStyle = staticClass .? do
       margin2 0.5 0.0
       color black
       CSS.key (fromString "text-align") "center"
+      CSS.key (fromString "text-shadow") "1px 1px 2px #fff, -1px -1px 2px #fff, 1px -1px 2px #fff, -1px 1px 2px #fff, 0 0 8px #fff, 0 0 8px #fff"
+
+      onMobileLte do
+        CSS.key (fromString "text-shadow") "none"
 
     p :< do
       fontSize (rem 1.4)
       margin2 0.5 0.0
       color black
       CSS.key (fromString "text-align") "center"
+      CSS.key (fromString "text-shadow") "1px 1px 2px #fff, -1px -1px 2px #fff, 1px -1px 2px #fff, -1px 1px 2px #fff, 0 0 6px #fff, 0 0 6px #fff"
+
+      onMobileLte do
+        CSS.key (fromString "text-shadow") "none"
 
     form :< do
       displayFlex
@@ -112,5 +122,4 @@ booksletter compProps = HH.div ([ class_ staticClass ] <> compProps)
 
 booksletter_ :: ∀ w i. Array (HTML w i) -> HTML w i
 booksletter_ = booksletter []
-
 

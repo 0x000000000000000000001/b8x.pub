@@ -18,7 +18,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console as Console
-import Inter.Ui.Remote (getCsrfToken)
+import Inter.Ui.Api.CsrfToken (getCsrfToken)
 import Inter.Ui.UiM (UiM)
 import Web.HTML (window)
 import Web.HTML.Window (location)

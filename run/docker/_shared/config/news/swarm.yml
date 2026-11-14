@@ -1,0 +1,7 @@
+services:
+  news:
+    deploy:
+      restart_policy:
+        condition: any
+    networks:
+      - stack-default

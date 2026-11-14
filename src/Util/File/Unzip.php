@@ -1,67 +1,83 @@
 <?php
 
-$exports['_unzipGoogleSheetAndExtractHtml'] = function($filename, $zipContent = null) {
-    if (\func_num_args() < 2) {
-        return function($zipContent) use ($filename) {
-            global $exports;
-            return $exports['_unzipGoogleSheetAndExtractHtml']($filename, $zipContent);
-        };
+$withZip = static function ($zipContent, $action) {
+    $temporaryFile = tempnam(sys_get_temp_dir(), 'zip');
+    if ($temporaryFile === false) {
+        throw new \RuntimeException('Failed to create temporary ZIP file');
     }
-    return function() use ($filename, $zipContent) {
-        $tempFile = tempnam(sys_get_temp_dir(), 'zip');
-        \file_put_contents($tempFile, $zipContent);
+    $zip = null;
+    $opened = false;
+    try {
         $zip = new \ZipArchive();
-        if ($zip->open($tempFile) === true) {
-            $targetIndex = -1;
-            $filename_ = $filename . '.html';
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $stat = $zip->statIndex($i);
-                if ($filename !== '') {
-                    if ($stat['name'] === $filename_) { $targetIndex = $i; break; }
-                } else {
-                    if (substr($stat['name'], -5) === '.html') { $targetIndex = $i; break; }
+        if (file_put_contents($temporaryFile, $zipContent) === false) {
+            throw new \RuntimeException('Failed to write temporary ZIP file');
+        }
+        $opened = $zip->open($temporaryFile) === true;
+        if (!$opened) {
+            throw new \RuntimeException('Failed to open ZIP');
+        }
+        return $action($zip);
+    } finally {
+        if ($opened) {
+            $zip->close();
+        }
+        unlink($temporaryFile);
+    }
+};
+
+$exports['_unzipGoogleSheetAndExtractHtml'] = static function ($filename, $zipContent) use (
+    $withZip,
+) {
+    return static function ($onError, $onSuccess) use ($filename, $zipContent, $withZip) {
+        $cancel = static fn($reason, $onCancelerError, $onCancelerSuccess) => $onCancelerSuccess(
+            null,
+        );
+        try {
+            $content = $withZip($zipContent, static function ($zip) use ($filename) {
+                $targetName = $filename . '.html';
+                for ($index = 0; $index < $zip->numFiles; $index++) {
+                    $name = $zip->getNameIndex($index);
+                    if ($name === false) {
+                        continue;
+                    }
+                    $matches =
+                        $filename === '' ? str_ends_with($name, '.html') : $name === $targetName;
+                    if ($matches) {
+                        $content = $zip->getFromIndex($index);
+                        if ($content === false) {
+                            throw new \RuntimeException('Failed to read HTML file in ZIP');
+                        }
+                        return $content;
+                    }
                 }
-            }
-            if ($targetIndex === -1) {
-                $zip->close();
-                unlink($tempFile);
-                throw new \Exception("File not found in ZIP");
-            }
-            $content = $zip->getFromIndex($targetIndex);
-            $zip->close();
-            unlink($tempFile);
-            return $content;
+                throw new \RuntimeException('File not found in ZIP');
+            });
+        } catch (\Throwable $failure) {
+            $onError($failure);
+            return $cancel;
         }
-        unlink($tempFile);
-        throw new \Exception("Failed to open ZIP");
+        $onSuccess($content);
+        return $cancel;
     };
 };
 
-$exports['_unzipToDirectory'] = function($outputPath, $zipContent = null) {
-    if (\func_num_args() < 2) {
-        return function($zipContent) use ($outputPath) {
-            global $exports;
-            return $exports['_unzipToDirectory']($outputPath, $zipContent);
-        };
-    }
-    return function() use ($outputPath, $zipContent) {
-        $tempFile = tempnam(sys_get_temp_dir(), 'zip');
-        \file_put_contents($tempFile, $zipContent);
-        $zip = new \ZipArchive();
-        if ($zip->open($tempFile) === true) {
-            $zip->extractTo($outputPath);
-            $zip->close();
-            unlink($tempFile);
-            return $outputPath;
+$exports['_unzipToDirectory'] = static function ($outputPath, $zipContent) use ($withZip) {
+    return static function ($onError, $onSuccess) use ($outputPath, $zipContent, $withZip) {
+        $cancel = static fn($reason, $onCancelerError, $onCancelerSuccess) => $onCancelerSuccess(
+            null,
+        );
+        try {
+            $withZip($zipContent, static function ($zip) use ($outputPath) {
+                if (!$zip->extractTo($outputPath)) {
+                    throw new \RuntimeException('Failed to extract ZIP');
+                }
+            });
+        } catch (\Throwable $failure) {
+            $onError($failure);
+            return $cancel;
         }
-        unlink($tempFile);
-        throw new \Exception("Failed to open ZIP");
-    };
-};
-
-$exports['_unzipGoogleSheet'] = function($zipContent) {
-    return function() use ($zipContent) {
-        throw new \Exception("Not implemented in PHP: returning raw Zip object");
+        $onSuccess(null);
+        return $cancel;
     };
 };
 

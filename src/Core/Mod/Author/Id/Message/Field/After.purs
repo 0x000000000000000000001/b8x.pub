@@ -13,7 +13,7 @@ type AfterAuthor = Maybe AuthorId
 newtype AfterAuthorField = AfterAuthorField AfterAuthor
 
 description :: String
-description = "After author ID"
+description = "After author"
 
 instance IsField AfterAuthorField AfterAuthor () where
   name = "Author"

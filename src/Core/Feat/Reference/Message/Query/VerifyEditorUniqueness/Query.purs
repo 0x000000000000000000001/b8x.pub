@@ -1,5 +1,4 @@
 module Core.Feat.Reference.Message.Query.VerifyEditorUniqueness.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -10,7 +9,7 @@ import Core.Feat.Reference.Message.Query.VerifyEditorUniqueness.Result (Result)
 import Core.Feat.Reference.Message.Query.VerifyEditorUniqueness.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Feat.Reference.Message.Query.VerifyEditorUniqueness.Exception.EditorAlreadyReferenced (EditorAlreadyReferenced(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array (any)
 import Data.Generic.Rep (class Generic)
@@ -35,7 +34,7 @@ instance IsQuery VerifyEditorUniqueness State Fields Payload Result where
   description = "Verify editor uniqueness"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Editor Nothing
+    hash <- getReadModelHash @Editor HashAll
     η $ defaultCached hash
 
   handle (VerifyEditorUniqueness payload) = do

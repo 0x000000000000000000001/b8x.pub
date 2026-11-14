@@ -1,5 +1,4 @@
 module Core.Feat.Review.Message.Query.VerifyNewsTopicLimit.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -10,7 +9,7 @@ import Core.Feat.Review.Message.Query.VerifyNewsTopicLimit.Result (Result)
 import Core.Feat.Review.Message.Query.VerifyNewsTopicLimit.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Mod.NewsTopic.Exception.TooManyNewsTopicsAdded (TooManyNewsTopicsAdded(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array as Array
 import Data.Generic.Rep (class Generic)
@@ -33,7 +32,7 @@ instance IsQuery VerifyNewsTopicLimit State Fields Payload Result where
   description = "Verify news topic max limit"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @NewsTopic Nothing
+    hash <- getReadModelHash @NewsTopic HashAll
     η $ defaultCached hash
 
   handle (VerifyNewsTopicLimit _) = do

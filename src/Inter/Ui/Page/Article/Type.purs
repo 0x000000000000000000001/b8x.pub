@@ -4,25 +4,33 @@ import Proem
 
 import Data.Lens.Record (prop)
 import Data.Lens (Lens')
+import Data.Map (Map)
 import Halogen (HalogenM, Slot)
 import Inter.Ui.Type.Query (NoQuery)
 import Inter.Ui.UiM (UiM)
 import Inter.Ui.Type.State (WithId)
 import Inter.Ui.Type.Remote (Remote)
-import Inter.Ui.Type.Model (UiArticle, UiSearchArticle)
+import Inter.Ui.Type.Model (UiArticle, UiAuthorInfo, UiSearchArticle)
 import Inter.Ui.Capability.ArticleCache.ArticleCache (AlreadyKnown)
 import Data.Maybe (Maybe)
 import Inter.Ui.Mod.ArticleCard.Type as ArticleCard
+import Inter.Ui.Mod.AdPlaceholder.Type as AdPlaceholder
+import Inter.Ui.Mod.Link.Type as Link
 import Core.Mod.Article.Slug.Slug (Slug)
 import Core.Mod.Author.Id.Id (AuthorId)
 import Core.Mod.Author.Name.Name as Author
 import Web.UIEvent.MouseEvent (MouseEvent)
+import Inter.Ui.Type.Device (Device)
 
-type Input = { slug :: Slug }
+type Input = { slug :: Slug, context :: Device }
+
 
 data Output = ArticleNotFound
 
-type Slots = (articleCard :: Slot ArticleCard.Query ArticleCard.Output String)
+type Slots = 
+  (articleCard :: Slot ArticleCard.Query ArticleCard.Output String
+  , adPlaceholder :: Slot AdPlaceholder.Query AdPlaceholder.Output String
+  )
 
 type State = WithId
   ( input :: Input
@@ -30,6 +38,8 @@ type State = WithId
   , cachedInfo :: Maybe AlreadyKnown
   , relatedArticles :: Remote (Array UiSearchArticle)
   , issueArticles :: Remote (Array UiSearchArticle)
+  , bookAuthorInfos :: Map AuthorId (Remote UiAuthorInfo)
+  , context :: Device
   )
 
 article' = π :: Π "article"
@@ -52,7 +62,9 @@ data Action
   | Load
   | Receive Input
   | HandleArticleCardOutput String
+  | HandleAdLinkOutput Link.Output
   | ClickAuthor MouseEvent { id :: AuthorId, name :: Author.Name, ofBook :: Boolean }
+  | LoadBookAuthorInfo AuthorId
 
 type Query :: ∀ k. k -> Type
 type Query = NoQuery

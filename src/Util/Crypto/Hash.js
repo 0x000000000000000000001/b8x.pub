@@ -6,12 +6,17 @@ export const _sha256 = (str) => crypto.createHash('sha256').update(str).digest('
 
 let xxHashAPI = null;
 
-export const _xxhash64 = (str) => async () => {
-  if (!xxHashAPI) {
-    const xxhashModule = await import('xxhash-wasm');
-    xxHashAPI = await xxhashModule.default();
-  }
-  return xxHashAPI.h64(str).toString(16);
+export const _xxhash64 = (input) => (onError, onSuccess) => {
+  const hash = async () => {
+    if (!xxHashAPI) {
+      const xxhashModule = await import('xxhash-wasm');
+      xxHashAPI = await xxhashModule.default();
+    }
+    return xxHashAPI.h64(input).toString(16);
+  };
+  hash().then(onSuccess, onError);
+  return (_reason, _onCancelerError, onCancelerSuccess) => onCancelerSuccess();
 };
 
-export const hmacSha256 = secret => message => crypto.createHmac('sha256', secret).update(message).digest('hex');
+export const hmacSha256 = (secret) => (message) =>
+  crypto.createHmac('sha256', secret).update(message).digest('hex');

@@ -5,6 +5,7 @@ import Proem
 import Control.Monad.Reader (class MonadReader, ask)
 import Data.Maybe (Maybe(..), isJust)
 import Effect (Effect)
+import Effect.Uncurried (EffectFn2, runEffectFn2)
 import Effect.Class (class MonadEffect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
@@ -14,7 +15,10 @@ import Inter.Cli.Util.Exit (exitSuccess)
 import Util.Log.Log (log)
 import Type.Row (type (+))
 
-foreign import _onSignal :: String -> Effect Ɩ -> Effect Ɩ
+foreign import onSignalImpl :: EffectFn2 String (Effect Ɩ) Ɩ
+
+_onSignal :: String -> Effect Ɩ -> Effect Ɩ
+_onSignal = runEffectFn2 onSignalImpl
 
 data Signal = INT | TERM | QUIT
 

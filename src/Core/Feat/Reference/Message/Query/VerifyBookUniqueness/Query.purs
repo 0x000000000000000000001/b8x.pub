@@ -9,7 +9,7 @@ import Core.Feat.Reference.Message.Query.VerifyBookUniqueness.Result (Result)
 import Core.Feat.Reference.Message.Query.VerifyBookUniqueness.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Mod.Book.Exception.BookAlreadyReferenced (BookAlreadyReferenced(..))
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array (any)
 import Data.Generic.Rep (class Generic)
@@ -36,7 +36,7 @@ instance IsQuery VerifyBookUniqueness State Fields Payload Result where
   description = "Verify book uniqueness"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Book Nothing
+    hash <- getReadModelHash @Book HashAll
     η $ defaultCached hash
 
   handle (VerifyBookUniqueness payload) = do

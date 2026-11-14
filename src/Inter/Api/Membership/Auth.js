@@ -1,4 +1,4 @@
-export const appendHeaderImpl = (name) => (value) => (msg) => () => {
+export const appendHeaderImpl = (name, value, msg) => {
   msg.appendHeader(name, value);
 };
 

@@ -1,20 +1,19 @@
 module Core.Feat.Review.Message.Command.WriteArticle.Payload where
 
 import Core.Feat.Review.Message.Command.WriteArticle.Field.Author (AuthorField)
-import Core.Feat.Review.Message.Command.WriteArticle.Field.Profitable (ProfitableField, Profitable)
 import Core.Mod.Article.Author.Author (Author)
-import Core.Mod.Article.Content.Message.Field (Content, ContentField)
+import Core.Feat.Review.Message.Command.WriteArticle.Field.ContentUrl (ContentUrl, ContentUrlField)
 import Core.Mod.Article.Id.Message.Field.AutoId (Id, IdField)
 import Core.Mod.Article.Illustrations.Inputs.Message.Field (Inputs, InputsField)
 import Core.Mod.Article.Lead.Message.Field (Lead, LeadField)
 import Core.Mod.Article.LegacyId.Message.Field (LegacyId, LegacyIdField)
-import Core.Mod.Article.Notes.Message.Field (Notes, NotesField)
+import Core.Feat.Review.Message.Command.WriteArticle.Field.NotesUrl (NotesUrl, NotesUrlField)
 import Core.Mod.Article.Sources.Message.Field (Sources, SourcesField)
 import Core.Mod.Article.Slug.Message.Field.MaybeSlug (SlugField, Slug)
 import Core.Mod.Article.Theme.Message.Field.MaybeTheme (Theme, ThemeField)
 import Core.Mod.Article.Title.Message.Field (Title, TitleField)
 import Core.Mod.Book.Id.Message.Field.Books as Base
-import Core.Mod.Article.MagazineIssue.Message.Field (MagazineIssue, MagazineIssueField)
+import Core.Mod.Article.FrontPage.Position.Message.Field.MaybePosition (Position, PositionField)
 
 type Books = Base.Books
 type BooksField = Base.BooksField
@@ -27,28 +26,30 @@ type Payload =
   , theme :: Theme
   , title :: Title
   , lead :: Lead
-  , notes :: Notes
+  , notes :: NotesUrl
   , sources :: Sources
-  , content :: Content
+  , content :: ContentUrl
   , illustrations :: Inputs
-  , profitable :: Profitable
   , slug :: Slug
-  , magazineIssue :: MagazineIssue
+  -- , profitable :: Profitable
+  -- , magazineIssue :: MagazineIssue
+  , frontPagePosition :: Position
   }
 
 type Fields =
-  (id :: IdField
+  ( id :: IdField
   , legacyId :: LegacyIdField
   , books :: BooksField
   , author :: AuthorField
   , theme :: ThemeField
   , title :: TitleField
   , lead :: LeadField
-  , notes :: NotesField
+  , notes :: NotesUrlField
   , sources :: SourcesField
-  , content :: ContentField
+  , content :: ContentUrlField
   , illustrations :: InputsField
-  , profitable :: ProfitableField
   , slug :: SlugField
-  , magazineIssue :: MagazineIssueField
+  -- , profitable :: ProfitableField
+  -- , magazineIssue :: MagazineIssueField
+  , frontPagePosition :: PositionField
   )

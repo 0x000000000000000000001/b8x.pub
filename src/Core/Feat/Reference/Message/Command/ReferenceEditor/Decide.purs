@@ -17,6 +17,6 @@ decide
    . State
   -> Payload
   -> Run (EXCEPT_LOGIC + fx) (Array Event)
-decide Editor.NotReferencedYet { id, name, legacyBookIds } = η [ EditorReferenced { id, name, legacyBookIds } ]
-decide Editor.Dereferenced { id, name, legacyBookIds } = η [ EditorReferenced { id, name, legacyBookIds } ]
+decide Editor.NotReferencedYet { id, name } = η [ EditorReferenced { id, name, legacyBookIds: [] } ]
+decide Editor.Dereferenced { id, name } = η [ EditorReferenced { id, name, legacyBookIds: [] } ]
 decide (Editor.Referenced _) _ = throw EditorAlreadyReferenced

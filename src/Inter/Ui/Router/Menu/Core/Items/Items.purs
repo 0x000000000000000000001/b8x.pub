@@ -38,7 +38,7 @@ items state = Style.items_ state items'
       <> renderItems archiveItems
       <> [ separator, giftItem state ]
       <>
-        ( if isJust state.me then
+        ( if isJust state.context.me then
             [ separator ] <> renderItems [ { label: "Me déconnecter", route: Nothing, action: Just Logout } ]
           else
             [ separator ] <> renderItems [ { label: "Me connecter", route: Nothing, action: Just OpenLoginModal } ]
@@ -88,11 +88,11 @@ giftSvg = """<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" 
 giftItem :: State -> ComponentHTML Action Slots UiM
 giftItem state =
   let
-    hasPaid = fromMaybe false (state.me <#> _.membership.hasPaidLastYear)
+    hasPaid = fromMaybe false (state.context.me <#> _.membership.hasPaidLastYear)
   in
     if hasPaid then
       HH.a
-        [ HP.href "https://www.helloasso.com/associations/les-amis-de-books/collectes/relancons-la-booksletter-3"
+        [ HP.href "https://www.helloasso.com/associations/les-amis-de-books/formulaires/2"
         , HP.target "_blank"
         , HP.classes [ ClassName ItemStyle.staticClass ]
         , Hattr.attr (AttrName "style") "display: flex; text-decoration: none; color: inherit;"

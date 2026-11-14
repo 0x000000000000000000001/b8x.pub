@@ -1,0 +1,18 @@
+# Static configuration
+
+log:
+  level: INFO
+
+api:
+  insecure: false
+  dashboard: false
+
+providers:
+  swarm:
+    network: pilot_stack-default
+    constraints: "Label(`x.traefik.gateway`, `pilot-gateway`)"
+    exposedByDefault: false
+
+entryPoints:
+  spilot:
+    address: ':9443'

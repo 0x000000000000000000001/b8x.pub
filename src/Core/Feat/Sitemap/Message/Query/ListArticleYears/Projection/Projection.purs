@@ -10,7 +10,7 @@ import Core.Mod.Projection.Finder.Finder (Find, FindOpt, Page, findMany_, findOn
 import Core.Mod.Projection.Finder.Filter (class IsFilter, StrictlyEquals(..), by, compile)
 import Core.Mod.Projection.Finder.Filter as Base
 import Core.Mod.Projection.Finder.Sort (SortCriteria)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, get, patch)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -40,12 +40,12 @@ instance
     "listArticleYearsProjectionWriteOps"
     (LIST_ARTICLE_YEARS_PROJECTION_WRITE_OPS ())
     "listArticleYearsProjectionReadSyncProject"
-    { listArticleYears :: ArticleYear }
-    { listArticleYears :: ArticleYearIndexNeeds }
-    { listArticleYears :: Record ArticleYearSortRow }
+    { articleYear :: ArticleYear }
+    { articleYear :: ArticleYearIndexNeeds }
+    { articleYear :: Record ArticleYearSortRow }
   where
   indexNeeds =
-    { listArticleYears:
+    { articleYear:
         { year: rawIndexOnly
         , seo:
             { updatedAt: rawIndexOnly
@@ -73,12 +73,15 @@ type ArticleYearSortRow =
 
 type ArticleYearSortCriteria = SortCriteria ArticleYear
 
-instance IsPair ArticleYearKey ArticleYear ArticleYearRecord ArticleYearIndexNeeds ArticleYearSortRow "listArticleYears" "listArticleYears" "listArticleYearsListArticleYearsProjectionReadFind" ListArticleYearsProjection where
+instance IsPair ArticleYearKey ArticleYear ArticleYearRecord ArticleYearIndexNeeds ArticleYearSortRow "articleYear" "articleYears" "listArticleYearsListArticleYearsProjectionReadFind" ListArticleYearsProjection where
   toKey (ArticleYear { year }) = ArticleYearKey year
 
   single = false
 
 newtype ArticleYear = ArticleYear ArticleYearRecord
+
+instance ToAliases ArticleYear where
+  toAliases _ = []
 
 type ArticleYearRecord =
   { year :: Year
@@ -117,8 +120,8 @@ derive instance Newtype ArticleYearKey _
 derive newtype instance Eq ArticleYearKey
 derive newtype instance Ord ArticleYearKey
 
-instance ToAliasedPrimary ArticleYearKey where
-  toAliasedPrimary (ArticleYearKey (Year y)) = { primary: show (fromEnum y), aliases: [] }
+instance ToPrimary ArticleYearKey where
+  toPrimary (ArticleYearKey (Year y)) = show (fromEnum y)
 
 -- Find
 
@@ -201,6 +204,11 @@ play { event, at } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι
@@ -233,5 +241,3 @@ onArticleWritten at _ = do
   case mArticleYear of
     Nothing -> add $ ArticleYear { year: y, seo: { updatedAt: at } }
     Just _ -> patch key \(ArticleYear r) -> ArticleYear (r { seo = { updatedAt: at } })
-
-

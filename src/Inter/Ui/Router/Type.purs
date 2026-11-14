@@ -3,6 +3,9 @@ module Inter.Ui.Router.Type where
 import Inter.Ui.Page.Home.Type as PageHome
 import Inter.Ui.Page.Article.Type as PageArticle
 import Inter.Ui.Page.Donate.Type as PageDonate
+import Inter.Ui.Page.About.Type as PageAbout
+import Inter.Ui.Page.Legal.Type as PageLegal
+import Inter.Ui.Mod.Newsletter.Type as Newsletter
 import Inter.Ui.Router.PrettyBackground.Firefly.Type as Firefly
 
 import Inter.Ui.Router.Menu.Type.Output as MenuOutput
@@ -21,19 +24,30 @@ import Inter.Ui.Mod.Toast.Type as ToastType
 import Inter.Ui.Type.Toast (Toast)
 import Inter.Ui.Type.ModalEvent (ModalEvent)
 import Halogen.Subscription as HS
+import Inter.Ui.Mod.StopPub.Type as StopPubType
+import Halogen.Store.Connect (Connected)
+import Inter.Ui.Type.Device (Device)
 
 type Slots =
   (home :: Slot PageHome.Query PageHome.Output NoSlotAddressIndex
   , article :: Slot PageArticle.Query PageArticle.Output NoSlotAddressIndex
   , donate :: Slot PageDonate.Query PageDonate.Output NoSlotAddressIndex
+  , about :: Slot PageAbout.Query PageAbout.Output NoSlotAddressIndex
+  , legal :: Slot PageLegal.Query PageLegal.Output NoSlotAddressIndex
+  , newsletter :: Slot Newsletter.Query Newsletter.Output NoSlotAddressIndex
   , firefly :: Slot Firefly.Query Firefly.Output NoSlotAddressIndex
   , menu :: Slot MenuQuery.Query MenuOutput.Output NoSlotAddressIndex
-  , link :: Slot Link.Query Link.Output NoSlotAddressIndex
+  , link :: Slot Link.Query Link.Output String
   , toast :: Slot ToastType.Query ToastType.Output NoSlotAddressIndex
   , loginModal :: Slot LoginModal.Query NoOutput NoSlotAddressIndex
+  , stopPubAym :: Slot StopPubType.Query StopPubType.Output NoSlotAddressIndex
+  , stopPubMsna :: Slot StopPubType.Query StopPubType.Output NoSlotAddressIndex
+  , stopPubInterstitial :: Slot StopPubType.Query StopPubType.Output NoSlotAddressIndex
   )
 
 type Input = { toastEmitter :: HS.Emitter Toast, modalEmitter :: HS.Emitter ModalEvent }
+
+type ConnectedInput = Connected Device Input
 
 type Output = NoOutput
 
@@ -43,10 +57,12 @@ type State =
   , scrollFork :: Maybe (Ref (Maybe ForkId))
   , toastEmitter :: HS.Emitter Toast
   , modalEmitter :: HS.Emitter ModalEvent
+  , context :: Device
   }
 
 data Action
   = Initialize
+  | Receive ConnectedInput
   | HandleModalEvent ModalEvent
   | HandleDocScroll
   | HandleDocScrollEnd

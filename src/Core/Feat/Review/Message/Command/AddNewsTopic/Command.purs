@@ -1,5 +1,6 @@
 module Core.Feat.Review.Message.Command.AddNewsTopic.Command
   ( AddNewsTopic(..)
+  , AddNewsTopicAliasRow
   ) where
 
 import Proem
@@ -50,4 +51,37 @@ instance
 
     defaultHandle @AddNewsTopic (Just filter) defaultCheckLoadedEvents initialState play decide toResult payload
 
-  
+type AddNewsTopicAliasRow r =
+  ( "AddANewsTopic" :: AddNewsTopic
+  , "AjouterSujetActualite" :: AddNewsTopic
+  , "AjouterSujetDActualite" :: AddNewsTopic
+  , "AjouterUnSujetActualite" :: AddNewsTopic
+  , "AjouterUnSujetDActualite" :: AddNewsTopic
+  , "AjouteSujetActualite" :: AddNewsTopic
+  , "AjouteSujetDActualite" :: AddNewsTopic
+  , "AjouteUnSujetActualite" :: AddNewsTopic
+  , "AjouteUnSujetDActualite" :: AddNewsTopic
+  , "AjoutSujetActualite" :: AddNewsTopic
+  , "AjoutSujetDActualite" :: AddNewsTopic
+  , "AjoutDeSujetActualite" :: AddNewsTopic
+  , "AjoutDeSujetDActualite" :: AddNewsTopic
+  , "AjoutDUnSujetActualite" :: AddNewsTopic
+  , "AjoutDUnSujetDActualite" :: AddNewsTopic
+  , "CreerSujetActualite" :: AddNewsTopic
+  , "CreerSujetDActualite" :: AddNewsTopic
+  , "CreerUnSujetActualite" :: AddNewsTopic
+  , "CreerUnSujetDActualite" :: AddNewsTopic
+  , "CreeSujetActualite" :: AddNewsTopic
+  , "CreeSujetDActualite" :: AddNewsTopic
+  , "CreeUnSujetActualite" :: AddNewsTopic
+  , "CreeUnSujetDActualite" :: AddNewsTopic
+  , "CreationSujetActualite" :: AddNewsTopic
+  , "CreationSujetDActualite" :: AddNewsTopic
+  , "CreationDeSujetActualite" :: AddNewsTopic
+  , "CreationDeSujetDActualite" :: AddNewsTopic
+  , "CreationDUnSujetActualite" :: AddNewsTopic
+  , "CreationDUnSujetDActualite" :: AddNewsTopic
+  , "NouveauSujetDActualite" :: AddNewsTopic
+  , "NouveauSujetActualite" :: AddNewsTopic
+  | r
+  )

@@ -62,3 +62,19 @@ export const _scrollTopAll = function(el) {
     }
   };
 };
+
+let overflowLocks = new Set();
+
+export const _setBodyOverflowHidden = (id) => () => {
+  overflowLocks.add(id);
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+};
+
+export const _setBodyOverflowVisible = (id) => () => {
+  overflowLocks.delete(id);
+  if (overflowLocks.size === 0) {
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+  }
+};

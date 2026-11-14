@@ -28,6 +28,7 @@ type Needs =
   , books :: Need BookOpt BookInnerNeeds
   , author :: Need AuthorOpt AuthorInnerNeeds
   , magazineIssue :: Need Ɩ Ɩ
+  , writtenAt :: Need Ɩ Ɩ
   }
 
 defaultNeeds :: Needs
@@ -44,6 +45,7 @@ defaultNeeds =
   , books: NotNeeded
   , author: NotNeeded
   , magazineIssue: NotNeeded
+  , writtenAt: NotNeeded
   }
 
 newtype NeedsField = NeedsField Needs
@@ -61,6 +63,7 @@ type NeedsFieldChildren =
   , books :: NeedField BookOpt BookInnerNeeds
   , author :: NeedField AuthorOpt AuthorInnerNeeds
   , magazineIssue :: NeedField Ɩ Ɩ
+  , writtenAt :: NeedField Ɩ Ɩ
   )
 
 description :: String

@@ -1,0 +1,3 @@
+services:
+  pilot-gateway:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DEV_PILOT_GATEWAY}"

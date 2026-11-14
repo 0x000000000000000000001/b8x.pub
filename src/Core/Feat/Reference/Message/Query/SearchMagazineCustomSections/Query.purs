@@ -1,5 +1,4 @@
 module Core.Feat.Reference.Message.Query.SearchMagazineCustomSections.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 import Core.Message.Query.Query (class IsQuery, defaultCached)
@@ -7,7 +6,7 @@ import Core.Feat.Reference.Message.Query.SearchMagazineCustomSections.Payload (F
 import Core.Feat.Reference.Message.Query.SearchMagazineCustomSections.Result (Result)
 import Core.Feat.Reference.Message.Query.SearchMagazineCustomSections.State (State)
 import Core.Feat.Reference.Message.Query.SearchMagazineCustomSections.Projection.Projection (CustomSection, findCustomSections)
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.BoundedLimit.BoundedLimit (BoundedLimit(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Core.Mod.Projection.Finder.Sort (noSort)
@@ -33,7 +32,7 @@ instance IsQuery SearchMagazineCustomSections State Fields Payload Result where
   description = "Search magazine custom sections"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @CustomSection Nothing
+    hash <- getReadModelHash @CustomSection HashAll
     η $ defaultCached hash
 
   handle (SearchMagazineCustomSections { filter, limit: BoundedLimit limit_, expectation, after, needs }) = do

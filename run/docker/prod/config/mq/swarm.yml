@@ -1,0 +1,4 @@
+services:
+  mq:
+    volumes:
+      - ${DOCKER_DIR}/${ENV}/volume/mq/mnesia:/var/lib/rabbitmq/mnesia

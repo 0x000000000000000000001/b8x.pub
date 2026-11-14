@@ -7,6 +7,7 @@ import Core.Exception.Index (EXCEPT_LOGIC)
 import Core.Message.Command.Command (class IsCommand, Result)
 import Core.Message.Command.Command as Command
 import Core.Message.Command.Handle.Exception (TooMuchConcurrency)
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Feat.Effect.Newsletter (NEWSLETTER)
 import Core.Feat.Effect.RateLimit (RATE_LIMIT)
@@ -33,7 +34,7 @@ child
   => Reflect cmd
   => payload
   -> Run
-       (EVENT_STORE + EXCEPT_LOGIC + PROJECTION_READ + UPLOAD + NEWSLETTER + RATE_LIMIT + CACHE + MAIL + READER_TRACE + GENERATE + SLEEP + READER_PUBLIC_CONFIG  + fx)
+       (EVENT_STORE + EXCEPT_LOGIC + PROJECTION_READ + DOWNLOAD + UPLOAD + NEWSLETTER + RATE_LIMIT + CACHE + MAIL + READER_TRACE + GENERATE + SLEEP + READER_PUBLIC_CONFIG  + fx)
        (Either TooMuchConcurrency (Result a))
 child payload = do
   trace <- askTrace

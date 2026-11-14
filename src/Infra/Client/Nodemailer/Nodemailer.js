@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-export const _createTransport = ({ host, port, secure, user, pass }) => () => {
+function createTransport(host, port, user, pass, secure) {
   const transportConfig = {
     pool: true, // See https://nodemailer.com/smtp#2-pooled-connections
     host,
@@ -13,7 +13,10 @@ export const _createTransport = ({ host, port, secure, user, pass }) => () => {
   };
 
   return nodemailer.createTransport(transportConfig);
-};
+}
+
+export const _createTransport = (host) => (port) => (user) => (pass) => () =>
+  createTransport(host, port, user, pass);
 
 export const _createTestTransport = async () => {
   const testAccount = await nodemailer.createTestAccount();
@@ -25,15 +28,16 @@ export const _createTestTransport = async () => {
   const user = testAccount.user;
   const pass = testAccount.pass;
 
-  return _createTransport({ host, port, secure, user, pass })();
+  return createTransport(host, port, user, pass, secure);
 };
 
-export const _sendMail = (transport) => (options) => async () => {
-  const info = await transport.sendMail(options);
+export const _sendMail = (transport) => (from) => (to) => (subject) =>
+  (text) => (html) => (replyTo) => async () => {
+    const info = await transport.sendMail({ from, to, subject, text, html, replyTo });
 
-  if (transport.options.host === 'smtp.ethereal.email') { // Test
-    console.log("Message sent: %s", nodemailer.getTestMessageUrl(info));
-  }
+    if (transport.options.host === 'smtp.ethereal.email') { // Test
+      console.log("Message sent: %s", nodemailer.getTestMessageUrl(info));
+    }
 
-  return info;
-};
+    return info;
+  };

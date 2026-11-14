@@ -12,6 +12,7 @@ import Core.Feat.Effect.Sleep (SLEEP, interpretSleep)
 import Core.Feat.Effect.Mail (MAIL)
 import Core.Feat.Effect.Newsletter (NEWSLETTER, interpretNewsletterWithMock)
 import Core.Feat.Effect.RateLimit (RATE_LIMIT)
+import Core.Message.Command.Handle.Download (DOWNLOAD)
 import Core.Message.Command.Handle.Upload (UPLOAD)
 import Core.Message.Queue (QUEUE)
 import Core.Mod.Infra.Projection.CopyOnWrite.Index (evalProjectionWriteCopyState)
@@ -27,6 +28,7 @@ import Effect.Ref as Ref
 import Infra.Cache.Fs.Cache (interpretCache)
 import Infra.Client.Aws.S3.S3 (READER_S3_CLIENT, interpretUpload, runS3ClientReader)
 import Infra.Client.Aws.S3.S3 as S3
+import Infra.Client.Http.Download (interpretDownload)
 import Infra.Client.Aws.Ses.Ses (READER_SES_CLIENT, runSesClientReader)
 import Infra.Client.Aws.Ses.Ses as Ses
 import Infra.Client.Postgres.Postgres (READER_POSTGRES_STORE_CLIENT, READER_POSTGRES_EDGE_CLIENT, READER_POSTGRES_STORE_LOCK_CLIENT, runPostgresStoreClientReader, runPostgresEdgeClientReader, runPostgresStoreLockClientReader)
@@ -51,6 +53,7 @@ type WORKER =
     + QUEUE
     + GENERATE
     + SLEEP
+    + DOWNLOAD
     + UPLOAD
     + NEWSLETTER
     + RATE_LIMIT
@@ -100,6 +103,7 @@ runWorkerM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, r
       )
     # interpretProjectionWriteCopyPersist
     # interpretProjectionWriteOps
+    # interpretDownload
     # interpretUpload
     #
       ( case publicConfig.env of

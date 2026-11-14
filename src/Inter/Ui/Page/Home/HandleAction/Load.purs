@@ -1,8 +1,8 @@
 module Inter.Ui.Page.Home.HandleAction.Load (load) where
 
-import Core.Mod.Article.Content.Excerpt.CutStrategy (CutStrategy(..), Suffix(..), SuffixValue(..))
 import Proem
 
+import Core.Mod.Article.Content.Excerpt.CutStrategy (CutStrategy(..), Suffix(..), SuffixValue(..))
 import Core.Message.Query.Payload (Fold(..), Need(..))
 import Core.Feat.Review.Message.Query.GetFrontPage.Query (GetFrontPage(..))
 import Core.Mod.Article.Content.Message.Query.Opt (ExcerptOpt(..))
@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(..))
 import Data.Array as Array
 import Halogen (fork, get, modify_)
 import Halogen as Halogen
-import Inter.Ui.Page.Home.Type (HomeM, _frontPage, _bandsForkId, _lastTriggeredFrontPageIds)
+import Inter.Ui.Page.Home.Type (HomeM, _bandsForkId, _frontPage, _lastTriggeredFrontPageIds)
 import Inter.Ui.Remote (queryModify')
 import Core.Mod.Article.Id.Id (ArticleId)
 import Network.RemoteData (RemoteData(..))
@@ -30,10 +30,19 @@ import Inter.Ui.Page.Home.HandleAction.LoadNews (loadNews)
 import Inter.Ui.Page.Home.HandleAction.LoadMostRead (loadMostRead)
 import Inter.Ui.Page.Home.HandleAction.LoadNewsletterArticles (loadNewsletterArticles)
 import Inter.Ui.Page.Home.HandleAction.LoadQuote (loadQuote)
+import Util.Html.Dom.Ad (ensureAds)
+import Effect.Aff.Class (liftAff)
+import Effect.Aff as Aff
+import Data.Time.Duration (Milliseconds(..))
 
 load :: HomeM Ɩ
 load = do
+  ø $ fork $ do
+    liftAff $ Aff.delay $ Milliseconds 2000.0
+    ensureAds
+
   st <- get
+
   let
     theme = st.input.theme
     need = Needed (Unfolded ι) $ Unfolded
@@ -90,6 +99,7 @@ load = do
           , editor: Needed ι ι
           }
       , author: Needed ι { id: Needed ι ι, name: Needed ι ι, biography: NotNeeded, portrait: NotNeeded }
+      , writtenAt: Needed ι ι
       }
 
   ø $ fork $ do
@@ -202,4 +212,5 @@ toUiFrontPageResult res =
         QueryResult.Folded f -> QueryResult.Folded f
     , illustrations: art.illustrations <#> map (\ill -> { image: ill.image, caption: ill.caption <#> map HomeUtil.cleanNonEmpty, isFallback: ill.isFallback })
     , slug: art.slug
+    , writtenAt: art.writtenAt
     }

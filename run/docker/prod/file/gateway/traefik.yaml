@@ -1,0 +1,34 @@
+# Static configuration
+
+log:
+  level: DEBUG
+
+api:
+  insecure: false
+  dashboard: false
+
+serversTransport:
+  insecureSkipVerify: true
+
+providers:
+  swarm:
+    network: core_stack-default
+    constraints: "Label(`x.traefik.gateway`, `gateway`)"
+    exposedByDefault: false
+  file:
+    directory: /etc/traefik/mnt/dynamic
+
+entryPoints:
+  web:
+    address: ':80'
+  sweb:
+    address: ':443'
+
+certificatesResolvers:
+  main:
+    acme:
+      email: "lesamisbooks@gmail.com"
+      storage: "/etc/traefik/mnt/acme.json"
+      preferredChain: 'ISRG Root X1' # TODO: Important for Electron bug resolution: https://github.com/electron/electron/issues/31212
+      httpChallenge:
+        entryPoint: web

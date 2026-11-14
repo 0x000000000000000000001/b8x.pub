@@ -13,8 +13,10 @@ import Data.Array as Array
 import Data.Generic.Rep (class Generic)
 import Data.Newtype (class Newtype)
 import Util.Type.Random (class Random)
-import Data.Nullable (Nullable, toMaybe)
-import Core.Mod.Html.Html (NonEmptyHtml)
+
+
+import Control.Alt ((<|>))
+import Data.Maybe (Maybe(..))
 
 newtype Illustrations = Illustrations
   { illustrations :: Base.Illustrations
@@ -33,19 +35,18 @@ derive newtype instance WriteForeign Illustrations
 instance ReadForeign Illustrations where
   readImpl json = do
     obj <- readImpl json
-    illustrationsJson <- (Foreign.Index.readProp "illustrations" obj >>= readImpl)
+    illustrationsJson <- (Foreign.Index.readProp "illustrations" obj >>= readImpl) <|> pure []
     illustrations_ <- traverse decodeIllustrationJson illustrationsJson
-    hasAtLeastOneLandscape_ <- (Foreign.Index.readProp "hasAtLeastOneLandscape" obj >>= readImpl)
-    hasAtLeastOne_ <- (Foreign.Index.readProp "hasAtLeastOne" obj >>= readImpl)
+    hasAtLeastOneLandscape_ <- (Foreign.Index.readProp "hasAtLeastOneLandscape" obj >>= readImpl) <|> pure false
+    hasAtLeastOne_ <- (Foreign.Index.readProp "hasAtLeastOne" obj >>= readImpl) <|> pure false
     η $ Illustrations { illustrations: illustrations_, hasAtLeastOneLandscape: hasAtLeastOneLandscape_, hasAtLeastOne: hasAtLeastOne_ }
 
 decodeIllustrationJson :: Foreign -> Foreign.F Base.Illustration
 decodeIllustrationJson json = do
   obj <- readImpl json
   image <- (Foreign.Index.readProp "image" obj >>= readImpl)
-  caption <- (Foreign.Index.readProp "caption" obj >>= readImpl)
+  caption <- (Foreign.Index.readProp "caption" obj >>= readImpl) <|> pure Nothing
   η { image, caption }
-
 
 make :: Base.Illustrations -> Illustrations
 make illustrations = Illustrations
@@ -58,5 +59,3 @@ hasAtLeastOneLandscape :: Base.Illustrations -> Boolean
 hasAtLeastOneLandscape illustrations =
   illustrations #
     Array.any \{ image: Image img } -> img.dimensions.width > img.dimensions.height
-
-

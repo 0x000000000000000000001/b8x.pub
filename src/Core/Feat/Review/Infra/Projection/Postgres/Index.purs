@@ -13,6 +13,7 @@ import Core.Feat.Review.Message.Query.ListNewsletterArticles.Projection.Projecti
 import Core.Feat.Review.Message.Query.VerifyNewsTopicLimit.Projection.Projection (VerifyNewsTopicLimitProjection)
 import Core.Feat.Review.Message.Query.VerifyArticleLegacyIdUniqueness.Projection.Projection (VerifyArticleLegacyIdUniquenessProjection)
 import Core.Feat.Review.Message.Query.SearchArticles.Projection.Projection (SearchArticlesProjection)
+import Core.Feat.Review.Message.Query.SearchNewsTopics.Projection.Projection (SearchNewsTopicsProjection)
 import Core.Feat.Review.Message.Command.WriteArticle.Projection.Projection (WriteArticleProjection)
 import Core.Feat.Review.Message.Query.VerifyArticleSlugUniqueness.Projection.Projection (VerifyArticleSlugUniquenessProjection)
 import Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.Projection.Projection (VerifyNewsRelatedArticleWhitelistLimitProjection)
@@ -37,6 +38,7 @@ onProjectionWriteOps =
     ◁ Base.onProjectionWriteOps @VerifyNewsTopicLimitProjection
     ◁ Base.onProjectionWriteOps @VerifyArticleLegacyIdUniquenessProjection
     ◁ Base.onProjectionWriteOps @SearchArticlesProjection
+    ◁ Base.onProjectionWriteOps @SearchNewsTopicsProjection
     ◁ Base.onProjectionWriteOps @WriteArticleProjection
     ◁ Base.onProjectionWriteOps @VerifyArticleSlugUniquenessProjection
     ◁ Base.onProjectionWriteOps @VerifyNewsRelatedArticleWhitelistLimitProjection
@@ -55,6 +57,7 @@ onProjectionWriteCopyPersist =
     ◁ Base.onProjectionWriteCopyPersist @VerifyNewsTopicLimitProjection
     ◁ Base.onProjectionWriteCopyPersist @VerifyArticleLegacyIdUniquenessProjection
     ◁ Base.onProjectionWriteCopyPersist @SearchArticlesProjection
+    ◁ Base.onProjectionWriteCopyPersist @SearchNewsTopicsProjection
     ◁ Base.onProjectionWriteCopyPersist @WriteArticleProjection
     ◁ Base.onProjectionWriteCopyPersist @VerifyArticleSlugUniquenessProjection
     ◁ Base.onProjectionWriteCopyPersist @VerifyNewsRelatedArticleWhitelistLimitProjection
@@ -73,6 +76,7 @@ onProjectionReadSyncProject =
     ◁ Base.onProjectionReadSyncProject @VerifyNewsTopicLimitProjection
     ◁ Base.onProjectionReadSyncProject @VerifyArticleLegacyIdUniquenessProjection
     ◁ Base.onProjectionReadSyncProject @SearchArticlesProjection
+    ◁ Base.onProjectionReadSyncProject @SearchNewsTopicsProjection
     ◁ Base.onProjectionReadSyncProject @WriteArticleProjection
     ◁ Base.onProjectionReadSyncProject @VerifyArticleSlugUniquenessProjection
     ◁ Base.onProjectionReadSyncProject @VerifyNewsRelatedArticleWhitelistLimitProjection
@@ -91,7 +95,7 @@ onProjectionReadSyncProjectWithNoop =
     ◁ Base.onProjectionReadSyncProjectWithNoop @VerifyNewsTopicLimitProjection
     ◁ Base.onProjectionReadSyncProjectWithNoop @VerifyArticleLegacyIdUniquenessProjection
     ◁ Base.onProjectionReadSyncProjectWithNoop @SearchArticlesProjection
+    ◁ Base.onProjectionReadSyncProjectWithNoop @SearchNewsTopicsProjection
     ◁ Base.onProjectionReadSyncProjectWithNoop @WriteArticleProjection
     ◁ Base.onProjectionReadSyncProjectWithNoop @VerifyArticleSlugUniquenessProjection
     ◁ Base.onProjectionReadSyncProjectWithNoop @VerifyNewsRelatedArticleWhitelistLimitProjection
-

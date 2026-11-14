@@ -14,6 +14,7 @@ import Data.Array as Array
 import Data.Generic.Rep (class Generic)
 import Data.Newtype (class Newtype)
 import Data.Maybe (Maybe(..))
+import Control.Alt ((<|>))
 import Util.Type.Random (class Random)
 
 type Newsletter =
@@ -55,8 +56,7 @@ instance ReadForeign Newsletters where
     issuesJson <- (Foreign.Index.readProp "issues" obj >>= readImpl)
     issues <- traverse decodeIssueJson issuesJson
     hasAtLeastOne <- (Foreign.Index.readProp "hasAtLeastOne" obj >>= readImpl)
-    mostRecentJson <- (Foreign.Index.readProp "mostRecent" obj >>= readImpl)
-    mostRecent <- decodeMostRecentJson mostRecentJson
+    mostRecent <- (Foreign.Index.readProp "mostRecent" obj >>= decodeMostRecentJson) <|> pure Nothing
     pure $ Newsletters { newsletters, ids, issues, hasAtLeastOne, mostRecent }
 
 decodeNewsletterJson :: forall a278 a286 a306 a314 a322. ReadForeign a278 => ReadForeign a286 => ReadForeign a306 => ReadForeign a314 => ReadForeign a322 => Foreign -> F { id :: a278, index :: a286, scheduledFor :: { instant :: a306, month :: a314, year :: a322 } }

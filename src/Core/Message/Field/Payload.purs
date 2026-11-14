@@ -176,9 +176,9 @@ class MakeNestedValue record' record | record' -> record where
 instance MakeNestedValue (Record row) (Record row) where
   makeNestedValue_ _ buildRecord = buildRecord
 
-instance MakeNestedValue (Maybe (Record row)) (Record row) where
+instance MakeNestedValue a record => MakeNestedValue (Maybe a) record where
   makeNestedValue_ json buildRecord =
-    if Foreign.isNull json then η Nothing
+    if Foreign.isNull json || Foreign.isUndefined json then η Nothing
     else do
-      res <- makeNestedValue_ @(Record row) json buildRecord
+      res <- makeNestedValue_ @a json buildRecord
       η (Just res)

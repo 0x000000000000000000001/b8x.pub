@@ -8,5 +8,7 @@ import Inter.Ui.Router.Menu.Type.MenuM (MenuM)
 import Inter.Ui.Type.IntentOrigin (IntentOrigin(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 
+
 handleLinkOutputClicked :: Route -> MouseEvent -> MenuM Ɩ
-handleLinkOutputClicked _ _ = close External
+handleLinkOutputClicked _ _ = do
+  close External

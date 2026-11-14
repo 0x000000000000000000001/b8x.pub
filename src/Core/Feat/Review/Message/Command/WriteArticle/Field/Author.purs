@@ -23,7 +23,7 @@ instance IsField AuthorField Author () where
 
   shouldSanitizeInner = defaultShouldSanitizeInner
 
-  cli = IsField.cli @Base.AuthorField
+  cli = (IsField.cli @Base.AuthorField) 
 
 derive instance Newtype AuthorField _
 derive newtype instance ReadForeign AuthorField

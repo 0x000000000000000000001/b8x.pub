@@ -1,5 +1,4 @@
 module Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -10,7 +9,7 @@ import Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.Res
 import Core.Feat.Review.Message.Query.VerifyNewsRelatedArticleWhitelistLimit.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Mod.Article.Exception.TooManyArticlesAddedToNewsRelatedWhitelist (TooManyArticlesAddedToNewsRelatedWhitelist(..))
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Array as Array
@@ -34,7 +33,7 @@ instance IsQuery VerifyNewsRelatedArticleWhitelistLimit State Fields Payload Res
   description = "Verify news related article whitelist limit"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Article Nothing
+    hash <- getReadModelHash @Article HashAll
     η $ defaultCached hash
 
   handle (VerifyNewsRelatedArticleWhitelistLimit _) = do

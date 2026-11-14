@@ -1,5 +1,6 @@
 module Core.Feat.Reference.Message.Command.ReferenceBook.Command
-  (ReferenceBook(..)
+  ( ReferenceBook(..)
+  , ReferenceBookAliasRow
   ) where
 
 import Proem
@@ -50,4 +51,29 @@ instance
 
     defaultHandle @ReferenceBook (Just filter) defaultCheckLoadedEvents initialState play decide toResult payload
 
-  
+type ReferenceBookAliasRow r =
+  ( "ReferenceABook" :: ReferenceBook
+  , "ReferenceLivre" :: ReferenceBook
+  , "ReferenceUnLivre" :: ReferenceBook
+  , "ReferencerLivre" :: ReferenceBook
+  , "ReferencerUnLivre" :: ReferenceBook
+  , "ReferencementLivre" :: ReferenceBook
+  , "ReferencementDeLivre" :: ReferenceBook
+  , "ReferencementDUnLivre" :: ReferenceBook
+  , "AjouteLivre" :: ReferenceBook
+  , "AjouteUnLivre" :: ReferenceBook
+  , "AjouterLivre" :: ReferenceBook
+  , "AjouterUnLivre" :: ReferenceBook
+  , "AjoutLivre" :: ReferenceBook
+  , "AjoutDeLivre" :: ReferenceBook
+  , "AjoutDUnLivre" :: ReferenceBook
+  , "CreeLivre" :: ReferenceBook
+  , "CreeUnLivre" :: ReferenceBook
+  , "CreerLivre" :: ReferenceBook
+  , "CreerUnLivre" :: ReferenceBook
+  , "CreationLivre" :: ReferenceBook
+  , "CreationDeLivre" :: ReferenceBook
+  , "CreationDUnLivre" :: ReferenceBook
+  , "NouveauLivre" :: ReferenceBook
+  | r
+  )

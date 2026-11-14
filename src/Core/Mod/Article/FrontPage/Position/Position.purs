@@ -19,24 +19,41 @@ import Util.Type.String.String (caseToSnake, normalizeForTextSearch)
 import Util.Type.String.ToString (class FromString, class ToString)
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
 import Yoga.JSON as Yoga.JSON
+import Data.Enum (class Enum, class BoundedEnum)
+import Data.Enum.Generic (genericPred, genericSucc, genericCardinality, genericFromEnum, genericToEnum)
+import Data.Bounded.Generic (genericBottom, genericTop)
 
 data Position
-  = TopLeft
+  = Center
+  | TopLeft
   | TopRight
-  | Center
   | BottomLeft
   | BottomRight
 
 derive instance Eq Position
+derive instance Ord Position
 derive instance Generic Position _
+
+instance Bounded Position where
+  bottom = genericBottom
+  top = genericTop
+
+instance Enum Position where
+  succ = genericSucc
+  pred = genericPred
+
+instance BoundedEnum Position where
+  cardinality = genericCardinality
+  toEnum = genericToEnum
+  fromEnum = genericFromEnum
 
 make_
   :: String
   -> Either (Variant (PositionExceptionRow ())) Position
 make_ str = case str # caseToSnake # normalizeForTextSearch of
+  "center" -> Right Center
   "top left" -> Right TopLeft
   "top right" -> Right TopRight
-  "center" -> Right Center
   "bottom left" -> Right BottomLeft
   "bottom right" -> Right BottomRight
   _ -> Left $ inj $ InvalidPosition str
@@ -56,9 +73,9 @@ instance IsRefinedType Position (PositionExceptionRow ()) where
     Left _ -> Left $ inj $ InvalidPosition $ Yoga.JSON.writeJSON json
 
 instance Show Position where
+  show Center = "Center"
   show TopLeft = "TopLeft"
   show TopRight = "TopRight"
-  show Center = "Center"
   show BottomLeft = "BottomLeft"
   show BottomRight = "BottomRight"
 
@@ -66,9 +83,9 @@ instance ToString Position where
   toString = show
 
 instance FromString Position where
+  fromString "Center" = Just Center
   fromString "TopLeft" = Just TopLeft
   fromString "TopRight" = Just TopRight
-  fromString "Center" = Just Center
   fromString "BottomLeft" = Just BottomLeft
   fromString "BottomRight" = Just BottomRight
   fromString _ = Nothing

@@ -14,7 +14,7 @@ type Author = Base.Author
 newtype AuthorField = AuthorField Author
 
 description :: String
-description = "Article author ID"
+description = "Article author"
 
 instance IsField AuthorField Author () where
   name = "Author"

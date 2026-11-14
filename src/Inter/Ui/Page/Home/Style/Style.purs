@@ -15,6 +15,8 @@ import Halogen.HTML (HTML, Node, div)
 import Util.Style.Classname (class_, generateStaticClass)
 import Util.Style.Layout (alignItemsCenter, displayFlex, justifyContentCenter, padding4, widthPct100)
 import Util.Style.Selector ((.?))
+import Util.Style.MediaQuery (onMobileLte)
+import Util.Style.ContainerQuery (containerTypeInlineSize, containerName)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Page.Home.Style.Style"
@@ -31,6 +33,13 @@ staticStyle = do
     alignItemsCenter
     justifyContentCenter
     padding4 2.1 2.0 1.0 2.0
+
+    onMobileLte do
+      padding4 1.0 1.0 1.0 1.0
+
+    ".home-main-col" .? do
+      containerTypeInlineSize
+      containerName "homeMainCol"
 
 home :: ∀ w i. Node HTMLdiv w i
 home props = div ([ class_ staticClass ] <> props)

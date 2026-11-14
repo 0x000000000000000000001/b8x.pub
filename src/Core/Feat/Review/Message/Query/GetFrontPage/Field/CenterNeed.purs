@@ -1,6 +1,5 @@
 module Core.Feat.Review.Message.Query.GetFrontPage.Field.CenterNeed where
 
-
 import Proem
 
 import Core.Message.Field.Field (class IsField, defaultShouldSanitizeInner)
@@ -30,7 +29,8 @@ instance IsField CenterNeedField CenterNeed () where
 
   cli =
     { description
-    , multiline: (IsField.cli @(NeedField ArticleOpt ArticleInnerNeeds)).multiline, choices: (IsField.cli @(NeedField ArticleOpt ArticleInnerNeeds)).choices
+    , multiline: (IsField.cli @(NeedField ArticleOpt ArticleInnerNeeds)).multiline
+    , choices: (IsField.cli @(NeedField ArticleOpt ArticleInnerNeeds)).choices
     }
 
 derive instance Newtype CenterNeedField _

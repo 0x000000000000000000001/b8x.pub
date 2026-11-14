@@ -1,0 +1,51 @@
+services:
+  pilot:
+    # --tlsskipverify lets us use the docker API through its socket since it is http and portainer is in https
+    command: -H tcp://tasks.pilot-agent:9001 --tlsskipverify --admin-password-file /tmp/admin-password --sslcert /certs/server.crt --sslkey /certs/server.key
+    volumes:
+      - /home:/home # access to various things: env, etc.
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [node.role == manager]
+      labels:
+        x.traefik.gateway: 'pilot-gateway'
+        traefik.enable: 'true'
+        traefik.tcp.routers.spilot.rule: 'HostSNI(`pilot.localhost`) || HostSNI(`${PILOT_DNS_LEVEL_3_GTE}`)'
+        traefik.tcp.routers.spilot.entrypoints: 'spilot'
+        traefik.tcp.routers.spilot.service: 'spilot@swarm'
+        traefik.tcp.routers.spilot.tls: 'true'
+        traefik.tcp.routers.spilot.tls.passthrough: 'true'
+        traefik.tcp.services.spilot.loadbalancer.server.port: '9443'
+    networks:
+      - stack-default
+
+  pilot-agent:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_PILOT_AGENT}"
+    environment:
+      # REQUIRED: Should be equal to the service name prefixed by "tasks." when
+      # deployed inside an overlay network
+      AGENT_CLUSTER_ADDR: tasks.pilot-agent
+      # AGENT_PORT: 9001
+      # LOG_LEVEL: debug
+    volumes:
+      - ${DOCKER_CONTEXT_SOCK}:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    networks:
+      - stack-default
+    deploy:
+      mode: global
+
+  pilot-gateway:
+    ports:
+      - published: 9443
+        target: 9443
+        mode: host
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [ node.role == manager ]
+    networks:
+      - stack-default

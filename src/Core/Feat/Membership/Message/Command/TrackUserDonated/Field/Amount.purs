@@ -16,7 +16,7 @@ derive newtype instance ReadForeign AmountField
 derive newtype instance WriteForeign AmountField
 
 description :: String
-description = "The amount of the donation in cents."
+description = "The amount of the donation in cents"
 
 instance IsField AmountField Amount () where
   name = "Amount"

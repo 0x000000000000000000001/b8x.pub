@@ -16,7 +16,7 @@ newtype NewsletterIdField = NewsletterIdField Id
 instance IsField NewsletterIdField Id () where
   name = "Id"
 
-  description = "Newsletter ID"
+  description = "Newsletter"
 
   presence = Required
 
@@ -25,7 +25,7 @@ instance IsField NewsletterIdField Id () where
   shouldSanitizeInner = defaultShouldSanitizeInner
 
   cli =
-    { description: "Newsletter ID"
+    { description: "Newsletter"
     , multiline: false
     , choices: Nothing
     }

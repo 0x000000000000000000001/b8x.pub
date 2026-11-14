@@ -1,6 +1,8 @@
 module Core.Feat.Review.Message.Command.FeatureArticleOnFrontPage.Command
-  (FeatureArticleOnFrontPage(..)
-  ) where
+  ( FeatureArticleOnFrontPage(..)
+  , FeatureArticleOnFrontPageAliasRow
+  )
+  where
 
 import Core.Message.Command.Command (class IsCommand, class IsProtectedAgainstConcurrency, defaultMaxConcurrencyRetries, ConcurrencyPriority(..), defaultCheckLoadedEvents, defaultHandle)
 import Core.Feat.Review.Message.Command.FeatureArticleOnFrontPage.Decide (decide)
@@ -43,4 +45,27 @@ instance
 
   handle = defaultHandle @FeatureArticleOnFrontPage Nothing defaultCheckLoadedEvents initialState play decide toResult
 
-  
+type FeatureArticleOnFrontPageAliasRow r =
+  ( "FeatureAnArticleOnFrontPage" :: FeatureArticleOnFrontPage
+  , "MetArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MetUnArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MetsArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MetsUnArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MettreArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MettreUnArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MiseArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MiseDArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MiseDUnArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "MetArticleALaUne" :: FeatureArticleOnFrontPage
+  , "MetUnArticleALaUne" :: FeatureArticleOnFrontPage
+  , "MetsArticleALaUne" :: FeatureArticleOnFrontPage
+  , "MetsUnArticleALaUne" :: FeatureArticleOnFrontPage
+  , "MettreArticleALaUne" :: FeatureArticleOnFrontPage
+  , "MettreUnArticleALaUne" :: FeatureArticleOnFrontPage
+  , "MiseArticleALaUne" :: FeatureArticleOnFrontPage
+  , "MiseDArticleALaUne" :: FeatureArticleOnFrontPage
+  , "MiseDUnArticleALaUne" :: FeatureArticleOnFrontPage
+  , "ArticleEnAvant" :: FeatureArticleOnFrontPage
+  , "ArticleALaUne" :: FeatureArticleOnFrontPage
+  | r
+  )

@@ -11,15 +11,15 @@ module Inter.Ui.Page.Article.SocialShare.Style.Style
 import Proem hiding (div, top, bottom)
 
 import CSS as CSS
-import CSS (column, flexDirection, hover, zIndex)
+import CSS (flexDirection, hover, row, zIndex)
 import DOM.HTML.Indexed (HTMLdiv)
 import Halogen.HTML (HTML, Node, div)
 import Util.Style.Base (raw)
 import Util.Style.Classname (class_, generateStaticClass, refineClass')
 import Util.Style.Color as Color
-import Util.Style.Layout (alignItemsCenter, displayFlex, gapRem, heightRem, maxWidthRem, widthPct, widthRem)
+import Util.Style.Layout (alignItemsCenter, displayFlex, gapRem, heightRem, maxWidthRem, widthPct, widthRem, justifyContentCenter, marginTop, marginBottom)
 import Util.Style.Effect (cursorPointer, fill)
-import Util.Style.Position (positionAbsolute, positionRelative, topRem, rightRem)
+import Util.Style.Position (positionRelative)
 import Util.Style.Selector (svg, (.?), (:&), (:*))
 
 fullModuleName :: String
@@ -38,16 +38,15 @@ staticStyle = do
     maxWidthRem 45.0
     raw "margin" "0 auto"
     widthPct 100.0
-    heightRem 0.0
+    marginTop 6.0
+    marginBottom 2.0
 
   staticInnerClass .? do
-    positionAbsolute
-    topRem 2.0
-    rightRem (-7.5)
     displayFlex
-    flexDirection column
+    flexDirection row
+    justifyContentCenter
     alignItemsCenter
-    gapRem 1.0
+    gapRem 1.5
     zIndex 10
 
     svg :* do

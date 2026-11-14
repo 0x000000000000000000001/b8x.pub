@@ -8,6 +8,7 @@ import Inter.Ui.Router.Type (Action, RouteM)
 import Inter.Ui.Router.Type as Router
 import Inter.Ui.Type.ModalEvent (ModalEvent(..))
 import Halogen (tell)
+import Halogen as H
 import Inter.Ui.Mod.LoginModal.Type as LoginModal
 import Inter.Ui.Type.Slot (noSlotAddressIndex)
 import Type.Proxy (Proxy(..))
@@ -20,6 +21,7 @@ import Inter.Ui.Router.HandleAction.HandleArticleOutput (handleArticleOutput)
 handleAction :: Action -> RouteM Unit
 handleAction = case _ of
   Router.Initialize -> initialize
+  Router.Receive { context } -> H.modify_ _ { context = context }
   Router.HandleModalEvent OpenLoginModalEvent -> tell (Proxy @"loginModal") noSlotAddressIndex (LoginModal.Open)
   Router.HandleDocScroll -> handleDocScroll
   Router.HandleDocScrollEnd -> handleDocScrollEnd

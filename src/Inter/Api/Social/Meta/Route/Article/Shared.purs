@@ -63,6 +63,6 @@ makeQuery slug =
         { title = Needed { untagHtml: { whitelist: Tags [], blacklistInWhitelist: Tags [] } } ι
         , lead = Needed { fallbackToContentExcerpt: Just { cutStrategy: OnSentenceEnd { min: 200, max: 300, suffix: OnlyOnHardSentenceCut Default }, newlineReplacement: Just " " }, untagHtml: { whitelist: Tags [], blacklistInWhitelist: Tags [] } } { isFallback: Needed ι ι }
         , content = Needed defaultContentOpt ι
-        , illustrations = Needed { priorizeRatio: Nothing, fallbackToBookCovers: true } { image: Needed ι { src: Needed { absolute: true } ι, dimensions: NotNeeded }, caption: Needed ι ι, isFallback: NotNeeded }
+        , illustrations = Needed { priorizeRatio: Nothing, fallbackToBookCovers: true } { image: Needed ι { src: Needed { absolute: true } ι, dimensions: Needed ι { width: Needed ι ι, height: Needed ι ι } }, caption: Needed ι ι, isFallback: Needed ι ι }
         }
     }

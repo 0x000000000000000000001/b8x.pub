@@ -5,6 +5,7 @@ import Data.Maybe (Maybe(..))
 
 import Core.Event.EventStore (EVENT_STORE)
 import Core.Exception.Index (EXCEPT_LOGIC, runLogicExcept)
+import Core.Message.Command.Handle.Download (DOWNLOAD, interpretDownloadWithMock)
 import Core.Message.Command.Handle.Upload (UPLOAD, interpretUploadWithMock)
 import Core.Message.Queue (QUEUE, interpretQueueWithNoop)
 import Core.Feat.Effect.Newsletter (NEWSLETTER, interpretNewsletterWithMock)
@@ -14,8 +15,8 @@ import Core.Feat.Effect.Mail (MAIL)
 import Core.Feat.Effect.Generate (GENERATE, interpretGenerate)
 import Core.Feat.Effect.Sleep (SLEEP, interpretSleep)
 import Config.PublicConfig (READER_PUBLIC_CONFIG, publicConfig, runPublicConfigReader)
+import Infra.Cache.Blackhole.Cache (interpretCacheWithNoop)
 import Infra.Mail.Mock.Mail (interpretMailWithMock)
-import Infra.Cache.Fs.Cache (interpretCache)
 import Core.Mod.Id.Id as Id
 import Infra.RateLimit.Postgres.RateLimit (interpretRateLimit)
 import Core.Mod.Infra.Projection.CopyOnWrite.Index (evalProjectionWriteCopyState)
@@ -38,6 +39,7 @@ type TEST =
   PROJECTION
     + EVENT_STORE
     + QUEUE
+    + DOWNLOAD
     + UPLOAD
     + NEWSLETTER
     + RATE_LIMIT
@@ -75,10 +77,11 @@ runTestM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rab
     # evalProjectionWriteCopyState
     # interpretEventStore
     # interpretQueueWithNoop
+    # interpretDownloadWithMock
     # interpretUploadWithMock
     # interpretNewsletterWithMock
     # interpretRateLimit
-    # interpretCache
+    # interpretCacheWithNoop
     # interpretMailWithMock
     # interpretGenerate
     # interpretSleep

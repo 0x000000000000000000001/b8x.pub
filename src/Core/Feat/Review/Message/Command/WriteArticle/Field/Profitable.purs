@@ -20,7 +20,7 @@ instance IsField ProfitableField Profitable () where
 
   description = description
 
-  presence = Required
+  presence = Optional (η false) "no"
 
   sanitize = κ Intact
 

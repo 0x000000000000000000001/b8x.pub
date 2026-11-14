@@ -1,0 +1,18 @@
+services:
+  gateway:
+    volumes:
+      # Debug 
+      - ${DOCKER_DIR}/_shared/file/gateway/update-tls-conf.sh:/update-tls-conf.sh
+    ports:
+      - 8080:8080
+    depends_on:
+      - 'gateway-pre-fixer'
+
+  gateway-pre-fixer:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DEV_GATEWAY}"
+    volumes:
+      - ${DOCKER_DIR}/${ENV}/volume/gateway/tls:/gateway/tls
+    command: bash -c 'chmod 0600 /gateway/tls/acme.json;' # Sometimes, people may do "chmod 0777" on parent folders. But that won't be accepted by traefik (0664 rights on its files)
+    security_opt:
+      - apparmor:unconfined # remove some linux firewalls if set
+    privileged: true

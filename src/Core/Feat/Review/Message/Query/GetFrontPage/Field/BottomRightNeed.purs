@@ -1,6 +1,5 @@
 module Core.Feat.Review.Message.Query.GetFrontPage.Field.BottomRightNeed where
 
-
 import Proem
 
 import Core.Message.Field.Field (class IsField, defaultShouldSanitizeInner)
@@ -30,7 +29,8 @@ instance IsField BottomRightNeedField BottomRightNeed () where
 
   cli =
     { description
-    , multiline: (IsField.cli @(NeedField ArticleOpt ArticleInnerNeeds)).multiline, choices: (IsField.cli @(NeedField ArticleOpt ArticleInnerNeeds)).choices
+    , multiline: (IsField.cli @(NeedField ArticleOpt ArticleInnerNeeds)).multiline
+    , choices: (IsField.cli @(NeedField ArticleOpt ArticleInnerNeeds)).choices
     }
 
 derive instance Newtype BottomRightNeedField _

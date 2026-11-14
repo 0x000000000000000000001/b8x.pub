@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "dependencies": {
+    "tokio-postgres": { "version": "=0.7.18" },
+    "serde_json": { "version": "=1.0.150" },
+    "bytes": { "version": "=1.11.1" },
+    "futures-util": { "version": "=0.3.32" },
+    "ryu-js": { "version": "=1.0.3" }
+  }
+}

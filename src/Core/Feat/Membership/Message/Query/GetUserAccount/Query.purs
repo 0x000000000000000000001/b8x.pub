@@ -5,9 +5,8 @@ import Proem
 import Core.Feat.Membership.Message.Query.GetUserAccount.Payload (Payload, Fields)
 import Core.Feat.Membership.Message.Query.GetUserAccount.Result (Result)
 import Core.Feat.Membership.Message.Query.GetUserAccount.State (State)
-import Core.Feat.Membership.Message.Query.GetUserAccount.Projection.Projection (Account(..), AccountKey(..), findAccount, Donation(..), findDonation)
-import Core.Message.Query.Query (class IsQuery, CacheStrategy(..), defaultCached, defaultCachedWithSubject)
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Feat.Membership.Message.Query.GetUserAccount.Projection.Projection (Account(..), Donation(..), findAccount, findDonation)
+import Core.Message.Query.Query (class IsQuery, CacheStrategy(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
@@ -27,6 +26,12 @@ import Core.Mod.User.Id.Message.Field.TargetUser (TargetUser(..))
 import Core.Mod.Trace.Trace (askSubject)
 import Core.Mod.Trace.Subject (Subject(..))
 import Core.Mod.Id.Id as Id
+import Data.Array as Array
+
+-- | Minimum amount, in cents, donated over the recent window for a user to be
+-- | considered as a supporter (e.g. to disable ads).
+minSupportAmountCents :: Int
+minSupportAmountCents = 400
 
 newtype GetUserAccount = GetUserAccount Payload
 
@@ -48,7 +53,7 @@ instance
     Result where
   description = "Get the account of a user"
 
-  cacheStrategy _ = η NotCached
+  cacheStrategy _ = η NotCached -- We get info from the outside (e.g., HelloAsso)
 
   handle (GetUserAccount { user, needs: Needs needs }) = do
     actualUser <- case user of
@@ -67,12 +72,22 @@ instance
             Needed _ _ -> do
               mDonation <- findDonation email
               case mDonation of
-                Nothing -> η (QueryResult.Given false)
-                Just (Donation { latestDonation: Instant ld }) -> do
+                Nothing -> do
+                  η (QueryResult.Given false)
+                Just (Donation { history }) -> do
                   currentMs <- now
-                  let Milliseconds ldMs = unInstant ld
-                  let oneYearMs = 365.25 * 24.0 * 60.0 * 60.0 * 1000.0
-                  η (QueryResult.Given (currentMs - ldMs < oneYearMs))
+                  let recentWindowMs = 35.0 * 24.0 * 60.0 * 60.0 * 1000.0
+                  let
+                    recentDonations = Array.filter
+                      ( \d ->
+                          let
+                            Milliseconds dMs = unInstant (let (Instant inst) = d.date in inst)
+                          in
+                            currentMs - dMs <= recentWindowMs
+                      )
+                      history
+                  let totalDonated = Array.foldl (\acc d -> acc + d.amount) 0 recentDonations
+                  η (QueryResult.Given (totalDonated >= minSupportAmountCents))
 
         adFreeRes <- calcSubscriptionStatus needs.adFree
         hasPaidLastYearRes <- calcSubscriptionStatus needs.hasPaidLastYear

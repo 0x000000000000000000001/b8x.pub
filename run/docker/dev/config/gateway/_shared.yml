@@ -1,0 +1,3 @@
+services:
+  gateway:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_DEV_GATEWAY}"

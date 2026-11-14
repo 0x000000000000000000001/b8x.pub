@@ -3,7 +3,7 @@ module Inter.Ui.Router.HandleQuery where
 import Proem hiding (div)
 
 import Data.Maybe (Maybe(..))
-import Halogen (modify_, tell, gets)
+import Halogen (gets, modify_, tell)
 import Halogen as H
 import Inter.Api.Social.Meta.Route.PlaceholderIndex (placeholderMeta)
 import Inter.Ui.Capability.Navigate.Navigate (Route(..))
@@ -54,6 +54,9 @@ handleQuery = case _ of
                 Article s _ -> Article s updatedParams
                 Theme t _ -> Theme t updatedParams
                 Donate _ -> Donate updatedParams
+                About _ -> About updatedParams
+                Legal _ -> Legal updatedParams
+                Newsletter _ -> Newsletter updatedParams
                 _ -> r
             navigate updatedRoute
             _ <- H.fork $ do
@@ -73,6 +76,9 @@ handleQuery = case _ of
       Article _ params -> checkParams route' params
       Theme _ params -> checkParams route' params
       Donate params -> checkParams route' params
+      About params -> checkParams route' params
+      Legal params -> checkParams route' params
+      Newsletter params -> checkParams route' params
 
     η (Just a)
 
@@ -90,6 +96,15 @@ equivalent (Theme t1 _) = case _ of
   _ -> false
 equivalent (Donate _) = case _ of
   Donate _ -> true
+  _ -> false
+equivalent (About _) = case _ of
+  About _ -> true
+  _ -> false
+equivalent (Legal _) = case _ of
+  Legal _ -> true
+  _ -> false
+equivalent (Newsletter _) = case _ of
+  Newsletter _ -> true
   _ -> false
 equivalent NotFound = case _ of
   NotFound -> true

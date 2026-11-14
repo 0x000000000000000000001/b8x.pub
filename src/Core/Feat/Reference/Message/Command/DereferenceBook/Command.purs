@@ -1,5 +1,6 @@
 module Core.Feat.Reference.Message.Command.DereferenceBook.Command
-  (DereferenceBook(..)
+  ( DereferenceBook(..)
+  , DereferenceBookAliasRow
   ) where
 
 import Core.Message.Command.Command (class IsCommand, class IsProtectedAgainstConcurrency, defaultMaxConcurrencyRetries, ConcurrencyPriority(..), defaultCheckLoadedEvents, defaultHandle)
@@ -44,4 +45,39 @@ instance
 
   handle = defaultHandle @DereferenceBook (Just filter) defaultCheckLoadedEvents initialState play decide toResult
 
-  
+type DereferenceBookAliasRow r =
+  ( "DereferenceABook" :: DereferenceBook
+  , "DereferenceLivre" :: DereferenceBook
+  , "DereferenceUnLivre" :: DereferenceBook
+  , "DereferencerLivre" :: DereferenceBook
+  , "DereferencerUnLivre" :: DereferenceBook
+  , "DereferencecementLivre" :: DereferenceBook
+  , "DereferencecementDeLivre" :: DereferenceBook
+  , "DereferencecementDUnLivre" :: DereferenceBook
+  , "SupprimeLivre" :: DereferenceBook
+  , "SupprimeUnLivre" :: DereferenceBook
+  , "SupprimerLivre" :: DereferenceBook
+  , "SupprimerUnLivre" :: DereferenceBook
+  , "SuppressionLivre" :: DereferenceBook
+  , "SuppressionDeLivre" :: DereferenceBook
+  , "SuppressionDUnLivre" :: DereferenceBook
+  , "EffaceLivre" :: DereferenceBook
+  , "EffaceUnLivre" :: DereferenceBook
+  , "EffacerLivre" :: DereferenceBook
+  , "EffacerUnLivre" :: DereferenceBook
+  , "EffacementLivre" :: DereferenceBook
+  , "EffacementDeLivre" :: DereferenceBook
+  , "EffacementDUnLivre" :: DereferenceBook
+  , "RetireLivre" :: DereferenceBook
+  , "RetireUnLivre" :: DereferenceBook
+  , "RetirerLivre" :: DereferenceBook
+  , "RetirerUnLivre" :: DereferenceBook
+  , "RetraitLivre" :: DereferenceBook
+  , "RetraitDeLivre" :: DereferenceBook
+  , "RetraitDUnLivre" :: DereferenceBook
+  , "JetteLivre" :: DereferenceBook
+  , "JetteUnLivre" :: DereferenceBook
+  , "JeterLivre" :: DereferenceBook
+  , "JeterUnLivre" :: DereferenceBook
+  | r
+  )

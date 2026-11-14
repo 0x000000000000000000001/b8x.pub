@@ -1,0 +1,19 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# WARNING: NEVER use `curl` to execute Sendy cron jobs.
+# Doing so routes requests through Apache which imposes execution timeouts.
+# This leads to incomplete database updates, infinite retry loops, and massive AWS SES quota exhaustion.
+# ALWAYS use the `php` CLI command directly.
+
+*/5 * * * * root cd /var/www/html && /usr/local/bin/php scheduled.php >> /var/log/cron.log 2>&1
+
+*/1 * * * * root cd /var/www/html && /usr/local/bin/php autoresponders.php >> /var/log/cron.log 2>&1
+
+*/1 * * * * root cd /var/www/html && /usr/local/bin/php import-csv.php >> /var/log/cron.log 2>&1
+
+*/15 * * * * root cd /var/www/html && /usr/local/bin/php update-segments.php >> /var/log/cron.log 2>&1
+
+* * * * * root cd /var/www/html/api/subscribers && /usr/local/bin/php import-mailchimp-contacts.php >> /var/log/cron.log 2>&1
+
+# Don't remove the empty line at the end of this file. It is required to run the cron jobs

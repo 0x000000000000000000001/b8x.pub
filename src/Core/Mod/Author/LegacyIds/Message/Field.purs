@@ -18,7 +18,7 @@ type LegacyIds = Base.LegacyIds
 newtype LegacyIdsField = LegacyIdsField LegacyIds
 
 description :: String
-description = "Legacy author IDs"
+description = "Legacy author"
 
 instance IsField LegacyIdsField LegacyIds () where
   name = "LegacyIds"

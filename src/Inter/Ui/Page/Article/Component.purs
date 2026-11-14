@@ -1,11 +1,12 @@
 module Inter.Ui.Page.Article.Component
-  (component
+  ( component
   , article_
   , article
   ) where
 
 import Proem
 
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Network.RemoteData (RemoteData(..))
 import Halogen (ComponentHTML, Slot, Component, defaultEval, mkComponent, mkEval)
@@ -27,6 +28,8 @@ component = mkComponent
       , cachedInfo: Nothing
       , relatedArticles: NotAsked
       , issueArticles: NotAsked
+      , bookAuthorInfos: Map.empty
+      , context: input.context
       }
   , render
   , eval: mkEval defaultEval

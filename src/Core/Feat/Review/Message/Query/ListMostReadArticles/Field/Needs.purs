@@ -29,6 +29,7 @@ type Needs =
   , onFrontPages :: Need Ɩ Ɩ
   , illustrations :: Need IllustrationsOpt IllustrationsInnerNeeds
   , slug :: Need Ɩ Ɩ
+  , writtenAt :: Need Ɩ Ɩ
   }
 
 defaultNeeds :: Needs
@@ -46,6 +47,7 @@ defaultNeeds =
   , onFrontPages: NotNeeded
   , illustrations: NotNeeded
   , slug: NotNeeded
+  , writtenAt: NotNeeded
   }
 
 type NeedsFieldChildren =
@@ -62,6 +64,7 @@ type NeedsFieldChildren =
   , onFrontPages :: NeedField Ɩ Ɩ
   , illustrations :: NeedField IllustrationsOpt IllustrationsInnerNeeds
   , slug :: NeedField Ɩ Ɩ
+  , writtenAt :: NeedField Ɩ Ɩ
   )
 
 newtype NeedsField = NeedsField Needs

@@ -1,0 +1,20 @@
+services:
+  db:
+    restart: always
+    networks:
+      - compose-default
+
+  db-multiplex-store:
+    restart: always
+    networks:
+      - compose-default
+
+  db-multiplex-store-lock:
+    restart: always
+    networks:
+      - compose-default
+
+  db-multiplex-edge:
+    restart: always
+    networks:
+      - compose-default

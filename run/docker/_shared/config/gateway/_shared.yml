@@ -1,0 +1,7 @@
+services:
+  gateway:
+    volumes:
+      - ${DOCKER_CONTEXT_SOCK}:/var/run/docker.sock
+    environment:
+      DNS_LEVEL_1: "${DNS_LEVEL_1}"
+      DNS_LEVEL_2: "${DNS_LEVEL_2}"

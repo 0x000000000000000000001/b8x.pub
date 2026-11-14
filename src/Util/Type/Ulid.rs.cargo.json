@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "dependencies": {
+    "ulid": { "version": "=3.0.0" }
+  }
+}

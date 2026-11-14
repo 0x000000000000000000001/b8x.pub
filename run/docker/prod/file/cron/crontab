@@ -1,0 +1,19 @@
+SHELL=/bin/bash
+
+# Complete bin paths are needed
+# For logging, just append: > >(tee -a /var/log/cron.log) 2> >(sed -e "s/^/[$(/bin/date)] /" | tee -a /var/log/cron.error.log >&2);
+#
+# Auto files cleaning
+5 * * * * root find /tmp -mindepth 1 -type f -mmin +60 -delete &>/dev/null
+#
+# Docker system pruning
+10 * * * * root docker system prune -a -f &>/dev/null
+## Remove local dangling volumes (e.g. anonymous mounts for Next.js builds)
+*/5 * * * * root docker volume rm -f $(docker volume ls -q -f driver=local -f dangling=true) &>/dev/null
+### This will fix a bug on Docker: ensures that the stats are fine
+*/5 * * * * root docker system df -v &>/dev/null
+# Database backups
+0 3 * * * root /var/www/b8x/bin/bak/db/bak.db >> /var/log/cron.log 2>&1
+0 4 * * * root /var/www/b8x/bin/bak/db2/bak.db2 >> /var/log/cron.log 2>&1
+
+# Don't remove the empty line at the end of this file. It is required to run the cron jobs

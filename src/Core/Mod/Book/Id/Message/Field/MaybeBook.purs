@@ -4,7 +4,6 @@ import Proem
 import Data.Maybe (Maybe(..))
 
 import Core.Message.Field.Field (class IsField, Sanitized(..), defaultMaybePresence, defaultSanitize, defaultShouldSanitizeInner)
-import Core.Mod.Book.Id.Message.Field.Util as Util
 import Core.Mod.Book.Id.Id (BookId)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Newtype (class Newtype)
@@ -16,7 +15,7 @@ newtype BookField = BookField Book
 instance IsField BookField Book () where
   name = "Book"
 
-  description = Util.description
+  description = "Book"
 
   presence = defaultMaybePresence
 
@@ -25,7 +24,7 @@ instance IsField BookField Book () where
   shouldSanitizeInner = defaultShouldSanitizeInner
 
   cli =
-    { description: Util.description
+    { description: "Book"
     , multiline: false
     , choices: Nothing
     }

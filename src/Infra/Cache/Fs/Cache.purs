@@ -61,8 +61,6 @@ type CacheEntry =
   , hashValue :: Foreign
   }
 
-
-
 encodeCacheEntry :: CacheEntry -> Foreign
 encodeCacheEntry entry =
   JSON.writeImpl

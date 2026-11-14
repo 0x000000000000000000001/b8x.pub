@@ -2,6 +2,9 @@ module Core.Feat.Review.Message.Query.GetArticleQuote.Projection.Projection wher
 
 import Yoga.JSON.Generics (genericWriteForeignTaggedSum, genericReadForeignTaggedSum)
 import Yoga.JSON.Generics.TaggedSumRep (defaultOptions)
+import Foreign as Foreign
+import Foreign.Index as Foreign.Index
+import Control.Alt ((<|>))
 import Proem hiding (add)
 import Control.Monad.Except as Control.Monad.Except
 
@@ -15,19 +18,22 @@ import Core.Mod.Projection.Finder.Expectation.Expectation (Expectation(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..), StrictlyEquals(..), by, compile, class IsFilter)
 import Core.Mod.Projection.Finder.Finder (Find, findMany_)
 import Core.Mod.Projection.Finder.Sort as Sort
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
-import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete, get)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
+import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete, get, patch)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
 import Core.Mod.Time.Instant (Instant)
 import Core.Util.Validation (class IsRefinedType)
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
+import Core.Mod.Article.Projection.WrittenAt (WrittenAt)
+import Core.Mod.Article.Projection.WrittenAt as WrittenAt
 import Data.Array as Array
 import Data.Either (Either(..))
+import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
-import Data.Newtype (class Newtype)
+import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype, unwrap)
 import Data.Show.Generic (genericShow)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
@@ -35,9 +41,12 @@ import Run (Run)
 import Type.Row (type (+))
 import Util.Type.Random (class Random, random)
 import Util.Type.String.ToString (toString)
+import Core.Event.ArticleContentCorrected.Payload as ArticleContentCorrected
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
 import Core.Event.ArticleWritten.Payload as ArticleWritten
+import Core.Event.ArticleTitleCorrected.Payload as ArticleTitleCorrected
 import Core.Event.AuthorReferenced.Payload as AuthorReferenced
+import Core.Event.BookCoverCorrected.Payload as BookCoverCorrected
 import Core.Event.BookReferenced.Payload as BookReferenced
 import Core.Event.EditorReferenced.Payload as EditorReferenced
 import Core.Mod.Article.Content.Content (Content)
@@ -103,6 +112,9 @@ instance IsPair QuoteKey Quote QuoteRecord QuoteIndexNeeds QuoteSortRow "quote" 
 
 newtype Quote = Quote QuoteRecord
 
+instance ToAliases Quote where
+  toAliases _ = []
+
 type QuoteRecord =
   { article :: ArticleRecord
   , quote :: String
@@ -130,8 +142,8 @@ derive newtype instance ReadForeign QuoteKey
 derive instance Generic QuoteKey _
 derive instance Newtype QuoteKey _
 
-instance ToAliasedPrimary QuoteKey where
-  toAliasedPrimary (QuoteKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary QuoteKey where
+  toPrimary (QuoteKey id) = toString id
 
 type QuoteSortRow =
   ( at :: Ɩ
@@ -140,10 +152,13 @@ type QuoteSortRow =
 ---- Article 
 
 instance IsPair ArticleKey Article ArticleRecord ArticleIndexNeeds () "article" "articles" "getArticleQuoteArticleProjectionReadFind" GetArticleQuoteProjection where
-  toKey (Article { id, slug }) = ArticleKey { id: Just id, slug: Just slug }
+  toKey (Article { id }) = ArticleKey id
   single = false
 
 newtype Article = Article ArticleRecord
+
+instance ToAliases Article where
+  toAliases _ = []
 
 type ArticleAuthor =
   { id :: AuthorId
@@ -162,6 +177,7 @@ type ArticleRecord =
   , author :: Maybe ArticleAuthor
   , illustrations :: Illustrations
   , slug :: Slug
+  , writtenAt :: WrittenAt
   }
 
 type ArticleIndexNeeds = {}
@@ -187,6 +203,7 @@ instance Random Article where
     author <- random
     illustrations <- random
     slug <- random
+    writtenAt <- random
     η $ Article
       { id
       , title
@@ -197,13 +214,14 @@ instance Random Article where
       , author
       , illustrations
       , slug
+      , writtenAt
       }
 
-newtype ArticleKey = ArticleKey { id :: Maybe ArticleId, slug :: Maybe Slug }
+newtype ArticleKey = ArticleKey ArticleId
 
 derive instance Newtype ArticleKey _
-instance ToAliasedPrimary ArticleKey where
-  toAliasedPrimary (ArticleKey k) = { primary: maybe "" toString k.id, aliases: maybe [] (Array.singleton <<< toString) k.slug }
+instance ToPrimary ArticleKey where
+  toPrimary (ArticleKey id) = toString id
 derive instance Eq ArticleKey
 derive instance Ord ArticleKey
 derive instance Generic ArticleKey _
@@ -218,6 +236,9 @@ instance IsPair AuthorKey Author AuthorRecord AuthorIndexNeeds () "author" "auth
   single = false
 
 newtype Author = Author AuthorRecord
+
+instance ToAliases Author where
+  toAliases _ = []
 
 type AuthorRecord =
   { id :: AuthorId
@@ -255,8 +276,8 @@ derive instance Generic AuthorKey _
 instance Show AuthorKey where
   show = genericShow
 
-instance ToAliasedPrimary AuthorKey where
-  toAliasedPrimary (AuthorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary AuthorKey where
+  toPrimary (AuthorKey id) = toString id
 
 ---- Editor 
 
@@ -265,6 +286,9 @@ instance IsPair EditorKey Editor EditorRecord EditorIndexNeeds () "editor" "edit
   single = false
 
 newtype Editor = Editor EditorRecord
+
+instance ToAliases Editor where
+  toAliases _ = []
 
 type EditorRecord =
   { id :: EditorId
@@ -294,8 +318,8 @@ derive instance Generic EditorKey _
 instance Show EditorKey where
   show = genericShow
 
-instance ToAliasedPrimary EditorKey where
-  toAliasedPrimary (EditorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary EditorKey where
+  toPrimary (EditorKey id) = toString id
 
 ---- Book 
 
@@ -305,6 +329,9 @@ instance IsPair BookKey Book BookRecord BookIndexNeeds () "book" "books" "getArt
 
 newtype Book = Book BookRecord
 
+instance ToAliases Book where
+  toAliases _ = []
+
 type BookRecord =
   { id :: BookId
   , name :: Name
@@ -312,6 +339,7 @@ type BookRecord =
   , cover :: Maybe Image
   , authors :: Array AuthorId
   , editor :: Maybe EditorId
+  , articles :: Array ArticleId
   }
 
 type BookIndexNeeds = {}
@@ -320,7 +348,28 @@ derive instance Newtype Book _
 derive instance Generic Book _
 derive instance Eq Book
 derive instance Ord Book
-derive newtype instance ReadForeign Book
+
+instance ReadForeign Book where
+  readImpl json = do
+    r <- readImpl json :: Foreign.F
+      { id :: BookId
+      , name :: Name
+      , year :: Maybe Year
+      , cover :: Maybe Image
+      , authors :: Array AuthorId
+      , editor :: Maybe EditorId
+      }
+    articles <- (Foreign.Index.readProp "articles" json >>= readImpl) <|> pure []
+    η $ Book
+      { id: r.id
+      , name: r.name
+      , year: r.year
+      , cover: r.cover
+      , authors: r.authors
+      , editor: r.editor
+      , articles
+      }
+
 derive newtype instance WriteForeign Book
 derive newtype instance Random Book
 
@@ -337,8 +386,8 @@ derive instance Generic BookKey _
 instance Show BookKey where
   show = genericShow
 
-instance ToAliasedPrimary BookKey where
-  toAliasedPrimary (BookKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary BookKey where
+  toPrimary (BookKey id) = toString id
 
 ---- Filter 
 
@@ -429,12 +478,17 @@ play :: ∀ fx. LoadedEvent -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) �
 play { event, at } = case event of
   ArticleQuoted payload -> onArticleQuoted at payload
   ArticleDiscarded payload -> onArticleDiscarded payload
-  ArticleWritten payload -> onArticleWritten payload
+  ArticleWritten payload -> onArticleWritten at payload
   AuthorReferenced payload -> onAuthorReferenced payload
   EditorReferenced payload -> onEditorReferenced payload
   BookReferenced payload -> onBookReferenced payload
   AuthorDereferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected payload -> onBookCoverCorrected payload
+  ArticleTitleCorrected payload -> onArticleTitleCorrected payload
+  ArticleContentCorrected payload -> onArticleContentCorrected payload
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorDereferenced _ -> ηι
@@ -457,7 +511,7 @@ play { event, at } = case event of
 
 onArticleQuoted :: ∀ fx. Instant -> ArticleQuoted.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleQuoted at { article, quote } = do
-  mArticle <- get (ArticleKey { id: Just article, slug: Nothing })
+  mArticle <- get (ArticleKey article)
   case mArticle of
     Nothing -> ηι
     Just (Article aRecord) -> do
@@ -469,11 +523,27 @@ onArticleQuoted at { article, quote } = do
 
 onArticleDiscarded :: ∀ fx. ArticleDiscarded.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleDiscarded { article } = do
-  delete $ ArticleKey { id: Just article, slug: Nothing }
+  mArticle <- get (ArticleKey article)
+
+  case mArticle of
+    Just (Article a) -> for_ (unwrap a.books).ids \bookId -> unregisterArticleFromBook article bookId
+    Nothing -> ηι
+
+  delete $ ArticleKey article
   delete $ QuoteKey article
 
-onArticleWritten :: ∀ fx. ArticleWritten.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
-onArticleWritten
+onArticleTitleCorrected :: ∀ fx. ArticleTitleCorrected.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleTitleCorrected { article, title } = do
+  patch (ArticleKey article) \(Article a) -> Article (a { title = title })
+  patch (QuoteKey article) \(Quote q) -> Quote (q { article = q.article { title = title } })
+
+onArticleContentCorrected :: ∀ fx. ArticleContentCorrected.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleContentCorrected { article, content } = do
+  patch (ArticleKey article) \(Article a) -> Article (a { content = content })
+  patch (QuoteKey article) \(Quote q) -> Quote (q { article = q.article { content = content } })
+
+onArticleWritten :: ∀ fx. Instant -> ArticleWritten.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleWritten at
   { id
   , title
   , lead
@@ -523,9 +593,12 @@ onArticleWritten
       , author: mAuthor <#> \(Author { id: id_, name, biography, portrait }) -> { id: id_, name, biography, portrait }
       , illustrations: Illustrations.make illustrations
       , slug
+      , writtenAt: WrittenAt.make at
       }
 
   add $ Article aRecord
+
+  for_ bookIds \bookId -> registerArticleInBook id bookId
 
   -- Update Quote if it exists
   mQuote <- get (QuoteKey id)
@@ -541,6 +614,25 @@ onEditorReferenced :: ∀ fx. EditorReferenced.Payload -> Run (GET_ARTICLE_QUOTE
 onEditorReferenced { id, name } = add $ Editor { id, name }
 
 onBookReferenced :: ∀ fx. BookReferenced.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
-onBookReferenced { id, name, year, cover, authors, editor } = add $ Book { id, name, year, cover, authors, editor }
+onBookReferenced { id, name, year, cover, authors, editor } = add $ Book { id, name, year, cover, authors, editor, articles: [] }
 
+registerArticleInBook :: ∀ fx. ArticleId -> BookId -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
+registerArticleInBook articleId bookId =
+  patch (BookKey bookId) \(Book b) -> Book (b { articles = Array.snoc (Array.filter (_ /= articleId) b.articles) articleId })
 
+unregisterArticleFromBook :: ∀ fx. ArticleId -> BookId -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
+unregisterArticleFromBook articleId bookId =
+  patch (BookKey bookId) \(Book b) -> Book (b { articles = Array.filter (_ /= articleId) b.articles })
+
+onBookCoverCorrected :: ∀ fx. BookCoverCorrected.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
+onBookCoverCorrected { book: bookId, cover } = do
+  mBook <- get (BookKey bookId)
+
+  case mBook of
+    Nothing -> ηι
+    Just (Book b) -> do
+      patch (BookKey bookId) \(Book b') -> Book (b' { cover = cover })
+
+      for_ (Array.nub b.articles) \articleId ->
+        patch (ArticleKey articleId) \(Article a) ->
+          Article (a { books = Books.updateBookCover bookId cover a.books })

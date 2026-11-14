@@ -13,23 +13,34 @@ import Inter.Ui.Type.InstanceId (InstanceId)
 import Inter.Ui.Type.Remote (Remote)
 import Inter.Ui.UiM (UiM)
 import Network.RemoteData (RemoteData(..))
+import Inter.Ui.Type.Device (Device(..))
 
-frontPage :: InstanceId -> Remote UiFrontPageResult -> ComponentHTML Action Slots UiM
-frontPage _ = case _ of
+frontPage :: InstanceId -> Device -> Remote UiFrontPageResult -> ComponentHTML Action Slots UiM
+frontPage _ device = case _ of
   Success res ->
     let
       ex = case _ of
         Given article -> Just article
         _ -> Nothing
     in
-      frontPage_
-        [ column 0 false [ ex res.topLeft, ex res.bottomLeft ]
-        , column 1 true [ ex res.center ]
-        , column 2 false [ ex res.topRight, ex res.bottomRight ]
-        ]
+      if device == Mobile then
+        frontPage_
+          [ column 0 false [ ex res.center, ex res.topLeft, ex res.topRight, ex res.bottomLeft, ex res.bottomRight ]
+          ]
+      else
+        frontPage_
+          [ column 0 false [ ex res.topLeft, ex res.bottomLeft ]
+          , column 1 true [ ex res.center ]
+          , column 2 false [ ex res.topRight, ex res.bottomRight ]
+          ]
   _ ->
-    frontPage_
-      [ column 0 false [ Nothing, Nothing ]
-      , column 1 true [ Nothing ]
-      , column 2 false [ Nothing, Nothing ]
-      ]
+    if device == Mobile then
+      frontPage_
+        [ column 0 false [ Nothing, Nothing, Nothing, Nothing, Nothing ]
+        ]
+    else
+      frontPage_
+        [ column 0 false [ Nothing, Nothing ]
+        , column 1 true [ Nothing ]
+        , column 2 false [ Nothing, Nothing ]
+        ]

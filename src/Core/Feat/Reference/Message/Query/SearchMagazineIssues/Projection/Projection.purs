@@ -23,7 +23,7 @@ import Core.Mod.Projection.Finder.Finder (Find, FindOpt, Page, findMany_)
 import Core.Mod.Projection.Finder.Filter (class IsFilter, EqualsUpToNormalization(..), Matches(..), StrictlyEquals(..), Weight, by, compile)
 import Core.Mod.Projection.Finder.Filter as Base
 import Core.Mod.Projection.Finder.Sort (SortCriteria)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete, patch)
 import Core.Mod.Projection.SearchIndex (EveryTextIndexesWithWeightA, RawIndexOnly, everyTextIndexesWithWeightA, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -48,15 +48,15 @@ instance
     "searchMagazineIssuesProjectionWriteOps"
     (SEARCH_MAGAZINE_ISSUES_PROJECTION_WRITE_OPS ())
     "searchMagazineIssuesProjectionReadSyncProject"
-    { searchMagazineIssues :: MagazineIssue
+    { magazineIssue :: MagazineIssue
     }
-    { searchMagazineIssues :: MagazineIssueIndexNeeds
+    { magazineIssue :: MagazineIssueIndexNeeds
     }
-    { searchMagazineIssues :: Record MagazineIssueSortRow
+    { magazineIssue :: Record MagazineIssueSortRow
     }
   where
   indexNeeds =
-    { searchMagazineIssues:
+    { magazineIssue:
         { id: rawIndexOnly
         , name: everyTextIndexesWithWeightA
         , legacyId: rawIndexOnly
@@ -91,12 +91,15 @@ type MagazineIssueSortRow =
 
 type MagazineIssueSortCriteria = SortCriteria MagazineIssue
 
-instance IsPair MagazineIssueKey MagazineIssue MagazineIssueRecord MagazineIssueIndexNeeds MagazineIssueSortRow "searchMagazineIssues" "searchMagazineIssuesMagazineIssues" "searchMagazineIssuesMagazineIssueProjectionReadFind" SearchMagazineIssuesProjection where
+instance IsPair MagazineIssueKey MagazineIssue MagazineIssueRecord MagazineIssueIndexNeeds MagazineIssueSortRow "magazineIssue" "magazineIssues" "searchMagazineIssuesMagazineIssueProjectionReadFind" SearchMagazineIssuesProjection where
   toKey (MagazineIssue { id }) = MagazineIssueKey id
 
   single = false
 
 newtype MagazineIssue = MagazineIssue MagazineIssueRecord
+
+instance ToAliases MagazineIssue where
+  toAliases _ = []
 
 type MagazineIssueRecord =
   { id :: MagazineIssueId
@@ -162,8 +165,8 @@ instance Random MagazineIssue where
 newtype MagazineIssueKey = MagazineIssueKey MagazineIssueId
 
 derive instance Newtype MagazineIssueKey _
-instance ToAliasedPrimary MagazineIssueKey where
-  toAliasedPrimary (MagazineIssueKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary MagazineIssueKey where
+  toPrimary (MagazineIssueKey id) = toString id
 derive newtype instance Eq MagazineIssueKey
 derive newtype instance Ord MagazineIssueKey
 
@@ -261,6 +264,11 @@ play { event, at } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   EditorReferenced _ -> ηι
   EditorDereferenced _ -> ηι
   UserEmailChanged _ -> ηι
@@ -292,5 +300,3 @@ onArticleWritten :: ∀ fx. Instant -> ArticleWritten.Payload -> Run (SEARCH_MAG
 onArticleWritten at { magazineIssue } = case magazineIssue of
   Just (ArticleMagazineIssue.MagazineIssue mi) -> patch (MagazineIssueKey mi.issue) \(MagazineIssue r) -> MagazineIssue (r { seo = { updatedAt: at } })
   Nothing -> ηι
-
-

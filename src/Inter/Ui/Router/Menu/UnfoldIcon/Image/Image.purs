@@ -11,5 +11,5 @@ import Util.File.Path (selfHostedVersionedImageUrl)
 image :: ∀ w i. State -> HTML w i
 image state =
   Style.image state
-    [ src $ selfHostedVersionedImageUrl "1.0.0" "router/menu/unfold.png"
+    [ src $ selfHostedVersionedImageUrl "1.0.1" "router/menu/unfold.png"
     ]

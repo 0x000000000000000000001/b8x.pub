@@ -11,8 +11,8 @@ import Core.Mod.Book.Id.Id (BookId)
 import Core.Mod.Book.Name.Name as Book
 import Core.Mod.Book.Year.Year (Year)
 import Core.Mod.Image.Image (Image)
-import Data.Maybe (Maybe, isJust)
-import Data.Nullable (Nullable, toMaybe)
+import Data.Maybe (Maybe(..), isJust)
+
 import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl)
 import Foreign (Foreign)
 import Data.Traversable (traverse)
@@ -20,6 +20,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Newtype (class Newtype)
 import Util.Type.Random (class Random)
 import Data.Array as Array
+import Control.Alt ((<|>))
 
 type Author =
   { id :: AuthorId
@@ -60,6 +61,10 @@ make books = Books
   , hasAtLeastOneCover: Array.any (isJust ◁ _.cover) books
   }
 
+updateBookCover :: BookId -> Maybe Image -> Books -> Books
+updateBookCover bookId cover (Books record) =
+  make $ record.books <#> \book -> book.id == bookId ? book { cover = cover } ↔ book
+
 derive instance Newtype Books _
 derive instance Generic Books _
 derive instance Eq Books
@@ -71,12 +76,12 @@ derive newtype instance WriteForeign Books
 instance ReadForeign Books where
   readImpl json = do
     obj <- readImpl json
-    booksJson <- (Foreign.Index.readProp "books" obj >>= readImpl)
+    booksJson <- (Foreign.Index.readProp "books" obj >>= readImpl) <|> pure []
     books <- traverse decodeBookJson booksJson
-    ids <- (Foreign.Index.readProp "ids" obj >>= readImpl)
-    names <- (Foreign.Index.readProp "names" obj >>= readImpl)
-    authors <- (Foreign.Index.readProp "authors" obj >>= readImpl)
-    hasAtLeastOneCover <- (Foreign.Index.readProp "hasAtLeastOneCover" obj >>= readImpl)
+    ids <- (Foreign.Index.readProp "ids" obj >>= readImpl) <|> pure []
+    names <- (Foreign.Index.readProp "names" obj >>= readImpl) <|> pure []
+    authors <- (Foreign.Index.readProp "authors" obj >>= readImpl) <|> pure { ids: [], names: [] }
+    hasAtLeastOneCover <- (Foreign.Index.readProp "hasAtLeastOneCover" obj >>= readImpl) <|> pure false
     η $ Books { books, ids, names, authors, hasAtLeastOneCover }
 
 decodeBookJson :: Foreign -> Foreign.F Book
@@ -84,11 +89,11 @@ decodeBookJson json = do
   obj <- readImpl json
   id <- (Foreign.Index.readProp "id" obj >>= readImpl)
   name <- (Foreign.Index.readProp "name" obj >>= readImpl)
-  year <- (Foreign.Index.readProp "year" obj >>= readImpl)
-  cover <- (Foreign.Index.readProp "cover" obj >>= readImpl)
-  authorsJson <- (Foreign.Index.readProp "authors" obj >>= readImpl)
+  year <- (Foreign.Index.readProp "year" obj >>= readImpl) <|> pure Nothing
+  cover <- (Foreign.Index.readProp "cover" obj >>= readImpl) <|> pure Nothing
+  authorsJson <- (Foreign.Index.readProp "authors" obj >>= readImpl) <|> pure []
   authors <- traverse decodeAuthorJson authorsJson
-  editor <- (Foreign.Index.readProp "editor" obj >>= readImpl)
+  editor <- (Foreign.Index.readProp "editor" obj >>= readImpl) <|> pure Nothing
   η { id, name, year, cover, authors, editor }
 
 decodeAuthorJson :: Foreign -> Foreign.F Author
@@ -97,4 +102,3 @@ decodeAuthorJson json = do
   id <- (Foreign.Index.readProp "id" obj >>= readImpl)
   name <- (Foreign.Index.readProp "name" obj >>= readImpl)
   η { id, name }
-

@@ -17,7 +17,8 @@ type SerializeOptions =
   , domain :: String
   }
 
-foreign import serializeImpl :: String -> String -> SerializeOptions -> String
+foreign import serializeImpl :: String -> String -> Int -> Boolean -> String -> Boolean -> String -> String -> String
 
 serialize :: String -> String -> SerializeOptions -> String
-serialize = serializeImpl
+serialize name val { maxAge, httpOnly, path, secure, sameSite, domain } =
+  serializeImpl name val maxAge httpOnly path secure sameSite domain

@@ -6,6 +6,7 @@ import Proem
 
 import Inter.Ui.Page.Article.Type (Action(..), ArticleM)
 import Inter.Ui.Page.Article.HandleAction.Load (load)
+import Inter.Ui.Page.Article.HandleAction.LoadBookAuthorInfo (loadBookAuthorInfo)
 import Inter.Ui.Page.Article.HandleAction.Receive (receive)
 import Inter.Ui.Page.Article.HandleAction.Initialize (initialize)
 
@@ -23,6 +24,8 @@ handleAction = case _ of
   Load -> load
   Receive input -> receive input
   HandleArticleCardOutput _ -> ηι
+  HandleAdLinkOutput _ -> ηι
+  LoadBookAuthorInfo id -> loadBookAuthorInfo id
   ClickAuthor e authorInfo -> do
     ʌ $ H.liftEffect $ stopPropagation (MouseEvent.toEvent e)
     ʌ $ H.liftEffect $ preventDefault (MouseEvent.toEvent e)

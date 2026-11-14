@@ -5,7 +5,9 @@ import Yoga.JSON.Generics.TaggedSumRep (defaultOptions)
 import Proem hiding (add)
 import Control.Monad.Except as Control.Monad.Except
 
+import Core.Event.BookCoverCorrected.Payload as BookCoverCorrected
 import Core.Event.BookDereferenced.Payload as BookDereferenced
+import Core.Event.BookEditorCorrected.Payload as BookEditorCorrected
 import Core.Event.BookReferenced.Payload as BookReferenced
 import Core.Event.Event (Event(..), LoadedEvent)
 import Core.Exception.Exception (inj)
@@ -20,8 +22,8 @@ import Core.Mod.Image.Image (Image)
 import Core.Mod.Projection.Finder.Filter (class IsFilter, EqualsUpToNormalization(..), Matches(..), StrictlyEquals(..), Weight, by, compile)
 import Core.Mod.Projection.Finder.Filter as Base
 import Core.Mod.Projection.Finder.Finder (Find, FindOpt, Page, findMany_)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary, persistenceKeyFromKey)
-import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases, persistenceKeyFromKey)
+import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce, delete, patch)
 import Core.Mod.Projection.SearchIndex (EveryTextIndexesWithWeightA, RawIndexOnly, everyTextIndexesWithWeightA, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
 import Core.Util.Validation (class IsRefinedType)
@@ -45,12 +47,12 @@ instance
     "searchBooksProjectionWriteOps"
     (SEARCH_BOOKS_PROJECTION_WRITE_OPS ())
     "searchBooksProjectionReadSyncProject"
-    { searchBooks :: Book }
-    { searchBooks :: BookIndexNeeds }
-    { searchBooks :: Record BookSortRow }
+    { book :: Book }
+    { book :: BookIndexNeeds }
+    { book :: Record BookSortRow }
   where
   indexNeeds =
-    { searchBooks:
+    { book:
         { id: rawIndexOnly
         , name: everyTextIndexesWithWeightA
         , year:
@@ -73,12 +75,15 @@ type BookSortRow =
   , name :: Ɩ
   )
 
-instance IsPair BookKey Book BookRecord BookIndexNeeds BookSortRow "searchBooks" "searchBooksBooks" "searchBooksProjectionReadFind" SearchBooksProjection where
+instance IsPair BookKey Book BookRecord BookIndexNeeds BookSortRow "book" "books" "searchBooksProjectionReadFind" SearchBooksProjection where
   toKey (Book { id }) = BookKey id
 
   single = false
 
 newtype Book = Book BookRecord
+
+instance ToAliases Book where
+  toAliases _ = []
 
 type BookRecord =
   { id :: BookId
@@ -111,8 +116,9 @@ derive newtype instance Random Book
 newtype BookKey = BookKey BookId
 
 derive instance Newtype BookKey _
-instance ToAliasedPrimary BookKey where
-  toAliasedPrimary (BookKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary BookKey where
+  toPrimary (BookKey id) = toString id
+
 derive newtype instance Eq BookKey
 derive newtype instance Ord BookKey
 
@@ -201,6 +207,11 @@ play :: ∀ fx. LoadedEvent -> Run (SEARCH_BOOKS_PROJECTION_WRITE_OPS fx) Ɩ
 play { event } = case event of
   BookReferenced payload -> onBookReferenced payload
   BookDereferenced payload -> onBookDereferenced payload
+  BookEditorCorrected payload -> onBookEditorCorrected payload
+  BookCoverCorrected payload -> onBookCoverCorrected payload
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   AuthorReferenced _ -> ηι
   AuthorDereferenced _ -> ηι
   MagazineIssueReferenced _ -> ηι
@@ -233,4 +244,8 @@ onBookReferenced { id, name, year, cover, authors, editor, legacyId } = add $ Bo
 onBookDereferenced :: ∀ fx. BookDereferenced.Payload -> Run (SEARCH_BOOKS_PROJECTION_WRITE_OPS fx) Ɩ
 onBookDereferenced { book } = delete $ BookKey book
 
+onBookEditorCorrected :: ∀ fx. BookEditorCorrected.Payload -> Run (SEARCH_BOOKS_PROJECTION_WRITE_OPS fx) Ɩ
+onBookEditorCorrected { book, editor } = patch (BookKey book) \(Book b) -> Book (b { editor = editor })
 
+onBookCoverCorrected :: ∀ fx. BookCoverCorrected.Payload -> Run (SEARCH_BOOKS_PROJECTION_WRITE_OPS fx) Ɩ
+onBookCoverCorrected { book, cover } = patch (BookKey book) \(Book b) -> Book (b { cover = cover })

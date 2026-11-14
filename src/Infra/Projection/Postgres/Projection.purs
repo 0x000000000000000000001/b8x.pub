@@ -3,15 +3,17 @@ module Infra.Projection.Postgres.Projection where
 import Proem
 
 import Control.Parallel (parTraverse)
-import Core.Mod.Projection.Pair (Key)
+import Core.Mod.Projection.Pair (Key, getPrimary, getAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps(..), indexPaths)
 import Core.Mod.Projection.SearchIndex (IndexPaths)
 import Core.Mod.Projection.SyncProject (SyncProject(..))
 import Foreign (Foreign)
 import Foreign as Foreign
-import Yoga.JSON (readImpl, writeImpl)
+import Yoga.JSON (readImpl, writeImpl, writeJSON)
 import Foreign.Index (readProp)
-import Control.Monad.Except (runExcept)
+import Control.Monad.Except (ExceptT, runExcept)
+import Util.Log.Info (info)
+import Util.Foreign.Native as Native
 import Data.Array as Array
 import Data.Either (Either(..), hush, isLeft)
 import Data.Foldable (traverse_)
@@ -104,8 +106,8 @@ handleProjectionWriteCopyPersist (Persist next) = do
         innerKey = unwrap key
         tableName = innerKey.pluralType
 
-        primaryKey = innerKey.primary ??⇒ ""
-        aliases = innerKey.aliases
+        primaryKey = getPrimary key ??⇒ ""
+        aliases = getAliases key
 
         -- Note: A scalar JSONB value uniquely constrains null collisions on 'null'::jsonb effectively.
         sql = "INSERT INTO " <> Postgres.escapeIdentifier (projectionSchemaName @name) <> "." <> Postgres.escapeIdentifier (caseToSnake tableName) <> " (key, key_aliases, value) VALUES ($1, $2, $3) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, key_aliases = EXCLUDED.key_aliases, updated_at = (NOW() AT TIME ZONE 'UTC') RETURNING EXTRACT(EPOCH FROM updated_at)::varchar AS updated_at"
@@ -129,23 +131,24 @@ handleProjectionWriteCopyPersist (Persist next) = do
         innerKey = unwrap key
         tableName = innerKey.pluralType
 
-        primaryKey = innerKey.primary ??⇒ ""
+        primaryKey = getPrimary key ??⇒ ""
 
         sql = "DELETE FROM " <> Postgres.escapeIdentifier (projectionSchemaName @name) <> "." <> Postgres.escapeIdentifier (caseToSnake tableName) <> " WHERE key = $1 RETURNING key_aliases"
 
         params = [ writeImpl primaryKey ]
 
       rows <- queryWithRetry @p innerKey.singularType tableName sql params
-      
-      let
-        deletedAliases = case rows of
-          [ row ] -> case runExcept (readProp "key_aliases" row >>= readImpl) of
-            Right (al :: Array String) -> al
-            _ -> []
-          _ -> []
+
+      deletedAliases <- case rows of
+        [ row ] -> case runExcept (readProp "key_aliases" row >>= readImpl) of
+          Right (al :: Array String) -> η al
+          Left err -> do
+            info $ "FAILED TO PARSE key_aliases! Row: " <> writeJSON row <> " Error: " <> show err
+            η []
+        _ -> η []
 
       let allKeys = [ primaryKey ] <> deletedAliases
-      
+
       allKeys # traverse_ \k -> do
         let hashFileName = cacheDir <> "/" <> caseToSnake (projectionSchemaName @name) <> "_" <> caseToSnake innerKey.pluralType <> "_" <> k <> "_hash.json"
         ø $ ʌ' $ attempt $ FS.unlink hashFileName
@@ -181,7 +184,7 @@ copy key = do
 
       let
         sql = "SELECT value FROM " <> Postgres.escapeIdentifier (projectionSchemaName @name) <> "." <> Postgres.escapeIdentifier (caseToSnake tableName) <> " WHERE key = $1"
-        params = [ writeImpl $ (unwrap key).primary ??⇒ "" ]
+        params = [ writeImpl $ getPrimary key ??⇒ "" ]
 
       rows <- queryWithRetry @p innerKey.singularType tableName sql params
 
@@ -190,7 +193,15 @@ copy key = do
           [ row ] ->
             case runExcept (readImpl row >>= readProp "value") of
               Left _ -> Nothing
-              Right value -> Just value
+              Right jsonVal ->
+                let
+                  parsedVal = case runExcept (readImpl jsonVal :: ExceptT _ _ String) of
+                    Right (s :: String) -> case Native.parseJSON s of
+                      Right p -> p
+                      Left _ -> jsonVal
+                    Left _ -> jsonVal
+                in
+                  Just parsedVal
           _ -> Nothing
 
       State.modifyAt (π :: Π copyOnWriteStateEffSym) $ Map.insert key (Remote result)
@@ -221,7 +232,7 @@ ensureProjectionTable
   => String
   -> String
   -> Run (READER_POSTGRES_EDGE_CLIENT + EFFECT + AFF + fx) Ɩ
-ensureProjectionTable singularType tableName = ø $ Postgres.queryEdge (tableCreationSql (projectionSchemaName @name) tableName (indexPaths @p singularType)) []
+ensureProjectionTable singularType tableName = ø $ Postgres.queryCountEdge (tableCreationSql (projectionSchemaName @name) tableName (indexPaths @p singularType)) []
 
 tableCreationSql :: String -> String -> IndexPaths -> String
 tableCreationSql schemaNameRaw tableNameRaw indexPaths =
@@ -241,6 +252,7 @@ tableCreationSql schemaNameRaw tableNameRaw indexPaths =
       CREATE EXTENSION IF NOT EXISTS pg_trgm;
       CREATE EXTENSION IF NOT EXISTS rum;
       CREATE EXTENSION IF NOT EXISTS unaccent;
+      CREATE EXTENSION IF NOT EXISTS vector;
 
       CREATE SCHEMA IF NOT EXISTS fts;
 

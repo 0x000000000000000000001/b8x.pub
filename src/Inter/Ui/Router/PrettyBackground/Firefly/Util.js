@@ -1,4 +1,6 @@
 export const initFirefly = (varXName) => (varYName) => (satelliteVarXName) => (satelliteVarYName) => (satelliteClass) => (el) => () => {
+  if (window.innerWidth <= 1024) return () => {};
+  
   const container = el.parentElement;
 
   if (!container) return () => {};

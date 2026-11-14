@@ -11,7 +11,9 @@ import Inter.Ui.Page.Article.Component as ArticleComponent
 import Inter.Ui.Router.Type (Action(..), Slots)
 import Inter.Ui.UiM (UiM)
 
-article :: Route -> ComponentHTML Action Slots UiM
-article route = case route of
-  Article slug _ -> ArticleComponent.article { slug } HandleArticleOutput
-  _ -> ArticleComponent.article { slug: unsafeFromString "" } HandleArticleOutput
+import Inter.Ui.Type.Device (Device)
+
+article :: Device -> Route -> ComponentHTML Action Slots UiM
+article device route = case route of
+  Article slug _ -> ArticleComponent.article { slug, context: device } HandleArticleOutput
+  _ -> ArticleComponent.article { slug: unsafeFromString "", context: device } HandleArticleOutput

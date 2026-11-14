@@ -3,11 +3,10 @@ module Infra.Client.Aws.Ses.Ses where
 import Proem
 
 import Config.InternalConfig (MailConfig)
-import Promise.Aff (Promise, toAffE)
-import Promise.Internal as PromiseInternal
 import Data.Maybe (Maybe(..))
-import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
+import Effect.Uncurried (EffectFn3, runEffectFn3)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
 import Run (AFF, EFFECT, Run)
@@ -40,9 +39,9 @@ createClient config = do
   η $ { clientRef, config }
 
 createInnerClient :: ∀ m. MonadAff m => MailConfig -> m InnerClient
-createInnerClient { ses: { region, accessKeyId, secretAccessKey } } = ʌ $ _createInnerClient region accessKeyId secretAccessKey
+createInnerClient { ses: { region, accessKeyId, secretAccessKey } } = ʌ $ runEffectFn3 _createInnerClient region accessKeyId secretAccessKey
 
-foreign import _createInnerClient :: String -> String -> String -> Effect InnerClient
+foreign import _createInnerClient :: EffectFn3 String String String InnerClient
 
 type Contact =
   { email :: String
@@ -63,13 +62,11 @@ type MailOptions =
   | MinMailOptionsRow
   }
 
-foreign import _sendMailImpl :: forall newFn. newFn -> InnerClient -> MailOptions -> Effect (Promise Unit)
-
-_sendMail :: InnerClient -> MailOptions -> Effect (Promise Unit)
-_sendMail = _sendMailImpl PromiseInternal.new
+foreign import _sendMailImpl :: InnerClient -> String -> String -> String -> String -> String -> String -> String -> EffectFnAff Unit
 
 sendMail_ :: ∀ m. MonadAff m => InnerClient -> MailOptions -> m Ɩ
-sendMail_ client opt = ʌ' $ toAffE $ _sendMail client opt
+sendMail_ client { from: { name: fromName, email: fromEmail }, to: { name: toName, email: toEmail }, subject, text, html } =
+  ʌ' $ fromEffectFnAff $ _sendMailImpl client fromName fromEmail toName toEmail subject text html
 
 sendTransactionalMail_ :: ∀ m. MonadAff m => InnerClient -> MailConfig -> MinMailOptions -> m Ɩ
 sendTransactionalMail_ client config { to, subject, text, html } = do

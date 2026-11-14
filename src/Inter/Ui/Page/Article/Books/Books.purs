@@ -2,57 +2,57 @@ module Inter.Ui.Page.Article.Books.Books
   ( books
   ) where
 
-import Proem hiding (div)
+import Proem
+
 import Core.Message.Query.Result (Fold(..), Return(..))
-import Inter.Ui.Type.Model (UiArticle, UiBook)
 import Data.Array as Array
-import Data.Maybe (Maybe(..))
-import Core.Mod.Html.Html as Html
-import Data.Newtype (unwrap)
 import Data.Enum (fromEnum)
-import Inter.Ui.Page.Article.Type (Action(..))
-import Halogen.HTML.Events (onClick)
-import Halogen.HTML (HTML, text, span)
-import Halogen.HTML.Properties (class_)
-import Halogen as Halogen
-import Util.Html.Clean.Render.Render (render, renderArray)
+import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
+import Halogen (ComponentHTML)
+import Halogen.HTML (text)
+import Inter.Ui.Page.Article.Books.Author.Author (author)
 import Inter.Ui.Page.Article.Books.Style as Style
 import Inter.Ui.Page.Article.Hero.Illustration.Image.Image (image)
-import Inter.Ui.Type.InstanceId (InstanceId)
+import Inter.Ui.Page.Article.Type (Action, State)
+import Inter.Ui.Type.Model (UiArticle, UiBook)
+import Inter.Ui.UiM (UiM)
+import Util.Html.Clean.Clean (untagOnly)
+import Util.Html.Clean.Render.Render (SanitizedHtmlString(..), render)
 
-books :: ∀ w r. { id :: InstanceId | r } -> UiArticle -> HTML w Action
+books :: ∀ slots. State -> UiArticle -> ComponentHTML Action slots UiM
 books state article = case article.books of
   Given (Unfolded bookList)
     | Array.length bookList > 0 ->
         Style.booksContainer_ state.id
           [ Style.watermark_ state.id [ text (if Array.length bookList > 1 then "LES LIVRES" else "LE LIVRE") ]
           , Style.sectionTitle_ state.id [ text (if Array.length bookList > 1 then "Les Livres" else "Le Livre") ]
-          , Style.booksList_ state.id (bookList <#> renderBook state.id)
+          , Style.booksList_ state.id (bookList <#> renderBook state)
           ]
   _ -> text ""
 
-renderBook :: ∀ p. InstanceId -> UiBook -> HTML p Action
-renderBook id book =
-  Style.bookCard_ id
-    [ Style.bookCover_ id
+renderBook :: ∀ slots. State -> UiBook -> ComponentHTML Action slots UiM
+renderBook state book =
+  Style.bookCard_ state.id
+    [ Style.bookCover_ state.id
         [ case book.cover of
-            Given (Just img) -> case img.src of
-              Given src -> image { id } src true
+            Given (Just coverImage) -> case coverImage.src of
+              Given src -> image { id: state.id } src true
               _ -> text ""
             _ -> text ""
         ]
-    , Style.bookInfo_ id
+    , Style.bookInfo_ state.id
         [ case book.name of
-            Given name -> Style.bookTitle_ id [ render name ]
+            Given name -> Style.bookTitle_ state.id [ render (SanitizedHtmlString (untagOnly ["p"] true (unwrap name))) ]
             _ -> text ""
         , case book.authors of
-            Given authorsList -> Style.bookAuthors_ id (Array.intercalate [text ", "] (map (\a -> [ span [ class_ (Halogen.ClassName "authorLink"), onClick \e -> ClickAuthor e { id: a.id, name: Html.unsafeFromString (unwrap a.name), ofBook: true } ] (renderArray a.name) ]) authorsList))
+            Given authorsList -> Style.bookAuthors_ state.id (Array.intercalate [ text ", " ] (authorsList <#> \bookAuthor -> [ author state bookAuthor ]))
             _ -> text ""
         , case book.editor of
-            Given (Just editorName) -> Style.bookEditor_ id [ render editorName ]
+            Given (Just editorName) -> Style.bookEditor_ state.id [ render editorName ]
             _ -> text ""
         , case book.year of
-            Given (Just y) -> Style.bookYear_ id [ text (if (unwrap y).approximately then "vers " <> show (fromEnum (unwrap (unwrap y).year)) else show (fromEnum (unwrap (unwrap y).year))) ]
+            Given (Just y) -> Style.bookYear_ state.id [ text (if (unwrap y).approximately then "vers " <> show (fromEnum (unwrap (unwrap y).year)) else show (fromEnum (unwrap (unwrap y).year))) ]
             _ -> text ""
         ]
     ]

@@ -1,0 +1,22 @@
+services:
+  pilot:
+    # --tlsskipverify lets us use the docker API through its socket since it is http and portainer is in https
+    command: -H unix:///var/run/docker.sock --tlsskipverify --admin-password-file /tmp/admin-password --sslcert /certs/server.crt --sslkey /certs/server.key
+    restart: always
+    networks:
+      - compose-default
+    labels:
+      x.traefik.gateway: 'pilot-gateway'
+      traefik.enable: 'true'
+      traefik.tcp.routers.spilot.rule: 'HostSNI(`pilot.localhost`) || HostSNI(`${PILOT_DNS_LEVEL_3_GTE}`)'
+      traefik.tcp.routers.spilot.entrypoints: 'spilot'
+      traefik.tcp.routers.spilot.service: 'spilot@docker'
+      traefik.tcp.routers.spilot.tls: 'true'
+      traefik.tcp.routers.spilot.tls.passthrough: 'true'
+      traefik.tcp.services.spilot.loadbalancer.server.port: '9443'
+
+  pilot-gateway:
+    ports:
+      - 9443:9443
+    networks:
+      - compose-default

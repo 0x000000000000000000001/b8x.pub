@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "dependencies": {
+    "rand": { "version": "=0.10.2" }
+  }
+}

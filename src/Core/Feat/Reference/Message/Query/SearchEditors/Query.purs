@@ -1,5 +1,4 @@
 module Core.Feat.Reference.Message.Query.SearchEditors.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -9,7 +8,7 @@ import Core.Feat.Reference.Message.Query.SearchEditors.Projection.Projection (Ed
 import Core.Feat.Reference.Message.Query.SearchEditors.Result (Result)
 import Core.Feat.Reference.Message.Query.SearchEditors.State (State)
 import Core.Mod.Projection.Finder.BoundedLimit.BoundedLimit (BoundedLimit(..))
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
@@ -33,7 +32,7 @@ instance IsQuery SearchEditors State Fields Payload Result where
   description = "Search editors"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Editor Nothing
+    hash <- getReadModelHash @Editor HashAll
     η $ defaultCached hash
 
   handle (SearchEditors { filter, limit: BoundedLimit limit_, expectation, after, needs }) = do

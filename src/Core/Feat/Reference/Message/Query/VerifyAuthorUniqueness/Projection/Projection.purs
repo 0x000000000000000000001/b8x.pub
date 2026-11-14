@@ -11,7 +11,7 @@ import Core.Mod.Author.Name.Name (Name)
 import Core.Mod.Author.LegacyIds.LegacyIds (LegacyIds)
 import Core.Mod.Projection.Finder.Filter (Matches(..), noLimit)
 import Core.Mod.Projection.Finder.Finder (Find, findManyBy)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, delete, coerce, noAfter)
 import Core.Mod.Projection.SearchIndex (EveryTextIndexesWithWeightA, InvertedIndexOnly, RawIndexOnly, everyTextIndexesWithWeightA, invertedIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -31,12 +31,12 @@ instance
     "verifyAuthorUniquenessProjectionWriteOps"
     (VERIFY_AUTHOR_UNIQUENESS_PROJECTION_WRITE_OPS ())
     "verifyAuthorUniquenessProjectionReadSyncProject"
-    { verifyAuthorUniqueness :: Author }
-    { verifyAuthorUniqueness :: AuthorIndexNeeds }
-    { verifyAuthorUniqueness :: Record () }
+    { author :: Author }
+    { author :: AuthorIndexNeeds }
+    { author :: Record () }
   where
   indexNeeds =
-    { verifyAuthorUniqueness:
+    { author:
         { id: rawIndexOnly
         , name: everyTextIndexesWithWeightA
         , legacyIds: invertedIndexOnly
@@ -57,8 +57,8 @@ instance
     AuthorRecord
     AuthorIndexNeeds
     ()
-    "verifyAuthorUniqueness"
-    "verifyAuthorUniquenessAuthors"
+    "author"
+    "authors"
     "verifyAuthorUniquenessProjectionReadFind"
     VerifyAuthorUniquenessProjection
   where
@@ -66,6 +66,9 @@ instance
   single = false
 
 newtype Author = Author AuthorRecord
+
+instance ToAliases Author where
+  toAliases _ = []
 
 type AuthorRecord =
   { id :: AuthorId
@@ -90,8 +93,8 @@ derive newtype instance Show Author
 newtype AuthorKey = AuthorKey AuthorId
 
 derive instance Newtype AuthorKey _
-instance ToAliasedPrimary AuthorKey where
-  toAliasedPrimary (AuthorKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary AuthorKey where
+  toPrimary (AuthorKey id) = toString id
 derive newtype instance Eq AuthorKey
 derive newtype instance Ord AuthorKey
 
@@ -117,6 +120,11 @@ play { event } = case event of
   AuthorDereferenced payload -> onAuthorDereferenced payload
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   EditorReferenced _ -> ηι
   EditorDereferenced _ -> ηι
   MagazineIssueReferenced _ -> ηι

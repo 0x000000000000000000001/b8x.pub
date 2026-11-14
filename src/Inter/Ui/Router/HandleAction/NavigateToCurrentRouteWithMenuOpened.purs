@@ -11,7 +11,6 @@ import Inter.Ui.Capability.Navigate.Navigate (Route(..))
 import Inter.Ui.Capability.Navigate.Trans (navigate)
 import Inter.Ui.Router.Type (RouteM)
 
-
 navigateToCurrentRouteWithMenuOpened :: Maybe String -> Maybe { id :: AuthorId, name :: Author.Name, ofBook :: Boolean } -> Maybe Slug -> RouteM Ɩ
 navigateToCurrentRouteWithMenuOpened query authorFilter magazineIssueOpen = do
   let
@@ -25,9 +24,13 @@ navigateToCurrentRouteWithMenuOpened query authorFilter magazineIssueOpen = do
 
   route <- gets _.route
   case route of
-    Just (Home r) -> navigate (Home r { menu { search = updateSearch r.menu.search, magazineIssueOpen = magazineIssueOpen } })
+    Just (Home r) -> do
+      navigate (Home r { menu { search = updateSearch r.menu.search, magazineIssueOpen = magazineIssueOpen } })
     Just (Theme slugTheme r) -> navigate (Theme slugTheme r { menu { search = updateSearch r.menu.search, magazineIssueOpen = magazineIssueOpen } })
     Just (Article slugArt r) -> navigate (Article slugArt r { menu { search = updateSearch r.menu.search, magazineIssueOpen = magazineIssueOpen } })
     Just (Donate r) -> navigate (Donate r { menu { search = updateSearch r.menu.search, magazineIssueOpen = magazineIssueOpen } })
+    Just (About r) -> navigate (About r { menu { search = updateSearch r.menu.search, magazineIssueOpen = magazineIssueOpen } })
+    Just (Legal r) -> navigate (Legal r { menu { search = updateSearch r.menu.search, magazineIssueOpen = magazineIssueOpen } })
+    Just (Newsletter r) -> navigate (Newsletter r { menu { search = updateSearch r.menu.search, magazineIssueOpen = magazineIssueOpen } })
     Just NotFound -> ηι
     Nothing -> ηι

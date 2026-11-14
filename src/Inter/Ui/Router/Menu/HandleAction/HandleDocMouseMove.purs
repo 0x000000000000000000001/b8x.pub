@@ -28,7 +28,8 @@ handleDocMouseMove mouseEvent = do
   when (open && not isDocMouseMoveThrottled) do
     modify_ _ { isDocMouseMoveThrottled = true }
     _ <- fork do
-      ʌ' $ delay $ Milliseconds 100.0
+      let delayDuration = Milliseconds 100.0
+      ʌ' $ delay delayDuration
       modify_ _ { isDocMouseMoveThrottled = false }
 
     mHtmlElement <- getHTMLElementRef ref
@@ -38,8 +39,9 @@ handleDocMouseMove mouseEvent = do
         rect <- ʌ $ getBoundingClientRect (toElement htmlElement)
 
         let
+          margin = 100.0
           x = toNumber $ clientX mouseEvent
-          threshold = rect.width - 1.0
+          threshold = rect.width + margin
 
         case hasMouseEntered of
           Just ref' -> do
@@ -48,7 +50,7 @@ handleDocMouseMove mouseEvent = do
               when (not hasMouseEnteredVal) do
                 ʌ $ Ref.write true ref'
             else do
-              when hasMouseEnteredVal do
+              when (hasMouseEnteredVal && threshold > margin) do
                 close Internal
           Nothing -> ηι
 

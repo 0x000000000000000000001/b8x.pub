@@ -9,7 +9,7 @@ import Core.Feat.Sitemap.Message.Query.ListYearArticles.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Mod.Projection.Finder.Expectation.Expectation (Expectation(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.Sort as Sort
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Enum (fromEnum)
@@ -34,7 +34,7 @@ instance IsQuery ListYearArticles State Fields Payload Result where
   description = "List all articles by year for sitemap"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Article Nothing
+    hash <- getReadModelHash @Article HashAll
     η $ defaultCached hash
 
   handle (ListYearArticles { year }) = do

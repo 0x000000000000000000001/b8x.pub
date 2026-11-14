@@ -1,0 +1,17 @@
+/var/log/cron.log {
+  rotate 12
+  daily
+  size 100M
+  compress
+  missingok
+  notifempty
+}
+
+/var/log/cron.error.log {
+  rotate 24
+  daily
+  size 100M
+  compress
+  missingok
+  notifempty
+}

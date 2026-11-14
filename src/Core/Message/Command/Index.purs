@@ -1,6 +1,7 @@
 module Core.Message.Command.Index
   ( Command(..)
   , CommandRow
+  , CommandAliasRow
   , WeakHeadCommand
   , WeakHeadCommandRow
   , class FindCommandLabel
@@ -8,10 +9,11 @@ module Core.Message.Command.Index
 
 import Proem
 
-import Core.Feat.Membership.Message.Command.Index (MembershipCommandRow)
-import Core.Feat.Newsletter.Message.Command.Index (NewsletterCommandRow)
-import Core.Feat.Reference.Message.Command.Index (ReferenceCommandRow)
-import Core.Feat.Review.Message.Command.Index (ReviewCommandRow)
+import Core.Feat.Membership.Message.Command.Index (MembershipCommandRow, MembershipCommandAliasRow)
+import Core.Feat.Newsletter.Message.Command.Index (NewsletterCommandRow, NewsletterCommandAliasRow)
+import Core.Feat.Reference.Message.Command.Index (ReferenceCommandRow, ReferenceCommandAliasRow)
+import Core.Feat.Review.Message.Command.Index (ReviewCommandRow, ReviewCommandAliasRow)
+
 import Foreign (Foreign)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Newtype (class Newtype)
@@ -30,6 +32,13 @@ type CommandRow =
     + ReferenceCommandRow
     + ReviewCommandRow
     + NewsletterCommandRow
+    + ()
+
+type CommandAliasRow =
+  MembershipCommandAliasRow
+    + ReferenceCommandAliasRow
+    + ReviewCommandAliasRow
+    + NewsletterCommandAliasRow
     + ()
 
 type WeakHeadCommand = { | WeakHeadCommandRow }

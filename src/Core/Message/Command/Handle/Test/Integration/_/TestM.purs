@@ -6,6 +6,7 @@ import Config.PublicConfig (READER_PUBLIC_CONFIG, publicConfig, runPublicConfigR
 
 import Core.Event.EventStore (EVENT_STORE)
 import Core.Exception.Index (EXCEPT_LOGIC, runLogicExcept)
+import Core.Message.Command.Handle.Download (DOWNLOAD, interpretDownloadWithMock)
 import Core.Message.Command.Handle.Upload (UPLOAD, interpretUploadWithMock)
 import Core.Feat.Effect.Newsletter (NEWSLETTER, interpretNewsletterWithMock)
 import Core.Feat.Effect.Generate (GENERATE, interpretGenerate)
@@ -39,6 +40,7 @@ type TEST =
     + PROJECTION
     + GENERATE
     + SLEEP
+    + DOWNLOAD
     + UPLOAD
     + NEWSLETTER
     + RATE_LIMIT
@@ -74,6 +76,7 @@ runTestM { postgresStoreClient, postgresEdgeClient, postgresStoreLockClient, rab
     # interpretProjectionWriteCopyPersist
     # interpretProjectionWriteOps
     # evalProjectionWriteCopyState
+    # interpretDownloadWithMock
     # interpretUploadWithMock
     # interpretNewsletterWithMock
     # interpretRateLimit

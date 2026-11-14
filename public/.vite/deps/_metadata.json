@@ -1,0 +1,56 @@
+{
+  "hash": "bd083112",
+  "configHash": "57dd02cb",
+  "lockfileHash": "e3b0c442",
+  "browserHash": "b0c6c85d",
+  "optimized": {
+    "dompurify": {
+      "src": "../../../run/bak/js/node_modules/dompurify/dist/purify.es.mjs",
+      "file": "dompurify.js",
+      "fileHash": "76c28ee5",
+      "needsInterop": false
+    },
+    "he": {
+      "src": "../../../run/bak/js/node_modules/he/he.js",
+      "file": "he.js",
+      "fileHash": "fce4ff89",
+      "needsInterop": true
+    },
+    "jsdom": {
+      "src": "../../../run/bak/js/node_modules/jsdom/lib/api.js",
+      "file": "jsdom.js",
+      "fileHash": "4e1a8b3d",
+      "needsInterop": true
+    },
+    "ulid": {
+      "src": "../../../run/bak/js/node_modules/ulid/dist/browser/index.js",
+      "file": "ulid.js",
+      "fileHash": "f9161fe3",
+      "needsInterop": false
+    },
+    "uuid": {
+      "src": "../../../run/bak/js/node_modules/uuid/dist/index.js",
+      "file": "uuid.js",
+      "fileHash": "e81a95ad",
+      "needsInterop": false
+    },
+    "wpautop": {
+      "src": "../../../run/bak/js/node_modules/wpautop/lib/wpautop.js",
+      "file": "wpautop.js",
+      "fileHash": "99843018",
+      "needsInterop": true
+    },
+    "xxhash-wasm": {
+      "src": "../../../run/bak/js/node_modules/xxhash-wasm/esm/xxhash-wasm.js",
+      "file": "xxhash-wasm.js",
+      "fileHash": "c62c2bc8",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-olfrzTEO": {
+      "file": "chunk-olfrzTEO.js",
+      "isDynamicEntry": false
+    }
+  }
+}

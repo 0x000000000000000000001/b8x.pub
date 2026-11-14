@@ -12,9 +12,11 @@ import Inter.Ui.Router.Menu.Type.State.State (_open)
 import Inter.Ui.Router.Menu.Type.State.ActivePanel (ActivePanel(..))
 import Inter.Ui.Type.ControlledState (ControlledState(..), _Controlled, _Uncontrolled, shouldUseControlledPrism)
 import Inter.Ui.Router.Menu.Type.State.Magazine as Magazine
+import Util.Html.Dom.Dom (setBodyOverflowHidden)
 
 open :: IntentOrigin -> MenuM Ɩ
 open intent = do
+  setBodyOverflowHidden "menu"
   useControlledPrism <- shouldUseControlledPrism intent _open
 
   modify_ (_open ◁ (useControlledPrism ? _Controlled ↔ _Uncontrolled) .~ true)

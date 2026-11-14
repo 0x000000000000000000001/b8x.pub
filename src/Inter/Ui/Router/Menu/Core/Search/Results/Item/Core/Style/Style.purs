@@ -7,7 +7,9 @@ import DOM.HTML.Indexed (HTMLdiv)
 import Halogen.HTML (HTML, IProp, div)
 import Util.Style.Classname (class_, generateStaticClass)
 import Util.Style.Layout (displayFlex)
+import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Selector ((.?))
+import Util.Style.Base (raw_)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Router.Menu.Core.Search.Results.Item.Core.Style.Style"
@@ -20,6 +22,9 @@ staticStyle = do
   staticClass .? do
     displayFlex
     flexDirection column
+
+    onTabletLte do
+      raw_ "display" "contents"
 
 core :: ∀ w i. Array (IProp HTMLdiv i) -> Array (HTML w i) -> HTML w i
 core props = div ([ class_ staticClass ] <> props)

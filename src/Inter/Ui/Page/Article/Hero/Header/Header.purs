@@ -3,9 +3,15 @@ module Inter.Ui.Page.Article.Hero.Header.Header
   , headerLoading
   ) where
 
+import Prelude ((/=), ($))
+
+import Core.Mod.Time.Instant (toHumanParisDate)
+
 import Core.Message.Query.Result (Return(..))
 import Inter.Ui.Type.Model (UiArticle)
 import Inter.Ui.Type.InstanceId (InstanceId)
+import Data.Array as Array
+import Data.String (Pattern(..), split)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Util.Type.String.ToString (toString)
 import Inter.Ui.Capability.ArticleCache.ArticleCache (AlreadyKnown)
@@ -17,9 +23,14 @@ import Inter.Ui.Page.Article.Hero.Type (IllustrationLayout)
 import Inter.Ui.Page.Article.Type (Action)
 import Util.Html.Clean.Render.Render (SanitizedHtmlString(..))
 import Halogen (ComponentHTML)
+import Halogen.HTML (div, text)
+import Halogen as Halogen
+import Halogen.HTML.Properties as HP
 import Inter.Ui.UiM (UiM)
+import Data.Array (head)
+import Inter.Ui.Type.Device (Device)
 
-header :: ∀ slots r. { id :: InstanceId | r } -> IllustrationLayout -> UiArticle -> ComponentHTML Action slots UiM
+header :: ∀ slots r. { id :: InstanceId, context :: Device | r } -> IllustrationLayout -> UiArticle -> ComponentHTML Action slots UiM
 header state layout articleData =
   let
     titleTxt = case articleData.title of
@@ -57,14 +68,19 @@ header state layout articleData =
         Given p -> p
         _ -> Nothing
       _ -> Nothing
+      
+    writtenAtTxt = case articleData.writtenAt of
+      Given i -> fromMaybe (toHumanParisDate i) $ head $ split (Pattern " à ") (toHumanParisDate i)
+      _ -> ""
   in
     Style.header_ state.id layout
       [ title state titleTxt
       , author state layout mAuthorId authorTxt mAuthorBio mAuthorPortrait
+      , if writtenAtTxt /= "" then div [ HP.class_ (Halogen.ClassName "articleDate") ] [ text writtenAtTxt ] else text ""
       , lead state leadTxt
       ]
 
-headerLoading :: ∀ slots r. { id :: InstanceId | r } -> IllustrationLayout -> Maybe AlreadyKnown -> ComponentHTML Action slots UiM
+headerLoading :: ∀ slots r. { id :: InstanceId, context :: Device | r } -> IllustrationLayout -> Maybe AlreadyKnown -> ComponentHTML Action slots UiM
 headerLoading state layout mKnown =
   let
 
@@ -87,9 +103,14 @@ headerLoading state layout mKnown =
     leadTxt = case mKnown of
       Just known -> if known.lead.isFallback then SanitizedHtmlString "" else fromMaybe (SanitizedHtmlString "") known.lead.lead
       Nothing -> SanitizedHtmlString ""
+
+    writtenAtTxt = case mKnown of
+      Just known -> fromMaybe (toHumanParisDate known.writtenAt) $ Array.head $ split (Pattern " à ") (toHumanParisDate known.writtenAt)
+      Nothing -> ""
   in
     Style.header_ state.id layout
       [ title state titleTxt
       , author state layout mAuthorIdLoading authorTxt Nothing Nothing
+      , if writtenAtTxt /= "" then div [ HP.class_ (Halogen.ClassName "articleDate") ] [ text writtenAtTxt ] else text ""
       , lead state leadTxt
       ]

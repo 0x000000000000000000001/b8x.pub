@@ -75,11 +75,11 @@ type TransportOptions =
       }
   }
 
-foreign import _createTransport :: TransportOptions -> Effect Transport
+foreign import _createTransport :: String -> Int -> String -> String -> Effect Transport
 foreign import _createTestTransport :: Effect (Promise Transport)
 
 createTransport :: ∀ m. MonadAff m => TransportOptions -> m Transport
-createTransport opt = ʌ $ _createTransport opt
+createTransport { host, port, auth: { user, pass } } = ʌ $ _createTransport host port user pass
 
 createTestTransport :: ∀ m. MonadAff m => m Transport
 createTestTransport = ʌ' $ toAffE _createTestTransport
@@ -93,10 +93,11 @@ type MailOptions =
   , replyTo :: String
   }
 
-foreign import _sendMail :: Transport -> MailOptions -> Effect (Promise Ɩ)
+foreign import _sendMail :: Transport -> String -> String -> String -> String -> String -> String -> Effect (Promise Ɩ)
 
 sendMail_ :: ∀ m. MonadAff m => Transport -> MailOptions -> m Ɩ
-sendMail_ transport opt = ʌ' $ toAffE $ _sendMail transport opt
+sendMail_ transport { from, to, subject, text, html, replyTo } =
+  ʌ' $ toAffE $ _sendMail transport from to subject text html replyTo
 
 sendMail :: ∀ fx. MailOptions -> Run (READER_NODEMAILER_CLIENT + EFFECT + AFF + fx) Ɩ
 sendMail opt = do

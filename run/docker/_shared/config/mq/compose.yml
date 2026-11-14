@@ -1,0 +1,7 @@
+services:
+  mq:
+    ports:
+      - 5672:5672
+    restart: always
+    networks:
+      - compose-default

@@ -14,7 +14,7 @@ import Effect.Class (liftEffect)
 
 import Inter.Ui.Capability.Store.Trans (updateStore)
 import Inter.Ui.Capability.Toast.Trans (toast)
-import Inter.Ui.Remote (getCsrfToken)
+import Inter.Ui.Api.CsrfToken (getCsrfToken)
 import Inter.Ui.Router.Menu.Type.MenuM (MenuM)
 import Inter.Ui.Store.Store as GlobalStore
 import Inter.Ui.Type.Toast (ToastType(..))

@@ -1,0 +1,46 @@
+# This is a template, that will be populated by our scripts.
+
+tls:
+  # TLS v1 and v1.1 are insecure. We should only use v1.2 and v1.3, at least.
+  # Wanna test?
+  #     Run: sslyze --tlsv1 --tlsv1_1 --tlsv1_2 --tlsv1_3 {HOST}
+  #     You should have "Attempted to connect using 80 cipher suites; the server rejected all cipher suites.", for v1 and v1.1.
+  # You may also go to https://www.ssllabs.com/ssltest, to know which cipher suites are supported are secure.
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+  certificates: []
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /etc/traefik/certs/default.crt
+        keyFile: /etc/traefik/certs/default.key
+
+http:
+  routers:
+    webserver:
+      rule: ''
+      priority: 1
+      entrypoints: 'web'
+      service: 'webserver'
+    swebserver:
+      rule: ''
+      priority: 1
+      entrypoints: 'sweb'
+      service: 'swebserver'
+      tls:
+        certresolver: 'main'
+
+  services:
+    webserver:
+      loadBalancer:
+        servers:
+          - url: 'http://webserver'
+    swebserver:
+      loadBalancer:
+        servers:
+          - url: 'https://webserver'

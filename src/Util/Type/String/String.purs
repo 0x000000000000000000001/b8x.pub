@@ -1,5 +1,5 @@
 module Util.Type.String.String
-  (Case(..)
+  ( Case(..)
   , Token(..)
   , caseTo
   , caseToCamel
@@ -66,7 +66,7 @@ padLeft width padChar str =
   let
     padding = width - length str
   in
-    (padding <= 0
+    ( padding <= 0
         ? str
         ↔ (fromCharArray (replicate padding padChar) <> str)
     )
@@ -86,7 +86,7 @@ padRight width padChar str =
   let
     padding = width - length str
   in
-    (padding <= 0
+    ( padding <= 0
         ? str
         ↔ (str <> fromCharArray (replicate padding padChar))
     )

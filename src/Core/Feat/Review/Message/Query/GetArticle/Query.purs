@@ -18,11 +18,12 @@ import Core.Mod.Article.Sources.Message.Query.Build (buildSources)
 import Core.Mod.Article.Title.Message.Query.Build (buildTitle)
 import Core.Mod.Author.Message.Query.Build (buildAuthor)
 import Core.Mod.Book.Message.Query.Build (buildBooks, buildBook)
-import Core.Mod.Projection.Finder.Finder (getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (getReadModelHash, HashScope(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype)
+import Data.Newtype (class Newtype, unwrap)
+import Util.Type.String.ToString (toString)
 import Util.Type.Random (class Random)
 import Util.Type.Type (class Reflect, reflectConstructorName)
 
@@ -41,12 +42,9 @@ instance IsQuery GetArticle State Fields Payload Result where
   description = "Get an article"
 
   cacheStrategy (GetArticle { identifier }) = do
-    let
-      mKey = case identifier of
-        Id id -> Just (ArticleKey { id: Just id, slug: Nothing })
-        Slug slug -> Just (ArticleKey { id: Nothing, slug: Just slug })
-
-    hash <- getReadModelHash @Article mKey
+    hash <- getReadModelHash @Article case identifier of
+      Id id -> HashByKey (ArticleKey id)
+      Slug slug -> HashByKeyAlias (toString slug)
     
     η $ defaultCached hash
 
@@ -71,6 +69,7 @@ instance IsQuery GetArticle State Fields Payload Result where
           , notes: buildNotes needs.notes a.notes
           , sources: buildSources needs.sources a.sources
           , magazineIssue: build needs.magazineIssue a.magazineIssue
+          , writtenAt: build needs.writtenAt (unwrap a.writtenAt).instant
           }
 
       Nothing -> do

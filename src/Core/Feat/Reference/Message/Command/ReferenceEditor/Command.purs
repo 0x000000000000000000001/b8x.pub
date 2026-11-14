@@ -1,5 +1,6 @@
 module Core.Feat.Reference.Message.Command.ReferenceEditor.Command
-  (ReferenceEditor(..)
+  ( ReferenceEditor(..)
+  , ReferenceEditorAliasRow
   ) where
 
 import Proem
@@ -50,4 +51,29 @@ instance
 
     defaultHandle @ReferenceEditor (Just filter) defaultCheckLoadedEvents initialState play decide toResult payload
 
-  
+type ReferenceEditorAliasRow r =
+  ( "ReferenceAnEditor" :: ReferenceEditor
+  , "ReferenceEditeur" :: ReferenceEditor
+  , "ReferenceUnEditeur" :: ReferenceEditor
+  , "ReferencerEditeur" :: ReferenceEditor
+  , "ReferencerUnEditeur" :: ReferenceEditor
+  , "ReferencementEditeur" :: ReferenceEditor
+  , "ReferencementDEditeur" :: ReferenceEditor
+  , "ReferencementDUnEditeur" :: ReferenceEditor
+  , "CreeEditeur" :: ReferenceEditor
+  , "CreeUnEditeur" :: ReferenceEditor
+  , "CreerEditeur" :: ReferenceEditor
+  , "CreerUnEditeur" :: ReferenceEditor
+  , "CreationEditeur" :: ReferenceEditor
+  , "CreationDEditeur" :: ReferenceEditor
+  , "CreationDUnEditeur" :: ReferenceEditor
+  , "AjouteEditeur" :: ReferenceEditor
+  , "AjouteUnEditeur" :: ReferenceEditor
+  , "AjouterEditeur" :: ReferenceEditor
+  , "AjouterUnEditeur" :: ReferenceEditor
+  , "AjoutEditeur" :: ReferenceEditor
+  , "AjoutDEditeur" :: ReferenceEditor
+  , "AjoutDUnEditeur" :: ReferenceEditor
+  , "NouvelEditeur" :: ReferenceEditor
+  | r
+  )

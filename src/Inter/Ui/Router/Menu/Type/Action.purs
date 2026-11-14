@@ -2,10 +2,11 @@ module Inter.Ui.Router.Menu.Type.Action where
 
 import Inter.Ui.Mod.Input.Type.Output as InputOutput
 import Inter.Ui.Mod.Link.Type as Link
-import Inter.Ui.Router.Menu.Type.Input (InnerInput)
+import Inter.Ui.Router.Menu.Type.Input (ConnectedInput)
 import Core.Mod.Time.Month (Month)
 import Core.Mod.Time.Year (Year)
 import Web.UIEvent.MouseEvent (MouseEvent)
+
 import Core.Mod.Newsletter.Id.Id (NewsletterId)
 
 import Core.Mod.MagazineIssue.Slug.Slug (Slug)
@@ -17,7 +18,9 @@ data Action
   | Close
   | HandleSearchInputOutput InputOutput.Output
   | HandleLinkOutput Link.Output
-  | FetchResults
+  | FetchSearchResults
+  | NextSearchPage
+  | PreviousSearchPage
   | RemoveAuthorFilter
   | CloseSearch
   | CloseActivePanel
@@ -31,7 +34,7 @@ data Action
   | GoToMagazineCovers Year
   | GoToMagazineArticles Year Slug
   | DoNothing
-  | Receive InnerInput
+  | Receive ConnectedInput
   | Initialize
   | HandleDocMouseMove MouseEvent
   | HandleDocClick MouseEvent

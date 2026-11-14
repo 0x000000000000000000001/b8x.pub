@@ -31,7 +31,7 @@ derive instance Functor EventStore
 type EVENT_STORE fx = (eventStore :: EventStore | fx)
 
 appendEvents :: ∀ fx. Trace -> Array Event -> OptimisticLockInfo -> Run (EVENT_STORE + fx) (Maybe (Array LoadedEvent))
-appendEvents trace events optimisticLockInfo = lift eventStore' (AppendEvents trace events optimisticLockInfo identity)
+appendEvents trace events optimisticLockInfo = lift eventStore' (AppendEvents trace events optimisticLockInfo (\x -> x))
 
 loadEvents :: ∀ fx. Filter -> Run (EVENT_STORE + fx) (Array LoadedEvent)
-loadEvents filter = lift eventStore' (LoadEvents filter identity)
+loadEvents filter = lift eventStore' (LoadEvents filter (\x -> x))

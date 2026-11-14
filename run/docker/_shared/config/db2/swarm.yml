@@ -1,0 +1,10 @@
+services:
+  db2:
+    shm_size: 2g # default: 64m
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - stack-default

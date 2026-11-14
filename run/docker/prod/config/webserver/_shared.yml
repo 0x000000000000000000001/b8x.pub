@@ -1,0 +1,5 @@
+services:
+  webserver:
+    image: "${DOCKER_IMAGE_PREFIX}/${DOCKER_IMAGE_PROD_WEBSERVER}"
+    volumes:
+      - ${DOCKER_DIR}/${ENV}/file/webserver/conf.d/b8x.conf:/etc/nginx/templates/b8x.conf.template

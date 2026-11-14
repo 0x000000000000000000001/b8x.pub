@@ -1,5 +1,4 @@
 module Core.Feat.Newsletter.Message.Query.SearchNewsletters.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -8,7 +7,7 @@ import Core.Message.Query.Handle (build)
 import Core.Feat.Newsletter.Message.Query.SearchNewsletters.Payload (Fields, Payload)
 import Core.Feat.Newsletter.Message.Query.SearchNewsletters.Result (Result)
 import Core.Feat.Newsletter.Message.Query.SearchNewsletters.Projection.Projection (Newsletter(..), findNewsletters)
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.BoundedLimit.BoundedLimit (BoundedLimit(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
@@ -33,7 +32,7 @@ instance IsQuery SearchNewsletters State Fields Payload Result where
   description = "Search newsletters"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Newsletter Nothing
+    hash <- getReadModelHash @Newsletter HashAll
     η $ defaultCached hash
 
   handle (SearchNewsletters { sort, filter, expectation, limit: BoundedLimit limit_, after, needs }) = do

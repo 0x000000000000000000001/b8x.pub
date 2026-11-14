@@ -4,13 +4,6 @@ module Infra.Client.RabbitMq.RabbitMq
   , Connection
   , Handles
   , READER_RABBIT_MQ_CLIENT
-  , _assertQueue
-  , _closeChannel
-  , _closeConnection
-  , _consume
-  , _createChannel
-  , _createConnection
-  , _sendToQueue
   , askChannel
   , assertConsume
   , assertConsume_
@@ -39,12 +32,11 @@ module Infra.Client.RabbitMq.RabbitMq
 import Proem
 
 import Config.InternalConfig (MqConfig)
-import Promise (Promise)
-import Promise.Aff (toAffE)
-import Promise.Internal as PromiseInternal
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
+import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
 import Run (AFF, EFFECT, Run)
@@ -88,47 +80,35 @@ createSharedNoTxHandles { host, port, user, password } = do
   channel <- createChannelWithConnection connection
   η { connection, channel }
 
-foreign import _createConnectionImpl :: ∀ newFn. newFn -> String -> Int -> String -> String -> Effect (Promise Connection)
-
-_createConnection :: String -> Int -> String -> String -> Effect (Promise Connection)
-_createConnection = _createConnectionImpl PromiseInternal.new
+foreign import _createConnectionImpl :: String -> Int -> String -> String -> EffectFnAff Connection
 
 createConnection :: ∀ m. MonadAff m => String -> Int -> String -> String -> m Connection
-createConnection host port user password = ʌ' $ toAffE $ _createConnection host port user password
+createConnection host port user password = ʌ' $ fromEffectFnAff $ _createConnectionImpl host port user password
 
-foreign import _createChannelImpl :: ∀ newFn. newFn -> Connection -> Effect (Promise Channel)
-
-_createChannel :: Connection -> Effect (Promise Channel)
-_createChannel = _createChannelImpl PromiseInternal.new
+foreign import _createChannelImpl :: Connection -> EffectFnAff Channel
 
 createChannelWithConnection :: ∀ m. MonadAff m => Connection -> m Channel
-createChannelWithConnection conn = ʌ' $ toAffE $ _createChannel conn
+createChannelWithConnection conn = ʌ' $ fromEffectFnAff $ _createChannelImpl conn
 
 createChannel :: ∀ m. MonadAff m => String -> Int -> String -> String -> m Channel
 createChannel host port user password = do
   conn <- createConnection host port user password
   createChannelWithConnection conn
 
-foreign import _assertQueueImpl :: ∀ newFn. newFn -> Channel -> String -> Effect (Promise Ɩ)
-
-_assertQueue :: Channel -> String -> Effect (Promise Ɩ)
-_assertQueue = _assertQueueImpl PromiseInternal.new
+foreign import _assertQueueImpl :: Channel -> String -> EffectFnAff Ɩ
 
 assertQueue_ :: ∀ m. MonadAff m => Channel -> String -> m Ɩ
-assertQueue_ ch q = ʌ' $ toAffE $ _assertQueue ch q
+assertQueue_ ch q = ʌ' $ fromEffectFnAff $ _assertQueueImpl ch q
 
 assertQueue :: ∀ fx. String -> Run (READER_RABBIT_MQ_CLIENT + EFFECT + AFF + fx) Ɩ
 assertQueue q = do
   channel <- askChannel
   assertQueue_ channel q
 
-foreign import _sendToQueueImpl :: ∀ newFn. newFn -> Channel -> String -> String -> Effect (Promise Ɩ)
-
-_sendToQueue :: Channel -> String -> String -> Effect (Promise Ɩ)
-_sendToQueue = _sendToQueueImpl PromiseInternal.new
+foreign import _sendToQueueImpl :: Channel -> String -> String -> EffectFnAff Ɩ
 
 sendToQueue_ :: ∀ m. MonadAff m => Channel -> String -> String -> m Ɩ
-sendToQueue_ ch q msg = ʌ' $ toAffE $ _sendToQueue ch q msg
+sendToQueue_ ch q msg = ʌ' $ fromEffectFnAff $ _sendToQueueImpl ch q msg
 
 sendToQueue :: ∀ fx. String -> String -> Run (READER_RABBIT_MQ_CLIENT + EFFECT + AFF + fx) Ɩ
 sendToQueue q msg = do
@@ -145,13 +125,10 @@ sendToQueueWithAssert q msg = do
   channel <- askChannel
   sendToQueueWithAssert_ channel q msg
 
-foreign import _consumeImpl :: ∀ newFn. newFn -> Channel -> String -> (String -> Effect Ɩ) -> Effect (Promise Ɩ)
-
-_consume :: Channel -> String -> (String -> Effect Ɩ) -> Effect (Promise Ɩ)
-_consume = _consumeImpl PromiseInternal.new
+foreign import _consumeImpl :: Channel -> String -> EffectFn1 String Ɩ -> EffectFnAff Ɩ
 
 consume_ :: ∀ m. MonadAff m => Channel -> String -> (String -> Effect Ɩ) -> m Ɩ
-consume_ ch q cb = ʌ' $ toAffE $ _consume ch q cb
+consume_ ch q cb = ʌ' $ fromEffectFnAff $ _consumeImpl ch q (mkEffectFn1 cb)
 
 consume :: ∀ fx. String -> (String -> Effect Ɩ) -> Run (READER_RABBIT_MQ_CLIENT + EFFECT + AFF + fx) Ɩ
 consume q cb = do
@@ -168,21 +145,15 @@ assertConsume q cb = do
   channel <- askChannel
   assertConsume_ channel q cb
 
-foreign import _closeConnectionImpl :: ∀ newFn. newFn -> Connection -> Effect (Promise Ɩ)
-
-_closeConnection :: Connection -> Effect (Promise Ɩ)
-_closeConnection = _closeConnectionImpl PromiseInternal.new
+foreign import _closeConnectionImpl :: Connection -> EffectFnAff Ɩ
 
 closeConnection :: ∀ m. MonadAff m => Connection -> m Ɩ
-closeConnection conn = ʌ' $ toAffE $ _closeConnection conn
+closeConnection conn = ʌ' $ fromEffectFnAff $ _closeConnectionImpl conn
 
-foreign import _closeChannelImpl :: ∀ newFn. newFn -> Channel -> Effect (Promise Ɩ)
-
-_closeChannel :: Channel -> Effect (Promise Ɩ)
-_closeChannel = _closeChannelImpl PromiseInternal.new
+foreign import _closeChannelImpl :: Channel -> EffectFnAff Ɩ
 
 closeChannel :: ∀ m. MonadAff m => Channel -> m Ɩ
-closeChannel ch = ʌ' $ toAffE $ _closeChannel ch
+closeChannel ch = ʌ' $ fromEffectFnAff $ _closeChannelImpl ch
 
 closeClient :: ∀ m. MonadAff m => Client -> m Ɩ
 closeClient { handlesRef } = do

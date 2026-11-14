@@ -17,6 +17,8 @@ import Util.Html.Encode.Encode (decodeHtmlEntities)
 import Util.Type.String.ToString (toString)
 import Util.Type.String.String (collapseSpaces, collapseSpacesWithAtLeastOneNewline)
 
+import Util.Html.Dom.Polyfill (unsafeWithDOMParserPolyfill)
+
 findSentenceEnd :: Int -> Int -> String -> Tuple Int Boolean
 findSentenceEnd minBound maxBound text =
   let
@@ -39,33 +41,34 @@ findSentenceEnd minBound maxBound text =
 
 excerpt :: Content -> UntagOpt -> Maybe String -> CutStrategy -> Content
 excerpt content opts newlineReplacement strategy =
-  unsafeFromString $
-    let
-      htmlStr = cleanHtml_ opts newlineReplacement (toString content)
+  unsafeWithDOMParserPolyfill \_ ->
+    unsafeFromString $
+      let
+        htmlStr = cleanHtml_ opts newlineReplacement (toString content)
 
-      Tuple limit isHardCut = case strategy of
-        Strict { limit: l } -> Tuple l true
-        OnSentenceEnd { min, max: m } ->
-          let
-            plainText = untagAll false htmlStr
-            decodedPlainText = decodeHtmlEntities plainText
-          in
-            findSentenceEnd min m decodedPlainText
+        Tuple limit isHardCut = case strategy of
+          Strict { limit: l } -> Tuple l true
+          OnSentenceEnd { min, max: m } ->
+            let
+              plainText = untagAll false htmlStr
+              decodedPlainText = decodeHtmlEntities plainText
+            in
+              findSentenceEnd min m decodedPlainText
 
-      suffix = case strategy of
-        Strict { suffix: s } -> s
-        OnSentenceEnd { suffix: s } -> s
+        suffix = case strategy of
+          Strict { suffix: s } -> s
+          OnSentenceEnd { suffix: s } -> s
 
-      resolveSuffixValue = case _ of
-        Default -> defaultSuffixValue
-        Custom s -> s
+        resolveSuffixValue = case _ of
+          Default -> defaultSuffixValue
+          Custom s -> s
 
-      suffixStr = case suffix of
-        Always v -> resolveSuffixValue v
-        OnlyOnHardSentenceCut v -> if isHardCut then resolveSuffixValue v else ""
-        None -> ""
-    in
-      truncateInnerTextThenHealOuterHtml (Finite limit) suffixStr htmlStr
+        suffixStr = case suffix of
+          Always v -> resolveSuffixValue v
+          OnlyOnHardSentenceCut v -> if isHardCut then resolveSuffixValue v else ""
+          None -> ""
+      in
+        truncateInnerTextThenHealOuterHtml (Finite limit) suffixStr htmlStr
 
 defaultCutStrategy_ :: Int
 defaultCutStrategy_ = 300
@@ -78,9 +81,9 @@ defaultUntagWhitelist = Tags [ "em", "u", "strong", "b", "i", "mark", "code", "s
 
 cleanHtml_ :: UntagOpt -> Maybe String -> String -> String
 cleanHtml_ opts newlineReplacement str =
-  removeComments str
-    # untag opts false
-    # decodeHtmlEntities
+  decodeHtmlEntities str
+    # removeComments
+    # untag opts true
     # trim
     #
       ( case newlineReplacement of

@@ -2,6 +2,9 @@ module Core.Feat.Review.Message.Query.SearchArticles.Query where
 
 import Proem
 
+import Util.Type.Type (class Reflect, reflectConstructorName)
+import Data.Newtype (class Newtype, unwrap)
+
 import Config.PublicConfig (askPublicConfig)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Message.Query.Handle (build)
@@ -17,18 +20,16 @@ import Core.Feat.Review.Message.Query.SearchArticles.Payload (Fields, Payload)
 import Core.Feat.Review.Message.Query.SearchArticles.Result (Result)
 import Core.Feat.Review.Message.Query.SearchArticles.State (State)
 import Core.Feat.Review.Message.Query.SearchArticles.Projection.Projection (Article(..), findArticles)
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.BoundedLimit.BoundedLimit (BoundedLimit(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
-import Data.Newtype (class Newtype)
 import Data.Maybe (Maybe(..))
 import Core.Message.Query.Payload (Need(..))
 import Core.Message.Query.Result (Return(..))
 import Core.Mod.Article.Projection.MagazineIssue as Projected
 import Util.Type.Random (class Random)
-import Util.Type.Type (class Reflect, reflectConstructorName)
 
 newtype SearchArticles = SearchArticles Payload
 
@@ -45,7 +46,7 @@ instance IsQuery SearchArticles State Fields Payload Result where
   description = "Search articles"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @Article Nothing
+    hash <- getReadModelHash @Article HashAll
     η $ defaultCached hash
 
   handle (SearchArticles { sort, filter, expectation, limit: BoundedLimit limit_, after, needs }) = do
@@ -84,6 +85,7 @@ instance IsQuery SearchArticles State Fields Payload Result where
             , magazineSection
             , magazineIssuePageNumber
             , seoUpdatedAt: build needs.seoUpdatedAt a.seo.updatedAt
+            , writtenAt: build needs.writtenAt (unwrap a.writtenAt).instant
             }
       , limit: limit_
       , hasNextPage: page.hasNextPage

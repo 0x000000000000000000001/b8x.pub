@@ -1,5 +1,6 @@
 module Core.Feat.Reference.Message.Command.ReferenceAuthor.Command
-  (ReferenceAuthor(..)
+  ( ReferenceAuthor(..)
+  , ReferenceAuthorAliasRow
   ) where
 
 import Proem
@@ -46,8 +47,34 @@ instance
   description = "Reference an author"
 
   handle payload = do
-    _ <- verifyAuthorUniqueness { name: payload.name, legacyIds: payload.legacyIds }
+    _ <- verifyAuthorUniqueness { name: payload.name, legacyIds: [] }
 
     defaultHandle @ReferenceAuthor (Just filter) defaultCheckLoadedEvents initialState play decide toResult payload
 
-  
+type ReferenceAuthorAliasRow r =
+  ( "ReferenceAnAuthor" :: ReferenceAuthor
+  , "ReferenceAuteur" :: ReferenceAuthor
+  , "ReferenceUnAuteur" :: ReferenceAuthor
+  , "ReferencerAuteur" :: ReferenceAuthor
+  , "ReferencerUnAuteur" :: ReferenceAuthor
+  , "ReferencementAuteur" :: ReferenceAuthor
+  , "ReferencementDAuteur" :: ReferenceAuthor
+  , "ReferencementDUnAuteur" :: ReferenceAuthor
+  , "AjouteAuteur" :: ReferenceAuthor
+  , "AjouteUnAuteur" :: ReferenceAuthor
+  , "AjouterAuteur" :: ReferenceAuthor
+  , "AjouterUnAuteur" :: ReferenceAuthor
+  , "AjoutUnAuteur" :: ReferenceAuthor
+  , "AjoutAuteur" :: ReferenceAuthor
+  , "AjoutDAuteur" :: ReferenceAuthor
+  , "AjoutDUnAuteur" :: ReferenceAuthor
+  , "CreeAuteur" :: ReferenceAuthor
+  , "CreeUnAuteur" :: ReferenceAuthor
+  , "CreerAuteur" :: ReferenceAuthor
+  , "CreerUnAuteur" :: ReferenceAuthor
+  , "CreationAuteur" :: ReferenceAuthor
+  , "CreationDAuteur" :: ReferenceAuthor
+  , "CreationDUnAuteur" :: ReferenceAuthor
+  , "NouvelAuteur" :: ReferenceAuthor
+  | r
+  )

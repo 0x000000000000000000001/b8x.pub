@@ -1,5 +1,4 @@
 module Core.Feat.Sitemap.Message.Query.ListMagazineIssues.Query where
-import Data.Maybe (Maybe(..))
 
 import Proem
 
@@ -10,7 +9,7 @@ import Core.Feat.Sitemap.Message.Query.ListMagazineIssues.State (State)
 import Core.Message.Query.Query (class IsQuery, defaultCached)
 import Core.Mod.Projection.Finder.Expectation.Expectation (Expectation(..))
 import Core.Mod.Projection.Finder.Filter (Limit(..))
-import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash)
+import Core.Mod.Projection.Finder.Finder (defaultFindOpt, getReadModelHash, HashScope(..))
 import Core.Mod.Projection.Finder.Sort as Sort
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Generic.Rep (class Generic)
@@ -33,7 +32,7 @@ instance IsQuery ListMagazineIssues State Fields Payload Result where
   description = "List all magazine issues for sitemap"
 
   cacheStrategy _ = do
-    hash <- getReadModelHash @MagazineIssue Nothing
+    hash <- getReadModelHash @MagazineIssue HashAll
     η $ defaultCached hash
 
   handle (ListMagazineIssues _) = do

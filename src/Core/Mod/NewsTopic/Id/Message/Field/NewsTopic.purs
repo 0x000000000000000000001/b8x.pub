@@ -5,7 +5,6 @@ import Data.Maybe (Maybe(..))
 import Proem
 
 import Core.Message.Field.Field (class IsField, Presence(..), Sanitized(..), defaultShouldSanitizeInner)
-import Core.Mod.NewsTopic.Id.Message.Field.Util as Util
 import Core.Mod.NewsTopic.Id.Id (NewsTopicId)
 import Yoga.JSON (class ReadForeign, class WriteForeign)
 import Data.Newtype (class Newtype)
@@ -17,7 +16,7 @@ newtype NewsTopicField = NewsTopicField NewsTopic
 instance IsField NewsTopicField NewsTopic () where
   name = "NewsTopic"
 
-  description = Util.description
+  description = "News topic"
 
   presence = Required
 
@@ -26,7 +25,7 @@ instance IsField NewsTopicField NewsTopic () where
   shouldSanitizeInner = defaultShouldSanitizeInner
 
   cli =
-    { description: Util.description
+    { description: "News topic"
     , multiline: false
     , choices: Nothing
     }

@@ -15,15 +15,19 @@ export const _on = function(tag) {
   };
 };
 
-export const build = function(dict) {
+export const _build = function(dict) {
   return function(fallback) {
-    return function(variant) {
-      var handler = dict[variant.type];
-      if (handler !== undefined) {
-        return handler(variant.value);
-      } else {
-        return fallback(variant);
-      }
+    return function(tag) {
+      return function(value) {
+        return function(original) {
+          var handler = dict[tag];
+          if (handler !== undefined) {
+            return handler(value);
+          } else {
+            return fallback(original);
+          }
+        };
+      };
     };
   };
 };

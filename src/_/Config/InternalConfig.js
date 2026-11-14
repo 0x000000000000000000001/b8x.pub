@@ -42,6 +42,9 @@ export const _config = {
         bug: "$MAIL_FROM_BUG_EMAIL",
         newsletter: "$MAIL_FROM_NEWSLETTER_EMAIL",
       }
+    },
+    to: {
+      bug: "$MAIL_TO_BUG_EMAIL"
     }
   },
   helloAsso: {

@@ -4,7 +4,8 @@ import Proem hiding ((&&), (||))
 
 import Core.Mod.Projection.Finder.Filter (class IsFilter, class IsValidOp, class OpRequiresIndex, Filter(..), Limit(..), by, byKey, compile)
 import Core.Mod.Projection.Finder.Sort (SortCriteria, noSort)
-import Core.Mod.Projection.Pair (class IsPair, Key, persistenceKeyFromKey)
+import Core.Mod.Projection.Pair (class IsPair, Key(..), KeyIdentifier(..), persistenceKeyFromKey)
+import Data.Array.NonEmpty as NonEmptyArray
 import Core.Mod.Projection.Projection (class IsProjection)
 import Core.Mod.Projection.SearchIndex (IndexNeeds)
 import Core.Mod.Projection.SyncProject (SyncProject, syncProject)
@@ -229,6 +230,11 @@ findManyByKeys keys = case uncons keys of
     page <- findMany_ (defaultFindOpt { filter = Just $ foldl (\acc k -> Or acc (byKey k)) (byKey h) t })
     η page.items
 
+data HashScope key
+  = HashAll
+  | HashByKey key
+  | HashByKeyAlias String
+
 getReadModelHash
   :: ∀ @v p singularName pluralName key findEffSym fx
    . IsPair key v _ _ _ singularName pluralName findEffSym p
@@ -236,6 +242,16 @@ getReadModelHash
   => IsSymbol pluralName
   => IsSymbol findEffSym
   => Row.Cons findEffSym (Find v) _ fx
-  => Maybe key
+  => HashScope key
   -> Run fx String
-getReadModelHash mKey = lift (π :: Π findEffSym) (GetReadModelHash (persistenceKeyFromKey <$> mKey) identity)
+getReadModelHash scope = do
+  let
+    mUnifiedKey = case scope of
+      HashAll -> Nothing
+      HashByKey k -> Just (persistenceKeyFromKey k)
+      HashByKeyAlias aliasStr -> Just $ Key
+        { singularType: ᴠ @singularName
+        , pluralType: ᴠ @pluralName
+        , identifier: Just (OnlyAliases (NonEmptyArray.singleton aliasStr))
+        }
+  lift (π :: Π findEffSym) (GetReadModelHash mUnifiedKey identity)

@@ -1,6 +1,8 @@
 module Core.Feat.Review.Message.Command.ScheduleNewsletter.Command
   ( ScheduleNewsletter(..)
-  ) where
+  , ScheduleNewsletterAliasRow
+  )
+  where
 
 import Proem
 
@@ -50,4 +52,29 @@ instance
 
     defaultHandle @ScheduleNewsletter (Just filter) defaultCheckLoadedEvents initialState play decide toResult payload
 
-  
+type ScheduleNewsletterAliasRow r =
+  ( "ScheduleANewsletter" :: ScheduleNewsletter
+  , "AjouterNewsletter" :: ScheduleNewsletter
+  , "AjouterUneNewsletter" :: ScheduleNewsletter
+  , "AjouteNewsletter" :: ScheduleNewsletter
+  , "AjouteUneNewsletter" :: ScheduleNewsletter
+  , "AjoutNewsletter" :: ScheduleNewsletter
+  , "AjoutDeNewsletter" :: ScheduleNewsletter
+  , "AjoutDUneNewsletter" :: ScheduleNewsletter
+  , "CreerNewsletter" :: ScheduleNewsletter
+  , "CreerUneNewsletter" :: ScheduleNewsletter
+  , "CreeNewsletter" :: ScheduleNewsletter
+  , "CreeUneNewsletter" :: ScheduleNewsletter
+  , "CreationNewsletter" :: ScheduleNewsletter
+  , "CreationDeNewsletter" :: ScheduleNewsletter
+  , "CreationDUneNewsletter" :: ScheduleNewsletter
+  , "ProgrammerNewsletter" :: ScheduleNewsletter
+  , "ProgrammerUneNewsletter" :: ScheduleNewsletter
+  , "ProgrammeNewsletter" :: ScheduleNewsletter
+  , "ProgrammeUneNewsletter" :: ScheduleNewsletter
+  , "ProgrammationNewsletter" :: ScheduleNewsletter
+  , "ProgrammationDeNewsletter" :: ScheduleNewsletter
+  , "ProgrammationDUneNewsletter" :: ScheduleNewsletter
+  , "NouvelleNewsletter" :: ScheduleNewsletter
+  | r
+  )

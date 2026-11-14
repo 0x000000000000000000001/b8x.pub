@@ -8,7 +8,7 @@ import Core.Mod.MagazineIssue.Id.Id (MagazineIssueId)
 import Core.Mod.MagazineIssue.Slug.Slug (Slug)
 import Core.Mod.Projection.Finder.Filter (StrictlyEquals(..))
 import Core.Mod.Projection.Finder.Finder (Find, findOneBy)
-import Core.Mod.Projection.Pair (class IsPair, class ToAliasedPrimary)
+import Core.Mod.Projection.Pair (class IsPair, class ToPrimary, class ToAliases)
 import Core.Mod.Projection.Projection (class IsProjection, ProjectionWriteOps, add, coerce)
 import Core.Mod.Projection.SearchIndex (RawIndexOnly, rawIndexOnly)
 import Core.Mod.Projection.SyncProject (SyncProject)
@@ -29,12 +29,12 @@ instance
     "verifyMagazineIssueSlugUniquenessProjectionWriteOps"
     (VERIFY_MAGAZINE_ISSUE_SLUG_UNIQUENESS_PROJECTION_WRITE_OPS ())
     "verifyMagazineIssueSlugUniquenessProjectionReadSyncProject"
-    { verifyMagazineIssueSlugUniqueness :: MagazineIssue }
-    { verifyMagazineIssueSlugUniqueness :: MagazineIssueIndexNeeds }
-    { verifyMagazineIssueSlugUniqueness :: Record () }
+    { magazineIssue :: MagazineIssue }
+    { magazineIssue :: MagazineIssueIndexNeeds }
+    { magazineIssue :: Record () }
   where
   indexNeeds =
-    { verifyMagazineIssueSlugUniqueness:
+    { magazineIssue:
         { id: rawIndexOnly
         , slug: rawIndexOnly
         }
@@ -54,8 +54,8 @@ instance
     MagazineIssueRecord
     MagazineIssueIndexNeeds
     ()
-    "verifyMagazineIssueSlugUniqueness"
-    "verifyMagazineIssueSlugUniquenessMagazineIssues"
+    "magazineIssue"
+    "magazineIssues"
     "verifyMagazineIssueSlugUniquenessProjectionReadFind"
     VerifyMagazineIssueSlugUniquenessProjection
   where
@@ -63,6 +63,9 @@ instance
   single = false
 
 newtype MagazineIssue = MagazineIssue MagazineIssueRecord
+
+instance ToAliases MagazineIssue where
+  toAliases _ = []
 
 type MagazineIssueRecord =
   { id :: MagazineIssueId
@@ -85,8 +88,8 @@ derive newtype instance Show MagazineIssue
 newtype MagazineIssueKey = MagazineIssueKey MagazineIssueId
 
 derive instance Newtype MagazineIssueKey _
-instance ToAliasedPrimary MagazineIssueKey where
-  toAliasedPrimary (MagazineIssueKey id) = { primary: toString id, aliases: [] }
+instance ToPrimary MagazineIssueKey where
+  toPrimary (MagazineIssueKey id) = toString id
 derive newtype instance Eq MagazineIssueKey
 derive newtype instance Ord MagazineIssueKey
 
@@ -113,6 +116,11 @@ play { event } = case event of
   AuthorDereferenced _ -> ηι
   BookReferenced _ -> ηι
   BookDereferenced _ -> ηι
+  BookEditorCorrected _ -> ηι
+  BookCoverCorrected _ -> ηι
+  ArticleTitleCorrected _ -> ηι
+  ArticleContentCorrected _ -> ηι
+  AuthorBiographyCorrected _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι
   EditorDereferenced _ -> ηι
@@ -136,4 +144,3 @@ play { event } = case event of
 
 onMagazineIssueReferenced :: ∀ fx. MagazineIssueReferenced.Payload -> Run (VERIFY_MAGAZINE_ISSUE_SLUG_UNIQUENESS_PROJECTION_WRITE_OPS fx) Ɩ
 onMagazineIssueReferenced { id, slug } = add $ MagazineIssue { id, slug }
-

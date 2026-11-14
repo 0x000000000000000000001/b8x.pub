@@ -8,24 +8,25 @@ module Inter.Ui.Router.Style.Style
 
 import Proem hiding (top, div)
 
-import CSS (Time, backgroundColor, backgroundPosition, body, color, column, figcaption, figure, flexDirection, fontStyle, fromString, hover, html, keyframes, positioned, rem, rgba)
+import CSS (Time, backgroundColor, backgroundPosition, body, color, column, figcaption, figure, flexDirection, hover, html, keyframes, positioned, rem, rgba)
 import CSS as CSS
-import CSS.FontStyle (italic)
 import CSS.Time (ms, sec)
 import CSS.Transition (ease)
 import DOM.HTML.Indexed (HTMLdiv)
 import Data.NonEmpty ((:|))
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (HTML, Node, div)
-import Util.Style.Base (raw)
+import Inter.Ui.Mod.Modal.Style.Style as Modal
+import Inter.Ui.Router.Menu.Style.Style as Menu
+import Util.Style.Base (raw, raw_)
 import Util.Style.Classname (class_, generateStaticClass)
+import Util.Style.Color (colorRed, textRed)
 import Util.Style.Effect (borderRadiusRem1, loadingShimmerAnimationId, loadingShimmerWidth)
-import Util.Style.Layout (alignItemsCenter, boxSizingBorderBox, displayFlex, heightRem, justifyContentCenter, margin1, marginTop, overflowScrollingTouch, padding1, widthPct, widthRem)
-import Util.Style.Selector (all, (:&), (:?), (¨?))
+import Util.Style.Layout (alignItemsCenter, boxSizingBorderBox, displayFlex, heightRem, justifyContentCenter, margin1, marginTop, overflowScrollingTouch, overflowXClip, padding1, widthPct, widthRem)
+import Util.Style.Selector (all, (.?), (:&), (:?), (¨&), (¨?))
 import Util.Style.Transition (transition)
 import Util.Style.Transition as Transition
 import Util.Style.Typography (fontSizeRem, primaryFont, textAlignCenter)
-import Util.Style.Color (colorRed, textRed)
 
 fullModuleName :: String
 fullModuleName = "Inter.Ui.Router.Style.Style"
@@ -41,10 +42,14 @@ defaultTransitionTime = ms defaultTransitionDurationMs
 
 staticStyle :: CSS.CSS
 staticStyle = do
+  staticClass .? do
+    overflowXClip
+
   html :? do
     primaryFont
     -- Momentum scrolling scrolling on iOS or Safari
     overflowScrollingTouch
+    overflowXClip
 
   "input, textarea, button, select" ¨? do
     primaryFont
@@ -53,7 +58,7 @@ staticStyle = do
     colorRed
     raw "text-decoration-color" textRed
 
-  figure :? do 
+  figure :? do
     displayFlex
     justifyContentCenter
     alignItemsCenter
@@ -64,7 +69,6 @@ staticStyle = do
     marginTop 1.0
     fontSizeRem 0.9
     color $ rgba 51 51 51 0.7
-    fontStyle italic
     textAlignCenter
 
   all :? do
@@ -76,22 +80,28 @@ staticStyle = do
     raw "scrollbar-color" "rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05)"
 
     -- Chrome/Safari/Edge/...
-    fromString "::-webkit-scrollbar" :& do
+    "::-webkit-scrollbar" ¨& do
       widthRem 0.5
       heightRem 0.5
 
-    fromString "::-webkit-scrollbar-track" :& do
+    "::-webkit-scrollbar-track" ¨& do
       backgroundColor $ rgba 0 0 0 0.05
 
-    fromString "::-webkit-scrollbar-thumb" :& do
+    "::-webkit-scrollbar-thumb" ¨& do
       backgroundColor $ rgba 0 0 0 0.3
       borderRadiusRem1 0.25
 
       hover :& do
         backgroundColor $ rgba 0 0 0 0.5
 
-    fromString "::-webkit-scrollbar-corner" :& do
+    "::-webkit-scrollbar-corner" ¨& do
       backgroundColor $ rgba 0 0 0 0.05
+
+  "#aymStickyFooter, #msna-ad" ¨? do
+    raw_ "z-index" (show ((min Menu.zIndex Modal.zIndex) - 1) <> " !important")
+
+  ".b8x-ad-container, .b8x-ad-container *, #msna-ad, #msna-ad *, iframe, iframe *" ¨? do
+    raw "transition" "all 0s !important"
 
   keyframes loadingShimmerAnimationId
     ( 0.0 /\ backgroundPosition (positioned (rem $ -1.0 * loadingShimmerWidth) (rem 0.0))
@@ -104,6 +114,7 @@ staticStyle = do
   body :? do
     margin1 0.0
     padding1 0.0
+    overflowXClip
 
 router :: ∀ w i. Node HTMLdiv w i
 router props = div ([ class_ staticClass ] <> props)

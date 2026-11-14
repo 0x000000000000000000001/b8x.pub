@@ -4,6 +4,7 @@ import Proem
 
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
+import Inter.Ui.Type.Device (Device)
 import Inter.Ui.Router.Menu.Type.State.Search as Search
 import Inter.Ui.Router.Menu.Type.State.Newsletter as Newsletter
 import Inter.Ui.Router.Menu.Type.State.Magazine as Magazine
@@ -22,7 +23,7 @@ type State = WithId
   , magazine :: Magazine.State
   , isDocMouseMoveThrottled :: Boolean
   , hasMouseEntered :: Maybe (Ref Boolean)
-  , me :: Maybe GlobalStore.Me
+  , context :: { me :: Maybe GlobalStore.Me, device :: Device }
   )
 
 open' = π :: Π "open"
