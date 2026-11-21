@@ -42,6 +42,7 @@ import Type.Row (type (+))
 import Util.Type.Random (class Random, random)
 import Util.Type.String.ToString (toString)
 import Core.Event.ArticleContentCorrected.Payload as ArticleContentCorrected
+import Core.Event.ArticleLeadCorrected.Payload as ArticleLeadCorrected
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
 import Core.Event.ArticleWritten.Payload as ArticleWritten
 import Core.Event.ArticleTitleCorrected.Payload as ArticleTitleCorrected
@@ -487,6 +488,7 @@ play { event, at } = case event of
   BookEditorCorrected _ -> ηι
   BookCoverCorrected payload -> onBookCoverCorrected payload
   ArticleTitleCorrected payload -> onArticleTitleCorrected payload
+  ArticleLeadCorrected payload -> onArticleLeadCorrected payload
   ArticleContentCorrected payload -> onArticleContentCorrected payload
   AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
@@ -536,6 +538,11 @@ onArticleTitleCorrected :: ∀ fx. ArticleTitleCorrected.Payload -> Run (GET_ART
 onArticleTitleCorrected { article, title } = do
   patch (ArticleKey article) \(Article a) -> Article (a { title = title })
   patch (QuoteKey article) \(Quote q) -> Quote (q { article = q.article { title = title } })
+
+onArticleLeadCorrected :: ∀ fx. ArticleLeadCorrected.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleLeadCorrected { article, lead } = do
+  patch (ArticleKey article) \(Article a) -> Article (a { lead = lead })
+  patch (QuoteKey article) \(Quote q) -> Quote (q { article = q.article { lead = lead } })
 
 onArticleContentCorrected :: ∀ fx. ArticleContentCorrected.Payload -> Run (GET_ARTICLE_QUOTE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleContentCorrected { article, content } = do

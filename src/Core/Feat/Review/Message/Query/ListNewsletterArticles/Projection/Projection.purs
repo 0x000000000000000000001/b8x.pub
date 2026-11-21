@@ -10,6 +10,7 @@ import Control.Monad.Except as Control.Monad.Except
 
 import Core.Event.ArticleContentCorrected.Payload as ArticleContentCorrected
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
+import Core.Event.ArticleLeadCorrected.Payload as ArticleLeadCorrected
 import Core.Event.ArticleTitleCorrected.Payload as ArticleTitleCorrected
 import Core.Event.ArticleWritten.Payload as ArticleWritten
 import Core.Event.NewsletterScheduled.Payload as NewsletterScheduled
@@ -536,6 +537,7 @@ play { event, at } = case event of
   BookEditorCorrected _ -> ηι
   BookCoverCorrected payload -> onBookCoverCorrected payload
   ArticleTitleCorrected payload -> onArticleTitleCorrected payload
+  ArticleLeadCorrected payload -> onArticleLeadCorrected payload
   ArticleContentCorrected payload -> onArticleContentCorrected payload
   AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced _ -> ηι
@@ -570,6 +572,9 @@ onArticleDiscarded { article } = do
 
 onArticleTitleCorrected :: ∀ fx. ArticleTitleCorrected.Payload -> Run (LIST_NEWSLETTER_ARTICLES_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleTitleCorrected { article, title } = patch (ArticleKey article) \(Article a) -> Article (a { title = title })
+
+onArticleLeadCorrected :: ∀ fx. ArticleLeadCorrected.Payload -> Run (LIST_NEWSLETTER_ARTICLES_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleLeadCorrected { article, lead } = patch (ArticleKey article) \(Article a) -> Article (a { lead = lead })
 
 onArticleContentCorrected :: ∀ fx. ArticleContentCorrected.Payload -> Run (LIST_NEWSLETTER_ARTICLES_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleContentCorrected { article, content } = patch (ArticleKey article) \(Article a) -> Article (a { content = content })

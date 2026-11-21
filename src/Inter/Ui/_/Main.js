@@ -13,6 +13,11 @@ export const _isBlacklistedError = (url) => (msg) => () => {
     || msg.includes('ResizeObserver loop completed with undelivered notifications')
     || msg.includes('wp-json')
     || msg.includes('Failed to fetch dynamically imported module') && msg.includes('xxhash-wasm')
+    // WebKit (Safari) raises this when any module script fails to load, whether
+    // the app entry point or a lazily imported chunk. It comes from a transient
+    // network error, a stale HTTP/service-worker cache or an outdated browser,
+    // and gives no actionable stack.
+    || msg.includes('Importing a module script failed')
     || msg === 'Script error.'
     || msg.includes('The I/O read operation failed')
     || msg.includes('SecurityError: The operation is insecure')

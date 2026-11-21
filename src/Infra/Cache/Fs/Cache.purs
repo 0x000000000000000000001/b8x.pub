@@ -2,6 +2,7 @@ module Infra.Cache.Fs.Cache
   ( interpretCache
   , deleteExpiredCache
   , deleteExpiredCache_
+  , ensureCacheDir
   , cacheDir
   ) where
 
@@ -15,6 +16,7 @@ import Data.DateTime.Instant (unInstant)
 import Data.Either (Either(..))
 import Data.Foldable (traverse_)
 import Data.Int (toNumber)
+import Data.String (Pattern(..), contains)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Tuple.Nested ((/\))
 import Effect.Aff (attempt)
@@ -35,13 +37,26 @@ cacheDir :: String
 cacheDir = _rootDirAbsolutePath <> "var/api/cache"
 
 ensureCacheDir :: ∀ fx. Run (EFFECT + AFF + fx) Ɩ
-ensureCacheDir =
-  ʌ' do
-    _ <- attempt $ FS.mkdir (_rootDirAbsolutePath <> "var")
-    _ <- attempt $ FS.mkdir (_rootDirAbsolutePath <> "var/api")
-    _ <- attempt $ FS.mkdir cacheDir
-    η ι
+ensureCacheDir = ʌ' do
+  ø $ attempt $ FS.mkdir (_rootDirAbsolutePath <> "var")
+  ø $ attempt $ FS.mkdir (_rootDirAbsolutePath <> "var/api")
+  ø $ attempt $ FS.mkdir cacheDir
 
+type CacheKeyInfixes =
+  { payload :: String 
+  , subject :: String 
+  , invalidationVersion :: String 
+  , salt :: String 
+  }
+
+cacheKeyInfixes :: CacheKeyInfixes 
+cacheKeyInfixes = 
+  { payload: "_pld_"    
+  , subject: "_sub_"
+  , invalidationVersion: "_inv_"
+  , salt: "_slt_"
+  }
+    
 buildCacheKeyString :: ∀ fx. CacheKey -> Run (EFFECT + AFF + fx) String
 buildCacheKeyString key = do
   let { prefix, payload, invalidationVersion, subject } = unCacheKey key
@@ -50,7 +65,7 @@ buildCacheKeyString key = do
     Nothing -> η "0"
     Just s -> ʌ' $ xxhash64 $ JSON.writeJSON s
   invHash <- ʌ' $ xxhash64 $ invalidationVersion
-  η $ prefix <> "_pld_" <> hash <> "_sub_" <> subHash <> "_inv_" <> invHash <> "_slt_" <> innerSalt
+  η $ prefix <> cacheKeyInfixes.payload <> hash <> cacheKeyInfixes.subject <> subHash <> cacheKeyInfixes.invalidationVersion <> invHash <> cacheKeyInfixes.salt <> innerSalt
 
 getCachePath :: String -> String
 getCachePath keyStr = Path.concat [ cacheDir, keyStr <> ".json" ]
@@ -60,6 +75,9 @@ type CacheEntry =
   , expiresAtMs :: Number
   , hashValue :: Foreign
   }
+
+isCacheEntryFileName :: String -> Boolean
+isCacheEntryFileName fileName = contains (Pattern cacheKeyInfixes.payload) fileName && contains (Pattern ".json") fileName
 
 encodeCacheEntry :: CacheEntry -> Foreign
 encodeCacheEntry entry =
@@ -84,17 +102,23 @@ deleteExpiredCache = do
         ʌ'
           $ traverse_
               ( \fileName ->
-                  attempt do
-                    let
-                      filePath = Path.concat [ cacheDir, fileName ]
-                    content <- FS.readTextFile UTF8 filePath
-                    case (JSON.readJSON_ content :: Maybe CacheEntry) of
-                      Nothing -> FS.unlink filePath
-                      Just entry ->
-                        if currentMs > entry.expiresAtMs then
-                          FS.unlink filePath
-                        else
-                          pure unit
+                  -- | Only query result entries belong to this garbage collector. Other JSON
+                  -- | files in `cacheDir` (e.g. projection hash mirrors) are not CacheEntry and
+                  -- | must not be removed by the TTL sweep.
+                  if isCacheEntryFileName fileName then
+                    attempt do
+                      let
+                        filePath = Path.concat [ cacheDir, fileName ]
+                      content <- FS.readTextFile UTF8 filePath
+                      case (JSON.readJSON_ content :: Maybe CacheEntry) of
+                        Nothing -> FS.unlink filePath
+                        Just entry ->
+                          if currentMs > entry.expiresAtMs then
+                            FS.unlink filePath
+                          else
+                            ηι
+                  else
+                    η (Right ι)
               )
               files
       η $ Right []

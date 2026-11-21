@@ -7,6 +7,7 @@ import Core.Event.ArticleAddedToNewsRelatedBlacklist.Payload as ArticleAddedToNe
 import Core.Event.ArticleAddedToNewsRelatedWhitelist.Payload as ArticleAddedToNewsRelatedWhitelist
 import Core.Event.ArticleContentCorrected.Payload as ArticleContentCorrected
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
+import Core.Event.ArticleLeadCorrected.Payload as ArticleLeadCorrected
 import Core.Event.ArticleFeaturedOnFrontPage.Payload as ArticleFeaturedOnFrontPage
 import Core.Event.ArticleQuoted.Payload as ArticleQuoted
 import Core.Event.ArticleRead.Payload as ArticleRead
@@ -76,6 +77,7 @@ data Event
   | ArticleQuoted ArticleQuoted.Payload
   | ArticleTitleCorrected ArticleTitleCorrected.Payload
   | ArticleContentCorrected ArticleContentCorrected.Payload
+  | ArticleLeadCorrected ArticleLeadCorrected.Payload
   | NewsTopicAdded NewsTopicAdded.Payload
   | NewsTopicRemoved NewsTopicRemoved.Payload
   | ArticleAddedToNewsRelatedWhitelist ArticleAddedToNewsRelatedWhitelist.Payload

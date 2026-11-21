@@ -10,6 +10,7 @@ import Core.Event.ArticleAddedToNewsRelatedBlacklist.Payload as ArticleAddedToNe
 import Core.Event.ArticleAddedToNewsRelatedWhitelist.Payload as ArticleAddedToNewsRelatedWhitelist
 import Core.Event.ArticleContentCorrected.Payload as ArticleContentCorrected
 import Core.Event.ArticleDiscarded.Payload as ArticleDiscarded
+import Core.Event.ArticleLeadCorrected.Payload as ArticleLeadCorrected
 import Core.Event.ArticleRemovedFromNewsRelatedBlacklist.Payload as ArticleRemovedFromNewsRelatedBlacklist
 import Core.Event.ArticleRemovedFromNewsRelatedWhitelist.Payload as ArticleRemovedFromNewsRelatedWhitelist
 import Core.Event.ArticleTitleCorrected.Payload as ArticleTitleCorrected
@@ -845,6 +846,7 @@ play { event, at } = case event of
   BookEditorCorrected _ -> ηι
   BookCoverCorrected payload -> onBookCoverCorrected payload
   ArticleTitleCorrected payload -> onArticleTitleCorrected payload
+  ArticleLeadCorrected payload -> onArticleLeadCorrected payload
   ArticleContentCorrected payload -> onArticleContentCorrected payload
   AuthorBiographyCorrected _ -> ηι
   MagazineIssueReferenced payload -> onMagazineIssueReferenced payload
@@ -874,6 +876,9 @@ onArticleDiscarded { article } = do
 
 onArticleTitleCorrected :: ∀ fx. ArticleTitleCorrected.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleTitleCorrected { article, title } = patch (ArticleKey article) \(Article a) -> Article (a { title = title })
+
+onArticleLeadCorrected :: ∀ fx. ArticleLeadCorrected.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
+onArticleLeadCorrected { article, lead } = patch (ArticleKey article) \(Article a) -> Article (a { lead = lead })
 
 onArticleContentCorrected :: ∀ fx. ArticleContentCorrected.Payload -> Run (GET_ARTICLE_PROJECTION_WRITE_OPS fx) Ɩ
 onArticleContentCorrected { article, content } = patch (ArticleKey article) \(Article a) -> Article (a { content = content })

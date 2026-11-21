@@ -18,7 +18,6 @@ import Data.Traversable (traverse_)
 import Effect.Aff (delay, Milliseconds(..), attempt)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Foreign as Foreign
-import Infra.Cache.Fs.Cache (cacheDir)
 import Infra.Client.Postgres.Postgres (READER_POSTGRES_EDGE_CLIENT, READER_POSTGRES_STORE_CLIENT, askEdgeConfig)
 import Infra.Client.Postgres.Postgres as Postgres
 import Infra.EventStore.Postgres.EventStore (loadProjectionEvents)
@@ -31,6 +30,7 @@ import Run (AFF, EFFECT, Run)
 import Run.State as Run
 import Type.Row (type (+))
 import Util.Aff (ʌ')
+import Util.File.Path (_rootDirAbsolutePath)
 import Util.Json.String (readStringImpl, writeStringImpl)
 import Util.Log.Info (info)
 import Util.Signal (READER_SIGNAL_REF, considerSignal)
@@ -41,6 +41,17 @@ import Yoga.JSON (class ReadForeign, class WriteForeign, readImpl, writeImpl, re
 
 projectionSchemaName :: ∀ @name. IsSymbol name => String
 projectionSchemaName = "proj_" <> caseToSnake (ᴠ @name)
+
+-- | Projection hash mirrors have a different lifecycle from query cache
+-- | entries, so they live in their own shared directory.
+modelHashDir :: String
+modelHashDir = _rootDirAbsolutePath <> "var/api/proj"
+
+ensureModelHashDir :: ∀ fx. Run (EFFECT + AFF + fx) Ɩ
+ensureModelHashDir = ʌ' do
+  ø $ attempt $ FS.mkdir (_rootDirAbsolutePath <> "var")
+  ø $ attempt $ FS.mkdir (_rootDirAbsolutePath <> "var/api")
+  ø $ attempt $ FS.mkdir modelHashDir
 
 -- | Run projection in infinite loop
 project'
@@ -325,7 +336,16 @@ getReadModelHash_ name mKey = do
   case mCachedHash of
     Just cachedHash -> η cachedHash
     Nothing -> do
-      case mKey of
+      -- A key-scoped mirror can be absent after a cache cleanup or before the
+      -- first write of that entity. Falling back to the global mirror keeps
+      -- the invalidation version tied to projection updates instead of freezing
+      -- it to a constant.
+      mGlobalHash <- case mKey of
+        Nothing -> η Nothing
+        Just _ -> readModelHashCacheMirror schema Nothing
+
+      case mGlobalHash of
+        Just globalHash -> η globalHash
         Nothing -> do
           ensureProjectionsTable schema
 
@@ -342,7 +362,6 @@ getReadModelHash_ name mKey = do
                   η newHash
                 Left _ -> η "0@0"
             _ -> η "0@0"
-        Just _ -> η "0@0"
 
 readModelHashCacheMirror :: ∀ fx. String -> Maybe Key -> Run (EFFECT + AFF + fx) (Maybe String)
 readModelHashCacheMirror schema mKey = do
@@ -359,7 +378,7 @@ readModelHashCacheMirror schema mKey = do
         tryRead ks = do
           let k = Array.head ks ??⇒ ""
           let rest = Array.drop 1 ks
-          res <- ʌ' $ attempt $ FS.readTextFile UTF8 (cacheDir <> "/" <> schema <> "_" <> plural <> "_" <> k <> "_hash.json")
+          res <- ʌ' $ attempt $ FS.readTextFile UTF8 (modelHashDir <> "/" <> schema <> "_" <> plural <> "_" <> k <> "_hash.json")
           case res of
             Right s -> case readJSON s of
               Right json -> case Control.Monad.Except.runExcept (readImpl json) of
@@ -371,7 +390,7 @@ readModelHashCacheMirror schema mKey = do
       tryRead searchKeys
 
     Nothing -> do
-      res <- ʌ' $ attempt $ FS.readTextFile UTF8 (cacheDir <> "/" <> schema <> "_hash.json")
+      res <- ʌ' $ attempt $ FS.readTextFile UTF8 (modelHashDir <> "/" <> schema <> "_hash.json")
       case res of
         Right s -> case readJSON s of
           Right json -> case Control.Monad.Except.runExcept (readImpl json) of
@@ -384,6 +403,7 @@ readModelHashCacheMirror schema mKey = do
 -- | This is used to avoid querying the database for the model hash on every cache invalidation.
 writeModelHashCacheMirror :: ∀ fx. String -> Maybe Key -> String -> Run (EFFECT + AFF + fx) Ɩ
 writeModelHashCacheMirror schema mKey hash = do
+  ensureModelHashDir
   let content = writeJSON $ writeImpl { hash }
   case mKey of
     Just key -> do
@@ -393,6 +413,6 @@ writeModelHashCacheMirror schema mKey hash = do
         plural = caseToSnake innerKey.pluralType
 
       searchKeys # traverse_ \k -> do
-        ø $ ʌ' $ attempt $ FS.writeTextFile UTF8 (cacheDir <> "/" <> schema <> "_" <> plural <> "_" <> k <> "_hash.json") content
+        ø $ ʌ' $ attempt $ FS.writeTextFile UTF8 (modelHashDir <> "/" <> schema <> "_" <> plural <> "_" <> k <> "_hash.json") content
     Nothing -> do
-      ø $ ʌ' $ attempt $ FS.writeTextFile UTF8 (cacheDir <> "/" <> schema <> "_hash.json") content
+      ø $ ʌ' $ attempt $ FS.writeTextFile UTF8 (modelHashDir <> "/" <> schema <> "_hash.json") content

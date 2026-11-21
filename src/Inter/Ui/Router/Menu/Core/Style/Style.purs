@@ -23,7 +23,7 @@ import Util.Power (isPowerful)
 import Util.Style.Position (positionFixed, left0, top0)
 import Util.Style.Classname (classes, generateStaticClass, inferInstanceClass, refineClass')
 import Util.Style.Effect (backdropFilter, borderRightWidth, borderStyle, boxShadow)
-import Util.Style.Layout (boxSizingBorderBox, displayFlex, heightAuto, heightPct100, marginBottom, maxWidthPct100, overflowAuto, padding1, visibilityHidden, visibilityVisible, widthPct100, widthRem)
+import Util.Style.Layout (boxSizingBorderBox, displayFlex, heightAuto, heightPct100, marginBottom, maxWidthPct100, overflowXHidden, overflowYAuto, padding1, visibilityHidden, visibilityVisible, widthPct100, widthRem)
 import Util.Style.MediaQuery (onTabletLte)
 import Util.Style.Selector ((.?), (.*))
 import Util.Style.Transition (transitions)
@@ -76,7 +76,8 @@ staticStyle = do
     borderStyle solid
     borderColor $ rgba 255 235 235 0.7
     boxShadow 2.0 0.0 5.0 $ rgba 0 0 0 0.12
-    overflowAuto
+    overflowXHidden
+    overflowYAuto
     widthRem 34.0
     padding1 2.4
     maxWidthPct100

@@ -126,6 +126,7 @@ play { event } = case event of
   BookCoverCorrected _ -> ηι
   ArticleTitleCorrected _ -> ηι
   ArticleContentCorrected _ -> ηι
+  ArticleLeadCorrected _ -> ηι
   AuthorBiographyCorrected _ -> ηι
   MagazineIssueDereferenced _ -> ηι
   EditorReferenced _ -> ηι

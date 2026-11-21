@@ -8,9 +8,10 @@ import Core.Mod.Article.State as Article
 
 play :: State -> LoadedEvent -> State
 play state { event } = case event of
-  ArticleWritten { title, content } -> state { article = Article.Written { title, content } }
+  ArticleWritten { title, lead, content } -> state { article = Article.Written { title, lead, content } }
   ArticleDiscarded _ -> state { article = Article.Discarded }
   ArticleTitleCorrected { title } -> state { article = state.article <#> (_ { title = title }) }
+  ArticleLeadCorrected { lead } -> state { article = state.article <#> (_ { lead = lead }) }
   ArticleContentCorrected { content } -> state { article = state.article <#> (_ { content = content }) }
 
   _ -> state

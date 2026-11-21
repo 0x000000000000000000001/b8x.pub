@@ -19,8 +19,10 @@ import Core.Mod.Html.Html as Html
 import Core.Mod.Url.Url (Url)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
+import Data.Traversable (traverse)
 import Run (Run)
 import Type.Row (type (+))
+import Util.Type.String.ToString (toString)
 
 decide
   :: ∀ fx
@@ -29,14 +31,15 @@ decide
   -> Run (DOWNLOAD + UPLOAD + EXCEPT_LOGIC + fx) (Array Event)
 decide
   { article }
-  { id, title: titleCorrection, content: contentCorrection } = checkArticle
+  { id, title: titleCorrection, lead: leadCorrection, content: contentCorrection } = checkArticle
   where
   checkArticle :: Run (DOWNLOAD + UPLOAD + EXCEPT_LOGIC + fx) (Array Event)
   checkArticle = case article of
     Article.Written current -> do
       titleEvent <- evaluateTitle current
+      leadEvent <- evaluateLead current
       contentEvent <- evaluateContent current
-      η $ Array.catMaybes [ titleEvent, contentEvent ]
+      η $ Array.catMaybes [ titleEvent, leadEvent, contentEvent ]
     _ -> throw $ ArticleNotWritten id
 
   evaluateTitle :: ArticleData -> Run (DOWNLOAD + UPLOAD + EXCEPT_LOGIC + fx) (Maybe Event)
@@ -44,6 +47,17 @@ decide
     AsIs -> η Nothing
     Corrected title ->
       η $ currentTitle == title ? Nothing ↔ Just (ArticleTitleCorrected { article: id, title })
+
+  evaluateLead :: ArticleData -> Run (DOWNLOAD + UPLOAD + EXCEPT_LOGIC + fx) (Maybe Event)
+  evaluateLead { lead: currentLead } = case leadCorrection of
+    AsIs -> η Nothing
+    Corrected lead -> do
+      correctedLead <- traverse uploadLeadHtml lead
+      η $ currentLead == correctedLead ? Nothing ↔ Just (ArticleLeadCorrected { article: id, lead: correctedLead })
+
+  uploadLeadHtml :: Html.NonEmptyHtml -> Run (DOWNLOAD + UPLOAD + EXCEPT_LOGIC + fx) Html.NonEmptyHtml
+  uploadLeadHtml lead =
+    Html.unsafeFromString <$> Upload.uploadHtmlImages true (toString lead)
 
   evaluateContent :: ArticleData -> Run (DOWNLOAD + UPLOAD + EXCEPT_LOGIC + fx) (Maybe Event)
   evaluateContent { content: currentContent } = case contentCorrection of

@@ -6,7 +6,7 @@ import CSS as CSS
 import DOM.HTML.Indexed (HTMLdiv)
 import Halogen.HTML (HTML, Node, div)
 import Util.Style.Classname (classes, generateStaticClass)
-import Util.Style.Layout (flexGrow1, overflowHidden, widthRem)
+import Util.Style.Layout (flexGrow1, overflowHidden, widthPct100)
 import Util.Style.Effect (cursorPointer)
 import Util.Style.Selector ((.?))
 
@@ -20,7 +20,7 @@ staticStyle :: CSS.CSS
 staticStyle = do
   staticClass .? do
     flexGrow1
-    widthRem 30.0
+    widthPct100
     overflowHidden
     cursorPointer
 

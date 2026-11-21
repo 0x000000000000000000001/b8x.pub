@@ -211,6 +211,7 @@ play { event } = case event of
   BookCoverCorrected payload -> onBookCoverCorrected payload
   ArticleTitleCorrected _ -> ηι
   ArticleContentCorrected _ -> ηι
+  ArticleLeadCorrected _ -> ηι
   AuthorBiographyCorrected _ -> ηι
   AuthorReferenced _ -> ηι
   AuthorDereferenced _ -> ηι

@@ -29,10 +29,9 @@ import Effect.Aff (attempt)
 import Foreign.Object as Object
 import Infra.Client.Postgres.Postgres (READER_POSTGRES_EDGE_CLIENT, READER_POSTGRES_STORE_CLIENT)
 import Infra.Client.Postgres.Postgres as Postgres
-import Infra.Cache.Fs.Cache (cacheDir)
 import Node.FS.Aff as FS
 import Infra.Projection.CopyOnWrite (CopyOnWrite, ProjectionPersist(..), Value(..))
-import Infra.Projection.Projector (project_, projectionSchemaName, writeModelHashCacheMirror)
+import Infra.Projection.Projector (modelHashDir, project_, projectionSchemaName, writeModelHashCacheMirror)
 import Prim.Row as Row
 import Prim.Symbol (class Append)
 import Run (AFF, EFFECT, Run)
@@ -150,7 +149,7 @@ handleProjectionWriteCopyPersist (Persist next) = do
       let allKeys = [ primaryKey ] <> deletedAliases
 
       allKeys # traverse_ \k -> do
-        let hashFileName = cacheDir <> "/" <> caseToSnake (projectionSchemaName @name) <> "_" <> caseToSnake innerKey.pluralType <> "_" <> k <> "_hash.json"
+        let hashFileName = modelHashDir <> "/" <> caseToSnake (projectionSchemaName @name) <> "_" <> caseToSnake innerKey.pluralType <> "_" <> k <> "_hash.json"
         ø $ ʌ' $ attempt $ FS.unlink hashFileName
 
     _ -> ηι
